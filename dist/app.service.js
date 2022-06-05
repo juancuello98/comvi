@@ -6,15 +6,25 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppService = void 0;
+exports.AppService = exports.Country = void 0;
 const common_1 = require("@nestjs/common");
+var Country;
+(function (Country) {
+    Country["PE"] = "Peru";
+    Country["CO"] = "Colombia";
+    Country["AR"] = "Argentina";
+})(Country = exports.Country || (exports.Country = {}));
 let AppService = class AppService {
-    getHello() {
-        const response = {
-            message: "Hola Mundo",
-            statusCode: 200,
+    getUser() {
+        const user = {
+            username: 'juancuello98',
+            password: 'assfg99Agkzx54',
+            country: Country.AR,
+            address: 'Asturias 3023, Cordoba, Cordoba',
+            origin: 'Cordoba',
+            destination: 'Buenos Aires'
         };
-        return response;
+        return user;
     }
 };
 AppService = __decorate([

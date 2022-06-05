@@ -17,11 +17,11 @@ let AppController = class AppController {
         this.appService = appService;
     }
     getHello() {
-        return this.appService.getHello();
+        return this.appService.getUser();
     }
 };
 __decorate([
-    (0, common_1.Get)('holaMundo'),
+    (0, common_1.Get)('user'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Object)
