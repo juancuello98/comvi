@@ -9,23 +9,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateUserDto = void 0;
+exports.RegisterAuthDto = void 0;
+const mapped_types_1 = require("@nestjs/mapped-types");
+const login_auth_dto_1 = require("./login-auth.dto");
 const class_validator_1 = require("class-validator");
-class CreateUserDto {
+class RegisterAuthDto extends (0, mapped_types_1.PartialType)(login_auth_dto_1.LoginAuthDTO) {
 }
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreateUserDto.prototype, "name", void 0);
+], RegisterAuthDto.prototype, "name", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
-    (0, class_validator_1.IsInt)(),
-    __metadata("design:type", Number)
-], CreateUserDto.prototype, "age", void 0);
-__decorate([
-    (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreateUserDto.prototype, "description", void 0);
-exports.CreateUserDto = CreateUserDto;
-//# sourceMappingURL=create-user.dto.js.map
+], RegisterAuthDto.prototype, "lastName", void 0);
+exports.RegisterAuthDto = RegisterAuthDto;
+//# sourceMappingURL=register-auth-dto.js.map

@@ -9,26 +9,18 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppController = void 0;
-const common_1 = require("@nestjs/common");
-const app_service_1 = require("./app.service");
-let AppController = class AppController {
-    constructor(appService) {
-        this.appService = appService;
-    }
-    getHello() {
-        return this.appService.getUser();
-    }
-};
+exports.LoginAuthDTO = void 0;
+const class_validator_1 = require("class-validator");
+class LoginAuthDTO {
+}
 __decorate([
-    (0, common_1.Get)('user'),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", Object)
-], AppController.prototype, "getHello", null);
-AppController = __decorate([
-    (0, common_1.Controller)(),
-    __metadata("design:paramtypes", [app_service_1.AppService])
-], AppController);
-exports.AppController = AppController;
-//# sourceMappingURL=app.controller.js.map
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", String)
+], LoginAuthDTO.prototype, "email", void 0);
+__decorate([
+    (0, class_validator_1.MinLength)(8),
+    (0, class_validator_1.MaxLength)(14),
+    __metadata("design:type", String)
+], LoginAuthDTO.prototype, "password", void 0);
+exports.LoginAuthDTO = LoginAuthDTO;
+//# sourceMappingURL=login-auth.dto.js.map

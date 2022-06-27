@@ -1,26 +1,42 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { HttpException, Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { hash, compare } from 'bcrypt';
+import { Model } from 'mongoose';
+import { User } from '../users/entities/user.entity';
+import { UsersDocument } from '../users/schema/users.schema';
+import { LoginAuthDTO } from './dto/login-auth.dto';
+import { RegisterAuthDto } from './dto/register-auth-dto';
+import { MESSAGE_REQ } from './enums/enum-auth';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  constructor(
+    @InjectModel(User.name) private readonly userModel: Model<UsersDocument>,
+  ) {}
+
+  async register(userObject: RegisterAuthDto) {
+
+    const { password } = userObject;
+    const hashPass = await hash(password, 10);
+    userObject = { ...userObject, password: hashPass };
+    const userCreated = await this.userModel.create(userObject);
+
+    return userCreated;
   }
 
-  findAll() {
-    return `This action returns all auth`;
-  }
+  async login(userObjectLogin: LoginAuthDTO) {
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+    const { email, password } = userObjectLogin;
+    const findUser = await this.userModel.findOne({ email });
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+    if (!findUser) new HttpException('USER_NOT_FOUND', 404);
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    const checkPassword = await compare(password, findUser.password);
+
+    if (!checkPassword) new HttpException('PASSWORD_INCORRECT', 403);
+    
+    const data = { success : true , message: MESSAGE_REQ.MESSAGE_200}
+
+    return data;
   }
 }
