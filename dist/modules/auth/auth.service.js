@@ -6,18 +6,27 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppModule = void 0;
+exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
-const auth_module_1 = require("./modules/auth/auth.module");
-const users_module_1 = require("./modules/users/users.module");
-let AppModule = class AppModule {
+let AuthService = class AuthService {
+    create(createAuthDto) {
+        return 'This action adds a new auth';
+    }
+    findAll() {
+        return `This action returns all auth`;
+    }
+    findOne(id) {
+        return `This action returns a #${id} auth`;
+    }
+    update(id, updateAuthDto) {
+        return `This action updates a #${id} auth`;
+    }
+    remove(id) {
+        return `This action removes a #${id} auth`;
+    }
 };
-AppModule = __decorate([
-    (0, common_1.Module)({
-        imports: [auth_module_1.AuthModule, users_module_1.UsersModule],
-        controllers: [],
-        providers: [],
-    })
-], AppModule);
-exports.AppModule = AppModule;
-//# sourceMappingURL=app.module.js.map
+AuthService = __decorate([
+    (0, common_1.Injectable)()
+], AuthService);
+exports.AuthService = AuthService;
+//# sourceMappingURL=auth.service.js.map
