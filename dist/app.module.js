@@ -11,7 +11,14 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const auth_module_1 = require("./modules/auth/auth.module");
 const users_module_1 = require("./modules/users/users.module");
+const auth_firebase_middleware_1 = require("./modules/auth-firebase/auth-firebase.middleware");
 let AppModule = class AppModule {
+    configure(consumer) {
+        consumer.apply(auth_firebase_middleware_1.AuthFirebaseMiddleware).forRoutes({
+            path: '*',
+            method: common_1.RequestMethod.ALL
+        });
+    }
 };
 AppModule = __decorate([
     (0, common_1.Module)({

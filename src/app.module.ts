@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-
+import { AuthFirebaseMiddleware } from './modules/auth-firebase/auth-firebase.middleware'
 @Module({
   imports: [
     AuthModule, 
@@ -12,4 +12,11 @@ import { UsersModule } from './modules/users/users.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer){
+    consumer.apply(AuthFirebaseMiddleware).forRoutes({
+      path: '*',
+      method: RequestMethod.ALL
+    })
+  }
+}

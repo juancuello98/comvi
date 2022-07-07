@@ -25,6 +25,7 @@
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Request } from 'express';
 export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
@@ -37,4 +38,5 @@ export declare class UsersController {
     findOne(id: string): string;
     update(id: string, updateUserDto: UpdateUserDto): string;
     remove(id: string): string;
+    getFirebase(request: Request): string;
 }

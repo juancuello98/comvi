@@ -37,6 +37,9 @@ let UsersController = class UsersController {
     remove(id) {
         return this.usersService.remove(+id);
     }
+    getFirebase(request) {
+        return 'Hello ' + request['user'] + ' !';
+    }
 };
 __decorate([
     (0, common_1.Post)(),
@@ -73,6 +76,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], UsersController.prototype, "remove", null);
+__decorate([
+    (0, common_1.Post)('firebase'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", String)
+], UsersController.prototype, "getFirebase", null);
 UsersController = __decorate([
     (0, swagger_1.ApiTags)('users'),
     (0, common_1.Controller)('users'),
