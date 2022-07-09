@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { User, UsersDocument } from './schema/users.schema';
+import { CreateUserDto } from '../configs/DTOs/create-user.dto';
+import { UpdateUserDto } from '../configs/DTOs/update-user.dto';
+import { User, UserDocument } from '../dbconfig/schemas';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private usersModule: Model<UsersDocument>)
+  constructor(@InjectModel(User.name) private usersModule: Model<UserDocument>)
   {
 
   };
