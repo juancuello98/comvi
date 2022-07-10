@@ -15,6 +15,9 @@ export class Register {
   @Prop({required: true}) // para propiedades requeridas
   name: string;
 
+  @Prop({required: true}) // para propiedades requeridas
+  lastname: string;
+
   @Prop({unique:true})
   email: string;
 
@@ -23,6 +26,9 @@ export class Register {
 
   @Prop({required: true})
   verificationCode: number;
+
+  @Prop({required: true})
+  statusVerification: string;
 
 }
 

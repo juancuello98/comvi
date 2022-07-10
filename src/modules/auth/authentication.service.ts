@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
 import { hash, compare } from 'bcrypt';
 import { LoginAuthDTO } from '../configs/DTOs/login-auth.dto';
 import { RegisterAuthDto } from '../configs/DTOs/register-auth-dto';
@@ -8,6 +7,7 @@ import { DbconfigService } from '../dbconfig/dbconfig.service';
 import { MailService } from '../mailer/mail.service';
 import { VERIFICATION_CODE_STATUS } from '../configs/enums/enum-auth';
 import { User } from '../configs/entities/entities';
+import { Register, RegisterDocument } from '../dbconfig/schemas';
 
 @Injectable()
 export class AuthService {
@@ -24,25 +24,33 @@ export class AuthService {
       console.log('exist', exist);
 
       if (!exist) {
-        const { password } = register;
+
+        const newRegister = new Register();
+
+        const { password , email , name, lastName, username } = register;
 
         const hashPass = await hash(password, 10);
 
-        register = { ...register, password: hashPass };
+        newRegister.password = hashPass;
+        newRegister.email = email;
+        newRegister.name = name;
+        newRegister.lastname = lastName;
+        newRegister.username = username;
 
-        register.verificationCode =
-          await this.generateAndSendEmailCodeVerification();
+        newRegister.verificationCode = await this.generateAndSendEmailCodeVerification();
 
         await this.sendEmailCodeVerification(
-          register.email,
-          register.name,
-          register.verificationCode,
+          newRegister.email,
+          newRegister.name,
+          newRegister.verificationCode
         );
 
-        register.statusVerification = VERIFICATION_CODE_STATUS.IN_PROGRESS;
-        const registerCreated = await this.dbconfig.createOneRegister(register);
+        newRegister.statusVerification = VERIFICATION_CODE_STATUS.IN_PROGRESS;
+
+        const registerCreated = await this.dbconfig.createOneRegister(newRegister);
 
         return registerCreated;
+
       } else {
         const userAlreadyExist = {
           message: MESSAGE_RES.userAlreadyExist,
@@ -85,47 +93,40 @@ export class AuthService {
     return data;
   }
 
-  //TODO: Verificacion de Email
+  //TODO: Verificacion de existencia de Email ya registrado
   async validationEmail(emailUser: string) {
-    const findUsersResponse = await this.dbconfig.checkExistOneInUsers(
-      emailUser,
-    );
-    const findeRegisterResponse = await this.dbconfig.checkExistInRegisters(
-      emailUser,
-    );
+    const findUsersResponse = await this.dbconfig.checkExistOneInUsers({
+      email: emailUser
+    });
+    const findeRegisterResponse = await this.dbconfig.checkExistInRegisters({email: emailUser});
 
     if (!findUsersResponse && !findeRegisterResponse) return false;
     return true;
   }
 
-  async validationCode(register: RegisterAuthDto) {
-    const validated = await this.dbconfig.validateTokenEmail(register.verificationCode,
-      register.email,
-    );
+  async validationCode(register: RegisterAuthDto, code: number) {
 
-    if(validated){
+    const registerCreated : RegisterDocument = await this.dbconfig.registerFindOne({email: register.email});
+    const validated = registerCreated.verificationCode == code ? true : false;
+
+    if (validated) {
       // Aca falta actualizar el register en VERIFICADO cuando es valido, y eliminar el codigo que tiene , desp traer los datos para armar el usuario
-      const registerCreated = await this.dbconfig.getRegister(register.email)
-
       const newUser = new User();
 
-      newUser.username = registerCreated.username;
-      newUser.name = registerCreated.name;
-      newUser.password = registerCreated.password;
-      newUser.email = registerCreated.email;
+      newUser.username = registerCreated?.username;
+      newUser.name = registerCreated?.name;
+      newUser.password = registerCreated?.password;
+      newUser.email = registerCreated?.email;
 
       const userCreated = await this.dbconfig.createOneUser(newUser);
       return userCreated;
-
     }
 
-    const userAlreadyExist = {
+    const invalidCode = {
       message: MESSAGE_RES.invalid_code,
       statusCode: HttpStatus.NOT_FOUND,
     };
 
-    return userAlreadyExist;
-
-
+    return invalidCode;
   }
 }

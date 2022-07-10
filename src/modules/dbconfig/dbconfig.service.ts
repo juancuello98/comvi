@@ -16,13 +16,13 @@ export class DbconfigService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
-  async checkExistOneInUsers(arg: string) {
-    const resp = this.userModel.exists({ email: arg });
+  async checkExistOneInUsers(condition: any) {
+    const resp = this.userModel.exists(condition);
     return resp;
   }
 
-  async checkExistInRegisters(arg: string) {
-    const resp = this.registerModel.exists({ email: arg });
+  async checkExistInRegisters(condition: any) {
+    const resp = this.registerModel.exists(condition);
     return resp;
   }
 
@@ -31,14 +31,8 @@ export class DbconfigService {
     return created;
   }
 
-  async validateTokenEmail(code: number, mailUser: string) {
-    const resp = await this.registerModel.findOne({ email: mailUser });
-    if(!resp && !resp.email) return resp.verificationCode == code ? true : false;
-    return false;
-  }
-
-  async getRegister(emailRegister: string){
-    const resp = await this.registerModel.findOne({email: emailRegister});
+  async registerFindOne(condition: any) {
+    const resp = await this.registerModel.findOne(condition);
     return resp;
   }
 

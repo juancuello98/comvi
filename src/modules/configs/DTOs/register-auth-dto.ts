@@ -9,8 +9,7 @@ export class RegisterAuthDto extends PartialType(LoginAuthDTO) {
     @IsNotEmpty()
     lastName: string
 
-    @IsOptional()
-    verificationCode: number
+    @IsNotEmpty()
+    username: string
 
-    statusVerification : string 
 }

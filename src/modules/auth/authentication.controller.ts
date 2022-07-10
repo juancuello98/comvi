@@ -16,10 +16,10 @@ export class AuthController {
     return this.authService.register(userObject);
   }
 
-  @Post('validate/token')
-  validateTokenEmail(@Body() registerObject: RegisterAuthDto) {
+  @Post('validate/token/:code')
+  validateTokenEmail(@Body() registerObject: RegisterAuthDto, @Param('code') code : number) {
     console.log('[VALIDATE_TOKEN_EMAIL]');
-    return this.authService.validationCode(registerObject);
+    return this.authService.validationCode(registerObject, code);
   }
 
   @Post('login')
