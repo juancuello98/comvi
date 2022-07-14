@@ -13,6 +13,7 @@ const authentication_module_1 = require("./modules/auth/authentication.module");
 const users_module_1 = require("./modules/users/users.module");
 const auth_firebase_middleware_1 = require("./modules/auth-firebase/auth-firebase.middleware");
 const mail_module_1 = require("./modules/mailer/mail.module");
+const auth_firebase_module_1 = require("./modules/auth-firebase/auth-firebase.module");
 let AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(auth_firebase_middleware_1.AuthFirebaseMiddleware).forRoutes({
@@ -26,7 +27,7 @@ AppModule = __decorate([
         imports: [
             authentication_module_1.AuthModule,
             users_module_1.UsersModule,
-            mongoose_1.MongooseModule.forRoot('mongodb+srv://comvi2022:comviadmin123@cluster0.tplmj.mongodb.net/?retryWrites=true&w=majority'), mail_module_1.MailModule
+            mongoose_1.MongooseModule.forRoot('mongodb+srv://comvi2022:comviadmin123@cluster0.tplmj.mongodb.net/?retryWrites=true&w=majority'), mail_module_1.MailModule, auth_firebase_module_1.AuthFirebaseModule
         ],
         controllers: [],
         providers: [],

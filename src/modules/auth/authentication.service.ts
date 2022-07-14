@@ -9,12 +9,14 @@ import { VERIFICATION_CODE_STATUS } from '../configs/enums/enum-auth';
 import { User } from '../configs/entities/entities';
 import { Register, RegisterDocument } from '../dbconfig/schemas';
 
+
 @Injectable()
 export class AuthService {
   constructor(
     private dbconfig: DbconfigService,
     private mailService: MailService,
-  ) {}
+  ) {
+  }
 
   //TODO: Registro del usuario
   async register(register: RegisterAuthDto) {
@@ -24,10 +26,9 @@ export class AuthService {
       console.log('exist', exist);
 
       if (!exist) {
-
         const newRegister = new Register();
 
-        const { password , email , name, lastName, username } = register;
+        const { password, email, name, lastName, username } = register;
 
         const hashPass = await hash(password, 10);
 
@@ -37,20 +38,22 @@ export class AuthService {
         newRegister.lastname = lastName;
         newRegister.username = username;
 
-        newRegister.verificationCode = await this.generateAndSendEmailCodeVerification();
+        newRegister.verificationCode =
+          await this.generateAndSendEmailCodeVerification();
 
         await this.sendEmailCodeVerification(
           newRegister.email,
           newRegister.name,
-          newRegister.verificationCode
+          newRegister.verificationCode,
         );
 
         newRegister.statusVerification = VERIFICATION_CODE_STATUS.IN_PROGRESS;
 
-        const registerCreated = await this.dbconfig.createOneRegister(newRegister);
+        const registerCreated = await this.dbconfig.createOneRegister(
+          newRegister,
+        );
 
         return registerCreated;
-
       } else {
         const userAlreadyExist = {
           message: MESSAGE_RES.userAlreadyExist,
@@ -79,16 +82,16 @@ export class AuthService {
 
   //TODO: Login del usuario
   async login(userObjectLogin: LoginAuthDTO) {
-    const { email } = userObjectLogin;
-    const findUser = await this.dbconfig.checkExistOneInUsers(email);
+    const { email , password } = userObjectLogin;
+    const findUser = await this.dbconfig.checkExistOneInUsers({email: email});
 
     if (!findUser) new HttpException('USER_NOT_FOUND', 404);
 
-    //const checkPassword = await compare(password, findUser?.password);
+    const checkPassword = await compare(password, findUser._id.password,()=>{return true});
 
-    //if (!checkPassword) new HttpException('PASSWORD_INCORRECT', 403);
+    if (!checkPassword) new HttpException('PASSWORD_INCORRECT', 403);
 
-    const data = { success: true, message: '200' };
+    const data = { success: true, message: '200'};
 
     return data;
   }
@@ -96,17 +99,19 @@ export class AuthService {
   //TODO: Verificacion de existencia de Email ya registrado
   async validationEmail(emailUser: string) {
     const findUsersResponse = await this.dbconfig.checkExistOneInUsers({
-      email: emailUser
+      email: emailUser,
     });
-    const findeRegisterResponse = await this.dbconfig.checkExistInRegisters({email: emailUser});
+    const findeRegisterResponse = await this.dbconfig.checkExistInRegisters({
+      email: emailUser,
+    });
 
     if (!findUsersResponse && !findeRegisterResponse) return false;
     return true;
   }
 
   async validationCode(register: RegisterAuthDto, code: number) {
-
-    const registerCreated : RegisterDocument = await this.dbconfig.registerFindOne({email: register.email});
+    const registerCreated: RegisterDocument =
+      await this.dbconfig.registerFindOne({ email: register.email });
     const validated = registerCreated.verificationCode == code ? true : false;
 
     if (validated) {

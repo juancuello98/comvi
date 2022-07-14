@@ -5,7 +5,7 @@ import {Request, Response } from 'express';
 import { Logger } from '@nestjs/common';
 
 
-const firebasParams = {
+export const firebaseParams = {
   private_key : serviceAccountJson.private_key,
   client_email: serviceAccountJson.client_email,
   apiKey: "AIzaSyAyixPNxfsSzuzRsxjlfstldQF4oggTXCc",
@@ -25,7 +25,7 @@ export class AuthFirebaseMiddleware implements NestMiddleware {
 
   constructor() {
     this.defatulApp = firebase.initializeApp({
-      credential: firebase.credential.cert(firebasParams),
+      credential: firebase.credential.cert(firebaseParams),
     });
   }
   async use(req: Request, res: Response, next: () => void) {
