@@ -1,17 +1,15 @@
 import { Module } from '@nestjs/common';
-import { DbconfigService } from './dbconfig.service';
-import { User, UserSchema ,Register, RegisterSchema} from '../dbconfig/schemas';
+import { MongoService, TypeOrmService } from './dbconfig.service';
+import { User, UserSchema} from '../dbconfig/schemas';
 import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: User.name, schema: UserSchema },
-      { name: Register.name, schema: RegisterSchema }])
-  ],
+      { name: User.name, schema: UserSchema }])],
   controllers: [],
-  providers: [DbconfigService],
-  exports: [DbconfigService]
+  providers: [MongoService, TypeOrmService],
+  exports: [MongoService, TypeOrmService]
 })
 
 export class DbConfigModule {}

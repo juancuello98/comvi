@@ -1,8 +1,11 @@
 export class User {
   username: string;
   name: string;
+  lastname: string;
   email: string;
   password: string;
+  verificationCode: number;
+  validated: string;
   trips: Trip[];
   locations: Location[];
   packages: Package[]

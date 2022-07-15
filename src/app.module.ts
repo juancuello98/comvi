@@ -17,10 +17,4 @@ import { AuthFirebaseModule } from './modules/auth-firebase/auth-firebase.module
   providers: [],
 })
 export class AppModule {
-  configure(consumer: MiddlewareConsumer){
-    consumer.apply(AuthFirebaseMiddleware).forRoutes({
-      path: '*',
-      method: RequestMethod.ALL
-    })
-  }
 }
