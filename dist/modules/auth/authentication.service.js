@@ -60,7 +60,7 @@ let AuthService = AuthService_1 = class AuthService {
     }
     async sendEmailCodeVerification(email, name, token) {
         const sended = await this.mailService.sendCodeVerification(email, name, token);
-        this.logger.log('Email enviado a: %s.', email, sended);
+        this.logger.log('Email enviado a:', email);
     }
     async generateAndSendEmailCodeVerification() {
         return 8080;
