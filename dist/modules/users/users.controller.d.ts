@@ -23,13 +23,13 @@
 /// <reference types="mongoose" />
 /// <reference types="mongoose/types/inferschematype" />
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from '../configs/DTOs/create-user.dto';
+import { UpdateUserDto } from '../configs/DTOs/update-user.dto';
 import { Request } from 'express';
 export declare class UsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
-    create(createUserDto: CreateUserDto): Promise<Omit<import("mongoose").MergeType<import("./schema/users.schema").UsersDocument, CreateUserDto>, "_id"> & Required<{
+    create(createUserDto: CreateUserDto): Promise<Omit<import("mongoose").MergeType<import("../dbconfig/schemas").UserDocument, CreateUserDto>, "_id"> & Required<{
         _id: any;
     }> & {
         _id: import("mongoose").Types.ObjectId;

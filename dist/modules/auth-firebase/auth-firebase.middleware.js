@@ -10,12 +10,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var AuthFirebaseMiddleware_1;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthFirebaseMiddleware = void 0;
+exports.AuthFirebaseMiddleware = exports.firebaseParams = void 0;
 const common_1 = require("@nestjs/common");
 const serviceAccountJson = require("./firebaseServiceAccount.json");
 const firebase = require("firebase-admin");
 const common_2 = require("@nestjs/common");
-const firebasParams = {
+exports.firebaseParams = {
     private_key: serviceAccountJson.private_key,
     client_email: serviceAccountJson.client_email,
     apiKey: "AIzaSyAyixPNxfsSzuzRsxjlfstldQF4oggTXCc",
@@ -30,7 +30,7 @@ let AuthFirebaseMiddleware = AuthFirebaseMiddleware_1 = class AuthFirebaseMiddle
     constructor() {
         this.logger = new common_2.Logger(AuthFirebaseMiddleware_1.name);
         this.defatulApp = firebase.initializeApp({
-            credential: firebase.credential.cert(firebasParams),
+            credential: firebase.credential.cert(exports.firebaseParams),
         });
     }
     async use(req, res, next) {

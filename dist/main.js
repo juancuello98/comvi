@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
-const core_1 = require("@nestjs/core");
+const nest_factory_1 = require("@nestjs/core/nest-factory");
 const swagger_1 = require("@nestjs/swagger");
 const app_module_1 = require("./app.module");
 async function bootstrap() {
-    const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    const app = await nest_factory_1.NestFactory.create(app_module_1.AppModule);
     const config = new swagger_1.DocumentBuilder()
         .setTitle('COMVI - REST API')
         .setDescription('REST API - Proyecto Final ISI UTN')

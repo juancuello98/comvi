@@ -22,13 +22,13 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Model } from 'mongoose';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { UsersDocument } from './schema/users.schema';
+import { CreateUserDto } from '../configs/DTOs/create-user.dto';
+import { UpdateUserDto } from '../configs/DTOs/update-user.dto';
+import { UserDocument } from '../dbconfig/schemas';
 export declare class UsersService {
     private usersModule;
-    constructor(usersModule: Model<UsersDocument>);
-    create(createUserDto: CreateUserDto): Promise<Omit<import("mongoose").MergeType<UsersDocument, CreateUserDto>, "_id"> & Required<{
+    constructor(usersModule: Model<UserDocument>);
+    create(createUserDto: CreateUserDto): Promise<Omit<import("mongoose").MergeType<UserDocument, CreateUserDto>, "_id"> & Required<{
         _id: any;
     }> & {
         _id: import("mongoose").Types.ObjectId;
