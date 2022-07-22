@@ -74,7 +74,7 @@ export class AuthService {
       name,
       token,
     );
-    this.logger.log('Email enviado a: %s.', email, sended)
+    this.logger.log('Email enviado a:', email)
   }
 
   async generateAndSendEmailCodeVerification() {
