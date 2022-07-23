@@ -15,7 +15,7 @@ async function bootstrap() {
     .addTag('users')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('comvi/docs', app, document);
+  SwaggerModule.setup('/', app, document);
 
   //TODO: Para que se active el uso de pipes
 
