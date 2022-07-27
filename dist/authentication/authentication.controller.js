@@ -46,6 +46,7 @@ __decorate([
 ], AuthController.prototype, "registerUser", null);
 __decorate([
     (0, common_1.Post)('validate/token'),
+    (0, common_1.HttpCode)(200),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [user_verification_dto_1.UserVerificationDTO]),
@@ -53,6 +54,7 @@ __decorate([
 ], AuthController.prototype, "validateTokenEmail", null);
 __decorate([
     (0, common_1.Post)('login'),
+    (0, common_1.HttpCode)(200),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [existing_user_dto_1.ExistingtUserDTO]),
@@ -61,6 +63,7 @@ __decorate([
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Post)('test'),
+    (0, common_1.HttpCode)(200),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [existing_user_dto_1.ExistingtUserDTO]),

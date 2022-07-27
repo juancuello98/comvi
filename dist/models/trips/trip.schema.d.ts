@@ -24,7 +24,18 @@
 import { Document } from 'mongoose';
 export declare type TripDocument = Trip & Document;
 export declare class Trip {
-    nombre: string;
-    coordenadas: string;
+    originId: string;
+    destinationId: string;
+    peopleCapacity: number;
+    driverId: string;
+    checkOut: string;
+    checkIn: string;
+    status: string;
+    passengers: string[];
+    paquetes: string[];
+    estimatedCosts: number;
+    kilometros: number;
+    requests: string[];
+    valuations: string[];
 }
 export declare const TripSchema: import("mongoose").Schema<Trip, import("mongoose").Model<Trip, any, any, any, any>, {}, {}, any, {}, "type", Trip>;

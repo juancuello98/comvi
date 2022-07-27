@@ -2,8 +2,8 @@ import { AuthService } from './authentication.service';
 import { ExistingtUserDTO } from '../models/users/dto/existing-user.dto';
 import { NewUserDTO } from '../models/users/dto/new-user.dto';
 import { UserVerificationDTO } from 'src/models/users/dto/user-verification.dto';
-import { UserDetails } from 'src/models/users/interfaces/user-details';
-import { UserValidated } from 'src/models/users/interfaces/user-validated';
+import { UserDetails } from 'src/models/users/interfaces/user-details.interface';
+import { UserValidated } from 'src/models/users/interfaces/user-validated.interface';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpCode } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger'
 
 import { AuthService } from './authentication.service';
@@ -7,8 +7,8 @@ import { ExistingtUserDTO } from '../models/users/dto/existing-user.dto';
 import { NewUserDTO } from '../models/users/dto/new-user.dto';
 import { UserVerificationDTO } from 'src/models/users/dto/user-verification.dto';
 
-import { UserDetails } from 'src/models/users/interfaces/user-details';
-import { UserValidated } from 'src/models/users/interfaces/user-validated';
+import { UserDetails } from 'src/models/users/interfaces/user-details.interface';
+import { UserValidated } from 'src/models/users/interfaces/user-validated.interface';
 
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 
@@ -24,17 +24,20 @@ export class AuthController {
   }
 
   @Post('validate/token')
+  @HttpCode(200)
   validateTokenEmail(@Body() user: UserVerificationDTO) :  Promise< UserValidated | any > {
     return this.authService.validationCode(user);
   }
 
   @Post('login')
+  @HttpCode(200)
   loginUser(@Body() user: ExistingtUserDTO): Promise<{ token: string } | null> {
     return this.authService.login(user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('test')
+  @HttpCode(200)
   testUser(@Body() user: ExistingtUserDTO) {
     return { email: user.email}
   }

@@ -9,41 +9,39 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TripSchema = exports.Trip = void 0;
-const mongoose_1 = require("@nestjs/mongoose");
-let Trip = class Trip {
-};
+exports.NewTripDTO = void 0;
+const mapped_types_1 = require("@nestjs/mapped-types");
+const class_validator_1 = require("class-validator");
+const existing_trip_dto_1 = require("./existing-trip.dto");
+class NewTripDTO extends (0, mapped_types_1.PartialType)(existing_trip_dto_1.ExistingtTripDTO) {
+}
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], Trip.prototype, "originId", void 0);
+], NewTripDTO.prototype, "origin", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], Trip.prototype, "destinationId", void 0);
+], NewTripDTO.prototype, "destination", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
-], Trip.prototype, "peopleCapacity", void 0);
+], NewTripDTO.prototype, "peopleCapacity", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], Trip.prototype, "driverId", void 0);
+], NewTripDTO.prototype, "driverEmail", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], Trip.prototype, "checkOut", void 0);
+], NewTripDTO.prototype, "checkOut", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], Trip.prototype, "checkIn", void 0);
+], NewTripDTO.prototype, "checkIn", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ required: true }),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], Trip.prototype, "status", void 0);
-Trip = __decorate([
-    (0, mongoose_1.Schema)()
-], Trip);
-exports.Trip = Trip;
-exports.TripSchema = mongoose_1.SchemaFactory.createForClass(Trip);
-//# sourceMappingURL=trip.schema.js.map
+], NewTripDTO.prototype, "status", void 0);
+exports.NewTripDTO = NewTripDTO;
+//# sourceMappingURL=new-trip.dto.js.map

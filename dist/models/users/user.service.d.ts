@@ -1,7 +1,7 @@
 import { Model } from 'mongoose';
 import { UserDocument } from '../users/user.schema';
-import { UserDetails } from './interfaces/user-details';
-import { UserValidated } from './interfaces/user-validated';
+import { UserDetails } from './interfaces/user-details.interface';
+import { UserValidated } from './interfaces/user-validated.interface';
 export declare class UserService {
     private readonly userModel;
     constructor(userModel: Model<UserDocument>);

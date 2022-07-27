@@ -10,10 +10,10 @@ import { UserService } from '../models/users/user.service';
 //DTOs
 import { ExistingtUserDTO } from '../models/users/dto/existing-user.dto';
 import { NewUserDTO } from '../models/users/dto/new-user.dto';
-import { UserDetails } from '../models/users/interfaces/user-details';
+import { UserDetails } from '../models/users/interfaces/user-details.interface';
 import { VERIFICATION_CODE_STATUS } from './authentication.enum';
 import { UserVerificationDTO } from '../models/users/dto/user-verification.dto';
-import { UserValidated } from 'src/models/users/interfaces/user-validated';
+import { UserValidated } from 'src/models/users/interfaces/user-validated.interface';
 
 @Injectable()
 export class AuthService {

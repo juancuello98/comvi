@@ -3,9 +3,9 @@ import { MailService } from '../config/mail/config.service';
 import { UserService } from '../models/users/user.service';
 import { ExistingtUserDTO } from '../models/users/dto/existing-user.dto';
 import { NewUserDTO } from '../models/users/dto/new-user.dto';
-import { UserDetails } from '../models/users/interfaces/user-details';
+import { UserDetails } from '../models/users/interfaces/user-details.interface';
 import { UserVerificationDTO } from '../models/users/dto/user-verification.dto';
-import { UserValidated } from 'src/models/users/interfaces/user-validated';
+import { UserValidated } from 'src/models/users/interfaces/user-validated.interface';
 export declare class AuthService {
     private mailService;
     private jwtService;
