@@ -1,7 +1,6 @@
 export declare class User {
     username: string;
     name: string;
-    lastname: string;
     email: string;
     password: string;
     verificationCode: number;

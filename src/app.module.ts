@@ -1,20 +1,24 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AuthModule } from './modules/auth/authentication.module';
-import { UsersModule } from './modules/users/users.module';
-import { AuthFirebaseMiddleware } from './modules/auth-firebase/auth-firebase.middleware'
-import { MailModule } from './modules/mailer/mail.module';
-import { AuthFirebaseModule } from './modules/auth-firebase/auth-firebase.module'
+import { ConfigModule } from '@nestjs/config';
+
+import { AuthModule } from './authentication/authentication.module';
+import { UserModule } from './models/users/user.module';
+import { MailModule } from './config/mail/config.module';
+
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
-    AuthFirebaseModule,
+    ConfigModule.forRoot({
+      isGlobal : true,
+    }),
+    MongooseModule.forRoot(process.env.MONGO_URL), 
+    MailModule,
     AuthModule, 
-    UsersModule, 
-    MongooseModule.forRoot('mongodb+srv://comvi2022:comviadmin123@cluster0.tplmj.mongodb.net/?retryWrites=true&w=majority'), MailModule, AuthFirebaseModule
+    UserModule, 
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController]
 })
 export class AppModule {
 }

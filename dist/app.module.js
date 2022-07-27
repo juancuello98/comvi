@@ -9,22 +9,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
-const authentication_module_1 = require("./modules/auth/authentication.module");
-const users_module_1 = require("./modules/users/users.module");
-const mail_module_1 = require("./modules/mailer/mail.module");
-const auth_firebase_module_1 = require("./modules/auth-firebase/auth-firebase.module");
+const config_1 = require("@nestjs/config");
+const authentication_module_1 = require("./authentication/authentication.module");
+const user_module_1 = require("./models/users/user.module");
+const config_module_1 = require("./config/mail/config.module");
+const app_controller_1 = require("./app.controller");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            auth_firebase_module_1.AuthFirebaseModule,
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+            }),
+            mongoose_1.MongooseModule.forRoot(process.env.MONGO_URL),
+            config_module_1.MailModule,
             authentication_module_1.AuthModule,
-            users_module_1.UsersModule,
-            mongoose_1.MongooseModule.forRoot('mongodb+srv://comvi2022:comviadmin123@cluster0.tplmj.mongodb.net/?retryWrites=true&w=majority'), mail_module_1.MailModule, auth_firebase_module_1.AuthFirebaseModule
+            user_module_1.UserModule,
         ],
-        controllers: [],
-        providers: [],
+        controllers: [app_controller_1.AppController]
     })
 ], AppModule);
 exports.AppModule = AppModule;
