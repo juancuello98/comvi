@@ -64,6 +64,9 @@ let UserService = class UserService {
         });
         return newUser.save();
     }
+    async update(user) {
+        return user.save();
+    }
 };
 UserService = __decorate([
     (0, common_1.Injectable)(),

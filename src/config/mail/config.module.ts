@@ -8,26 +8,26 @@ import { join } from 'path';
 @Module({
   imports: [
     MailerModule.forRoot(
-      {
-        transport: {
-          host: process.env.TRANSPORT_HOST,
-          secure: true,
-          auth:{
-            user:process.env.AUTH_USER,
-            pass:process.env.AUTH_PASS
+        {
+          transport: {
+            host: 'smtp.gmail.com',
+            secure: true,
+            auth:{
+              user:'comviapp@gmail.com',
+              pass:'upmbggzbdkuadnne'
+            },
           },
-        },
-        defaults: {
-          from:process.env.DEFAULT_ASUNTO,
-        },
-        template: {
-          dir: join(__dirname, 'templates'),
-          adapter: new HandlebarsAdapter(),
-          options: {
-            strict: true,
+          defaults: {
+            from: '"COMVI" <noreply@example.com>',
           },
-        },
-      }),
+          template: {
+            dir: join(__dirname, 'templates'),
+            adapter: new HandlebarsAdapter(),
+            options: {
+              strict: true,
+            },
+          },
+        }),
   ],
   providers: [MailService],
   exports:[MailService]

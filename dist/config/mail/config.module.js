@@ -20,15 +20,15 @@ MailModule = __decorate([
         imports: [
             mailer_1.MailerModule.forRoot({
                 transport: {
-                    host: process.env.TRANSPORT_HOST,
+                    host: 'smtp.gmail.com',
                     secure: true,
                     auth: {
-                        user: process.env.AUTH_USER,
-                        pass: process.env.AUTH_PASS
+                        user: 'comviapp@gmail.com',
+                        pass: 'upmbggzbdkuadnne'
                     },
                 },
                 defaults: {
-                    from: process.env.DEFAULT_ASUNTO,
+                    from: '"COMVI" <noreply@example.com>',
                 },
                 template: {
                     dir: (0, path_1.join)(__dirname, 'templates'),

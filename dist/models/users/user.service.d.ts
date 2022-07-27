@@ -11,4 +11,5 @@ export declare class UserService {
     findByEmail(email: string): Promise<UserDocument>;
     findById(id: string): Promise<UserDetails | null>;
     create(name: string, email: string, hashedPassword: string, username: string, validated: string, verificationCode: string): Promise<UserDocument>;
+    update(user: UserDocument): Promise<UserDocument>;
 }

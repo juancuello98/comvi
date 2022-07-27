@@ -1,11 +1,13 @@
-import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, Logger } from '@nestjs/common';
-
+import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
 export class MailService {
+    
+        
+    private readonly logger = new Logger(MailService.name)
+    
     constructor(
         private mailerService : MailerService,
-        private readonly logger = new Logger(MailService.name)
     ) {}
 
     async sendCodeVerification(email: string, name: string, token: number) {

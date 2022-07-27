@@ -14,6 +14,7 @@ const authentication_module_1 = require("./authentication/authentication.module"
 const user_module_1 = require("./models/users/user.module");
 const config_module_1 = require("./config/mail/config.module");
 const app_controller_1 = require("./app.controller");
+const app_service_1 = require("./app.service");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -25,9 +26,10 @@ AppModule = __decorate([
             mongoose_1.MongooseModule.forRoot(process.env.MONGO_URL),
             config_module_1.MailModule,
             authentication_module_1.AuthModule,
-            user_module_1.UserModule,
+            user_module_1.UserModule
         ],
-        controllers: [app_controller_1.AppController]
+        controllers: [app_controller_1.AppController],
+        providers: [app_service_1.AppService]
     })
 ], AppModule);
 exports.AppModule = AppModule;

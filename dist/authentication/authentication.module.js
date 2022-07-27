@@ -15,11 +15,13 @@ const jwt_1 = require("@nestjs/jwt");
 const settings_1 = require("../common/constants/settings");
 const jwt_strategy_1 = require("../common/strategies/jwt.strategy");
 const config_module_1 = require("../config/mail/config.module");
+const user_module_1 = require("../models/users/user.module");
 let AuthModule = class AuthModule {
 };
 AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            user_module_1.UserModule,
             config_module_1.MailModule,
             passport_1.PassportModule,
             jwt_1.JwtModule.register({

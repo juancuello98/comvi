@@ -145,7 +145,10 @@ export class AuthService {
 
     if(user.verificationCode.toString() !== code) throw new HttpException('Invalid or expired code.', HttpStatus.CONFLICT);
 
-    this.logger.log('Verificacion de email exitosa. Email: ' + email);
+    user.validated = VERIFICATION_CODE_STATUS.OK;
+    const userValidated = this.userService.update(user);
+
+    this.logger.log('Verificacion de email exitosa. Email: ' + email + '. ESTADO: ' + (await userValidated).validated);
 
     return this.userService._getUserValidatedOK(user);
   }

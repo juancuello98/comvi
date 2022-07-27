@@ -90,7 +90,9 @@ let AuthService = AuthService_1 = class AuthService {
         const user = await this.userService.findByEmail(email);
         if (user.verificationCode.toString() !== code)
             throw new common_1.HttpException('Invalid or expired code.', common_1.HttpStatus.CONFLICT);
-        this.logger.log('Verificacion de email exitosa. Email: ' + email);
+        user.validated = authentication_enum_1.VERIFICATION_CODE_STATUS.OK;
+        const userValidated = this.userService.update(user);
+        this.logger.log('Verificacion de email exitosa. Email: ' + email + '. ESTADO: ' + (await userValidated).validated);
         return this.userService._getUserValidatedOK(user);
     }
 };

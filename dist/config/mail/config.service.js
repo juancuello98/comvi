@@ -11,12 +11,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var MailService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MailService = void 0;
-const mailer_1 = require("@nestjs-modules/mailer");
 const common_1 = require("@nestjs/common");
+const mailer_1 = require("@nestjs-modules/mailer");
 let MailService = MailService_1 = class MailService {
-    constructor(mailerService, logger = new common_1.Logger(MailService_1.name)) {
+    constructor(mailerService) {
         this.mailerService = mailerService;
-        this.logger = logger;
+        this.logger = new common_1.Logger(MailService_1.name);
     }
     async sendCodeVerification(email, name, token) {
         const url = process.env.URL_BUTTON;
@@ -37,7 +37,7 @@ let MailService = MailService_1 = class MailService {
 };
 MailService = MailService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [mailer_1.MailerService, Object])
+    __metadata("design:paramtypes", [mailer_1.MailerService])
 ], MailService);
 exports.MailService = MailService;
 //# sourceMappingURL=config.service.js.map

@@ -68,4 +68,10 @@ export class UserService {
     });
     return newUser.save();
   }
+
+  async update(
+    user: UserDocument
+  ): Promise<UserDocument> {
+    return user.save();
+  }
 }
