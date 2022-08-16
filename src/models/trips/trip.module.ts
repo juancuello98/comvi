@@ -2,7 +2,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserModule } from '../users/user.module';
-
 import { TripController } from './trip.controller';
 import { Trip, TripSchema } from './trip.schema';
 import { TripService } from './trip.service';
