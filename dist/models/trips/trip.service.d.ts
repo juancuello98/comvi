@@ -1,8 +1,8 @@
 import { Model } from 'mongoose';
-import { TripDocument } from '../Trips/Trip.schema';
 import { TripDetails } from '../trips/interface/trips-details.interface';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { UserService } from '../users/user.service';
+import { TripDocument } from './trip.schema';
 export declare class TripService {
     private readonly tripModel;
     private readonly userService;

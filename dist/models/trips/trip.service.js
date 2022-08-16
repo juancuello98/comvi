@@ -17,8 +17,8 @@ exports.TripService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-const Trip_schema_1 = require("../Trips/Trip.schema");
 const user_service_1 = require("../users/user.service");
+const trip_schema_1 = require("./trip.schema");
 let TripService = TripService_1 = class TripService {
     constructor(tripModel, userService) {
         this.tripModel = tripModel;
@@ -74,7 +74,7 @@ let TripService = TripService_1 = class TripService {
 };
 TripService = TripService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(Trip_schema_1.Trip.name)),
+    __param(0, (0, mongoose_1.InjectModel)(trip_schema_1.Trip.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
         user_service_1.UserService])
 ], TripService);

@@ -2,10 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { Trip, TripDocument } from '../Trips/Trip.schema';
+
 import { TripDetails } from '../trips/interface/trips-details.interface';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { UserService } from '../users/user.service';
+import { Trip, TripDocument } from './trip.schema';
 
 @Injectable()
 export class TripService {
