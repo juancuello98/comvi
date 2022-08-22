@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 //Services
 import { MailService } from '../config/mail/config.service';
 import { UserService } from '../models/users/user.service';
+import { PasswordTokenService } from '../models/passwordToken/passwordToken.service';
 
 //DTOs
 import { ExistingtUserDTO } from '../models/users/dto/existing-user.dto';
@@ -14,6 +15,9 @@ import { UserDetails } from '../models/users/interfaces/user-details.interface';
 import { VERIFICATION_CODE_STATUS } from './authentication.enum';
 import { UserVerificationDTO } from '../models/users/dto/user-verification.dto';
 import { UserValidated } from 'src/models/users/interfaces/user-validated.interface';
+import { RequestResetPasswordDTO } from '../models/PasswordToken/dto/request-reset-password-dto';
+import { ResetPasswordDTO } from '../models/PasswordToken/dto/reset-password-dto';
+import { PasswordTokenDTO } from '../models/PasswordToken/dto/token-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +27,7 @@ export class AuthService {
     private mailService: MailService,
     private jwtService: JwtService,
     private userService: UserService,
+    private passwordTokenService: PasswordTokenService
   ) {}
 
   async hashPassword(password: string): Promise<string> {
@@ -152,4 +157,104 @@ export class AuthService {
 
     return this.userService._getUserValidatedOK(user);
   }
+
+  async sendEmailPasswordToken(email: string, name: string, token: string) {
+    const mail = await this.mailService.sendCodePasswordToken(
+      email,
+      name,
+      token,
+    );
+    this.logger.log('Se envió el mail de repureracion de contraseña. A:  ' + email);
+  }
+  
+  async requestResetPassword(requestResetPassword:RequestResetPasswordDTO) : Promise < boolean | any > {
+    const { email } = requestResetPassword;
+    const findUser = await this.userService.findByEmail(email ); 
+         
+    if (!findUser) 
+    {
+      this.logger.log('El usuario no existe: ' + email);
+      return new HttpException('USER_NOT_FOUND', 404);
+    }
+
+    findUser.resetPasswordToken = this.passwordTokenService.GenerateToken();
+    
+    const updated = await this.userService.update(findUser)
+    
+    this.logger.log('Se le actualizó el código de recuperación de contraseña a: ' + email);
+
+    await this.sendEmailPasswordToken(
+      findUser.email,
+      findUser.name,
+      findUser.resetPasswordToken.code,
+    );
+
+    this.logger.log('Se le envió un mail con el código de recuperación de contraseña a: ' + email);
+    
+    //const posibleRespuesta: PasswordTokenDTO = { passwordToken: updated.resetPasswordToken.code, email:updated.email };
+    return true;
+    //{
+      //token: posibleRespuesta, 
+      //success:true
+      // status_code: '200' // revisar
+    //};
+  }
+  
+  async resetPassword(resetPasswordDTO :ResetPasswordDTO) : Promise < boolean | any > {
+    const { email } = resetPasswordDTO;
+    const {password} =  resetPasswordDTO;
+    const findUser = await this.userService.findByEmail(email ); 
+         
+    if (!findUser) 
+    {
+      this.logger.log('El usuario no existe: ' + email);
+      return new HttpException('USER_NOT_FOUND', 404);
+    }
+
+    findUser.resetPasswordToken = null;
+
+    findUser.password = await this.hashPassword(password);
+    
+    const updated = await this.userService.update(findUser)
+    
+    this.logger.log('Se le actualizó la contraseña a: ' + email); //JSON.stringify(updated) subir json?
+    
+    return true
+    /*{
+       
+      success: true
+      // status_code: '200' // revisar
+    };*/
+  }
+  
+  async validatePasswordToken(passwordTokenDTO: PasswordTokenDTO ) : Promise < UserValidated | any >{
+    const { email } = passwordTokenDTO;
+    const findUser = await this.userService.findByEmail(email); 
+
+    if (!findUser) 
+    {
+      this.logger.log('El usuario no existe: ' + email);
+      return new HttpException('USER_NOT_FOUND', 404);
+    }
+    
+    if(!this.passwordTokenService.IsExpired(findUser._id.resetPassCode)){
+      return  this.userService._getUserValidatedOK(findUser);
+      /*{
+        success: true
+        // status_code: '200' // revisar
+      };*/
+    }
+    else{
+      
+      const DTO: RequestResetPasswordDTO = {email: findUser.email}
+      const aux = this.requestResetPassword(DTO); //Reenvia su codigo
+      return this.userService._getUserValidatedFAIL(findUser);
+      /*{
+        success: false
+         // status_code: '200' // revisar
+      };*/
+    }
+  }
+  
+
 }

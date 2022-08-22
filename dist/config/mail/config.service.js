@@ -34,6 +34,22 @@ let MailService = MailService_1 = class MailService {
         this.logger.log('Email enviado a:', email);
         return mailBody;
     }
+    async sendCodePasswordToken(email, name, token) {
+        const url = process.env.URL_BUTTON;
+        const mailBody = {
+            to: email,
+            subject: 'Hola ' + name + ' aquí está tu código para cambiar tu contraseña',
+            template: './configuration.hbs',
+            context: {
+                name,
+                url,
+                token,
+            },
+        };
+        await this.mailerService.sendMail(mailBody);
+        this.logger.log('Email enviado a:', email);
+        return mailBody;
+    }
 };
 MailService = MailService_1 = __decorate([
     (0, common_1.Injectable)(),

@@ -16,12 +16,14 @@ const jwt_1 = require("@nestjs/jwt");
 const bcrypt = require("bcrypt");
 const config_service_1 = require("../config/mail/config.service");
 const user_service_1 = require("../models/users/user.service");
+const passwordToken_service_1 = require("../models/passwordToken/passwordToken.service");
 const authentication_enum_1 = require("./authentication.enum");
 let AuthService = AuthService_1 = class AuthService {
-    constructor(mailService, jwtService, userService) {
+    constructor(mailService, jwtService, userService, passwordTokenService) {
         this.mailService = mailService;
         this.jwtService = jwtService;
         this.userService = userService;
+        this.passwordTokenService = passwordTokenService;
         this.logger = new common_1.Logger(AuthService_1.name);
     }
     async hashPassword(password) {
@@ -95,12 +97,61 @@ let AuthService = AuthService_1 = class AuthService {
         this.logger.log('Verificacion de email exitosa. Email: ' + email + '. ESTADO: ' + (await userValidated).validated);
         return this.userService._getUserValidatedOK(user);
     }
+    async sendEmailPasswordToken(email, name, token) {
+        const mail = await this.mailService.sendCodePasswordToken(email, name, token);
+        this.logger.log('Se envió el mail de repureracion de contraseña. A:  ' + email);
+    }
+    async requestResetPassword(requestResetPassword) {
+        const { email } = requestResetPassword;
+        const findUser = await this.userService.findByEmail(email);
+        if (!findUser) {
+            this.logger.log('El usuario no existe: ' + email);
+            return new common_1.HttpException('USER_NOT_FOUND', 404);
+        }
+        findUser.resetPasswordToken = this.passwordTokenService.GenerateToken();
+        const updated = await this.userService.update(findUser);
+        this.logger.log('Se le actualizó el código de recuperación de contraseña a: ' + email);
+        await this.sendEmailPasswordToken(findUser.email, findUser.name, findUser.resetPasswordToken.code);
+        this.logger.log('Se le envió un mail con el código de recuperación de contraseña a: ' + email);
+        return true;
+    }
+    async resetPassword(resetPasswordDTO) {
+        const { email } = resetPasswordDTO;
+        const { password } = resetPasswordDTO;
+        const findUser = await this.userService.findByEmail(email);
+        if (!findUser) {
+            this.logger.log('El usuario no existe: ' + email);
+            return new common_1.HttpException('USER_NOT_FOUND', 404);
+        }
+        findUser.resetPasswordToken = null;
+        findUser.password = await this.hashPassword(password);
+        const updated = await this.userService.update(findUser);
+        this.logger.log('Se le actualizó la contraseña a: ' + email);
+        return true;
+    }
+    async validatePasswordToken(passwordTokenDTO) {
+        const { email } = passwordTokenDTO;
+        const findUser = await this.userService.findByEmail(email);
+        if (!findUser) {
+            this.logger.log('El usuario no existe: ' + email);
+            return new common_1.HttpException('USER_NOT_FOUND', 404);
+        }
+        if (!this.passwordTokenService.IsExpired(findUser._id.resetPassCode)) {
+            return this.userService._getUserValidatedOK(findUser);
+        }
+        else {
+            const DTO = { email: findUser.email };
+            const aux = this.requestResetPassword(DTO);
+            return this.userService._getUserValidatedFAIL(findUser);
+        }
+    }
 };
 AuthService = AuthService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [config_service_1.MailService,
         jwt_1.JwtService,
-        user_service_1.UserService])
+        user_service_1.UserService,
+        passwordToken_service_1.PasswordTokenService])
 ], AuthService);
 exports.AuthService = AuthService;
 //# sourceMappingURL=authentication.service.js.map

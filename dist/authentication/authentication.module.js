@@ -16,6 +16,7 @@ const settings_1 = require("../common/constants/settings");
 const jwt_strategy_1 = require("../common/strategies/jwt.strategy");
 const config_module_1 = require("../config/mail/config.module");
 const user_module_1 = require("../models/users/user.module");
+const passwordToken_module_1 = require("../models/passwordToken/passwordToken.module");
 let AuthModule = class AuthModule {
 };
 AuthModule = __decorate([
@@ -24,6 +25,7 @@ AuthModule = __decorate([
             user_module_1.UserModule,
             config_module_1.MailModule,
             passport_1.PassportModule,
+            passwordToken_module_1.PasswordTokenModule,
             jwt_1.JwtModule.register({
                 secret: settings_1.jwtConstants.secret,
                 signOptions: { expiresIn: '180s' },

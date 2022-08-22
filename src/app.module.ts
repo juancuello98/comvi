@@ -8,6 +8,8 @@ import { MailModule } from './config/mail/config.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TripModule } from './models/trips/trip.module';
+import { PasswordTokenModule } from './models/PasswordToken/passwordToken.module';
+
 
 
 @Module({
@@ -19,7 +21,9 @@ import { TripModule } from './models/trips/trip.module';
     MailModule,
     AuthModule, 
     UserModule,
-    TripModule
+    TripModule,
+    PasswordTokenModule
+
   ],
   controllers: [AppController],
   providers: [AppService]
