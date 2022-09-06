@@ -7,6 +7,7 @@ import { TripDetails } from '../trips/interface/trips-details.interface';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { UserService } from '../users/user.service';
 import { Trip, TripDocument } from './trip.schema';
+import { randomInt } from 'crypto';
 
 @Injectable()
 export class TripService {
@@ -21,12 +22,12 @@ export class TripService {
   _getTripDetails(trip: TripDocument): TripDetails {
     return {
       id: trip._id,
-      destination: 'for implement, obtain location.',
-      origen: 'for implement, obtain location.',
+      destination: trip.destinationId,
+      origen: trip.originId,
       checkIn: trip.checkIn,
       checkOut: trip.checkOut,
-      kilometros: 80,
-      peopleCapacity: 4,
+      kilometros: randomInt(248),
+      peopleCapacity: trip.peopleCapacity,
       status: trip.status
     };
   }

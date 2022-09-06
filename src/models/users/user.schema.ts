@@ -4,7 +4,7 @@ import { Location } from '../locations/location.schema';
 import { Package } from '../packages/package.schema';
 import { Request } from '../requests/request.schema';
 import { Trip } from '../trips/trip.schema';
-import { PasswordToken } from '../passwordToken/passwordToken.schema';
+import { PasswordToken } from './passwordToken.schema';
 export type UserDocument = User & Document;
 
 //TODO: Collection de Users

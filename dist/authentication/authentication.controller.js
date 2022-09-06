@@ -20,9 +20,9 @@ const existing_user_dto_1 = require("../models/users/dto/existing-user.dto");
 const new_user_dto_1 = require("../models/users/dto/new-user.dto");
 const user_verification_dto_1 = require("../models/users/dto/user-verification.dto");
 const jwt_auth_guard_1 = require("../common/guards/jwt-auth.guard");
-const request_reset_password_dto_1 = require("../models/PasswordToken/dto/request-reset-password-dto");
-const reset_password_dto_1 = require("../models/PasswordToken/dto/reset-password-dto");
-const token_password_dto_1 = require("../models/PasswordToken/dto/token-password.dto");
+const request_reset_password_dto_1 = require("./dto/request-reset-password-dto");
+const reset_password_dto_1 = require("./dto/reset-password-dto");
+const token_password_dto_1 = require("./dto/token-password.dto");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -33,17 +33,18 @@ let AuthController = class AuthController {
     validateTokenEmail(user) {
         return this.authService.validationCode(user);
     }
-    validatePasswordToken(token) {
-        return this.authService.validatePasswordToken(token);
-    }
     loginUser(user) {
         return this.authService.login(user);
     }
-    requestResetPassword(token) {
-        return this.authService.requestResetPassword(token);
+    validatePasswordToken(token) {
+        return this.authService.validatePasswordToken(token);
     }
-    resetPassword(token) {
-        return this.authService.resetPassword(token);
+    requestResetPassword(req) {
+        const { email } = req;
+        return this.authService.requestResetPassword(email);
+    }
+    resetPassword(resetData) {
+        return this.authService.resetPassword(resetData);
     }
     testUser(user) {
         return { email: user.email };
@@ -65,14 +66,6 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "validateTokenEmail", null);
 __decorate([
-    (0, common_1.Post)('validate/passwordtoken'),
-    (0, common_1.HttpCode)(200),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [token_password_dto_1.PasswordTokenDTO]),
-    __metadata("design:returntype", Promise)
-], AuthController.prototype, "validatePasswordToken", null);
-__decorate([
     (0, common_1.Post)('login'),
     (0, common_1.HttpCode)(200),
     __param(0, (0, common_1.Body)()),
@@ -81,7 +74,15 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "loginUser", null);
 __decorate([
-    (0, common_1.Post)('resetpassword/requestresetpassword'),
+    (0, common_1.Post)('/passwordtoken/validate'),
+    (0, common_1.HttpCode)(200),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [token_password_dto_1.PasswordTokenDTO]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "validatePasswordToken", null);
+__decorate([
+    (0, common_1.Post)('/requestresetpassword'),
     (0, common_1.HttpCode)(200),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -89,7 +90,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "requestResetPassword", null);
 __decorate([
-    (0, common_1.Post)('resetpassword/resetpassword'),
+    (0, common_1.Post)('/resetpassword'),
     (0, common_1.HttpCode)(200),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
