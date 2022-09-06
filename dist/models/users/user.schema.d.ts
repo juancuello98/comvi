@@ -30,7 +30,7 @@ import { Trip } from '../trips/trip.schema';
 import { PasswordToken } from './passwordToken.schema';
 export declare type UserDocument = User & Document;
 export declare class User {
-    username: string;
+    lastname: string;
     name: string;
     email: string;
     password: string;

@@ -10,6 +10,6 @@ export declare class UserService {
     _getUserValidatedFAIL(user: UserDocument): UserValidated;
     findByEmail(email: string): Promise<UserDocument>;
     findById(id: string): Promise<UserDetails | null>;
-    create(name: string, email: string, hashedPassword: string, username: string, validated: string, verificationCode: string): Promise<UserDocument>;
+    create(name: string, email: string, hashedPassword: string, lastname: string, validated: string, verificationCode: string): Promise<UserDocument>;
     update(user: UserDocument): Promise<UserDocument>;
 }

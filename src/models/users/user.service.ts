@@ -16,6 +16,7 @@ export class UserService {
     return {
       id: user._id,
       name: user.name,
+      lastname: user.lastname,
       email: user.email,
     };
   }
@@ -23,7 +24,6 @@ export class UserService {
   _getUserValidatedOK(user: UserDocument): UserValidated {
     return {
       id: user._id,
-      username: user.username,
       email: user.email,
       validated: true
     };
@@ -32,7 +32,6 @@ export class UserService {
   _getUserValidatedFAIL(user: UserDocument): UserValidated {
     return {
       id: user._id,
-      username: user.username,
       email: user.email,
       validated: false
     };
@@ -53,7 +52,7 @@ export class UserService {
     name: string,
     email: string,
     hashedPassword: string,
-    username: string,
+    lastname: string,
     validated: string,
     verificationCode: string
   ): Promise<UserDocument> {
@@ -61,7 +60,7 @@ export class UserService {
       name,
       email,
       password: hashedPassword,
-      username,
+      lastname,
       validated,
       verificationCode,
 

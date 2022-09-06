@@ -59,7 +59,7 @@ export class AuthService {
 
   //TODO: Registro del usuario
   async register(user: Readonly<NewUserDTO>): Promise<UserDetails | any> {
-    const { username, name, password, email } = user;
+    const { lastname, name, password, email } = user;
 
     const existingUser = await this.userService.findByEmail(email);
 
@@ -88,7 +88,7 @@ export class AuthService {
       name,
       email,
       hashedPassword,
-      username,
+      lastname,
       validated,
       verificationCode.toString(),
     );

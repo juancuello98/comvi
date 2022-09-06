@@ -5,7 +5,7 @@ import { IsNotEmpty} from 'class-validator'
 export class NewUserDTO extends PartialType(ExistingtUserDTO) {
 
     @IsNotEmpty()
-    username: string
+    lastname: string
 
     @IsNotEmpty()
     name:string

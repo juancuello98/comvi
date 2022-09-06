@@ -13,7 +13,7 @@ export type UserDocument = User & Document;
 export class User {
 
   @Prop({required: true}) // para propiedades requeridas
-  username: string;
+  lastname: string;
 
   @Prop({required: true}) // para propiedades requeridas
   name: string;

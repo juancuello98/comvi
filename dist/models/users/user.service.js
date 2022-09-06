@@ -25,13 +25,13 @@ let UserService = class UserService {
         return {
             id: user._id,
             name: user.name,
+            lastname: user.lastname,
             email: user.email,
         };
     }
     _getUserValidatedOK(user) {
         return {
             id: user._id,
-            username: user.username,
             email: user.email,
             validated: true
         };
@@ -39,7 +39,6 @@ let UserService = class UserService {
     _getUserValidatedFAIL(user) {
         return {
             id: user._id,
-            username: user.username,
             email: user.email,
             validated: false
         };
@@ -53,12 +52,12 @@ let UserService = class UserService {
             return null;
         return this._getUserDetails(user);
     }
-    async create(name, email, hashedPassword, username, validated, verificationCode) {
+    async create(name, email, hashedPassword, lastname, validated, verificationCode) {
         const newUser = new this.userModel({
             name,
             email,
             password: hashedPassword,
-            username,
+            lastname,
             validated,
             verificationCode,
         });
