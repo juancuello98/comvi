@@ -9,19 +9,25 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ExistingtUserDTO = void 0;
-const class_validator_1 = require("class-validator");
-class ExistingtUserDTO {
-}
+exports.PasswordTokenSchema = exports.PasswordToken = void 0;
+const mongoose_1 = require("@nestjs/mongoose");
+let PasswordToken = class PasswordToken {
+};
 __decorate([
-    (0, class_validator_1.IsEmail)(),
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
-], ExistingtUserDTO.prototype, "email", void 0);
+], PasswordToken.prototype, "code", void 0);
 __decorate([
-    (0, class_validator_1.MinLength)(8),
-    (0, class_validator_1.MaxLength)(14),
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], ExistingtUserDTO.prototype, "password", void 0);
-exports.ExistingtUserDTO = ExistingtUserDTO;
-//# sourceMappingURL=existing-user.dto.js.map
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", Date)
+], PasswordToken.prototype, "created", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", Date)
+], PasswordToken.prototype, "expire", void 0);
+PasswordToken = __decorate([
+    (0, mongoose_1.Schema)()
+], PasswordToken);
+exports.PasswordToken = PasswordToken;
+exports.PasswordTokenSchema = mongoose_1.SchemaFactory.createForClass(PasswordToken);
+//# sourceMappingURL=passwordToken.schema.js.map

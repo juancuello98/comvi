@@ -4,6 +4,9 @@ import { NewUserDTO } from '../models/users/dto/new-user.dto';
 import { UserVerificationDTO } from 'src/models/users/dto/user-verification.dto';
 import { UserDetails } from 'src/models/users/interfaces/user-details.interface';
 import { UserValidated } from 'src/models/users/interfaces/user-validated.interface';
+import { RequestResetPasswordDTO } from './dto/request-reset-password-dto';
+import { ResetPasswordDTO } from './dto/reset-password-dto';
+import { PasswordTokenDTO } from './dto/token-password.dto';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
@@ -12,6 +15,9 @@ export declare class AuthController {
     loginUser(user: ExistingtUserDTO): Promise<{
         token: string;
     } | null>;
+    validatePasswordToken(token: PasswordTokenDTO): Promise<UserValidated | any>;
+    requestResetPassword(req: RequestResetPasswordDTO): Promise<boolean | any>;
+    resetPassword(resetData: ResetPasswordDTO): Promise<boolean | any>;
     testUser(user: ExistingtUserDTO): {
         email: string;
     };

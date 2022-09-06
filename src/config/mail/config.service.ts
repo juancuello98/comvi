@@ -24,7 +24,25 @@ export class MailService {
             },
           }
         await this.mailerService.sendMail(mailBody);
-        this.logger.log('Email enviado a:', email);
+        this.logger.log('Email enviado a:', email); // 2 logger?
         return mailBody;
     }
+
+    async sendCodePasswordToken(email: string, name: string, token: string) {
+      const url = process.env.URL_BUTTON;
+      const mailBody = {
+          to: email,
+          subject: 'Hola ' + name + ' aquí está tu código para cambiar tu contraseña',
+          template: './configuration.hbs',
+          context: {
+            name,
+            url,
+            token,
+          },
+        }
+      await this.mailerService.sendMail(mailBody);
+      this.logger.log('Email enviado a:', email); // 2 logger?
+      return mailBody;
+  }
 }
+

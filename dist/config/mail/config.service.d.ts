@@ -13,4 +13,14 @@ export declare class MailService {
             token: number;
         };
     }>;
+    sendCodePasswordToken(email: string, name: string, token: string): Promise<{
+        to: string;
+        subject: string;
+        template: string;
+        context: {
+            name: string;
+            url: string;
+            token: string;
+        };
+    }>;
 }

@@ -10,6 +10,7 @@ import { AppService } from './app.service';
 import { TripModule } from './models/trips/trip.module';
 
 
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -20,6 +21,7 @@ import { TripModule } from './models/trips/trip.module';
     AuthModule, 
     UserModule,
     TripModule
+
   ],
   controllers: [AppController],
   providers: [AppService]

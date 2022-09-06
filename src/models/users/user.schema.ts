@@ -4,7 +4,7 @@ import { Location } from '../locations/location.schema';
 import { Package } from '../packages/package.schema';
 import { Request } from '../requests/request.schema';
 import { Trip } from '../trips/trip.schema';
-
+import { PasswordToken } from './passwordToken.schema';
 export type UserDocument = User & Document;
 
 //TODO: Collection de Users
@@ -37,19 +37,22 @@ export class User {
   locations: Location[];
 
   @Prop()
-  packages: Package[]
+  packages: Package[];
 
   @Prop()
-  tripsFavourites:Trip[]
+  tripsFavourites:Trip[];
 
   @Prop()
-  subscribedTrips:Trip[]
+  subscribedTrips:Trip[];
 
   @Prop()
-  tripsCreated:Trip[]
+  tripsCreated:Trip[];
 
   @Prop()
-  joinRequests: Request []
+  joinRequests: Request [];
+
+  @Prop()
+  resetPasswordToken: PasswordToken;
 
 }
 

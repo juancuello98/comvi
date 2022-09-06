@@ -19,6 +19,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const user_service_1 = require("../users/user.service");
 const trip_schema_1 = require("./trip.schema");
+const crypto_1 = require("crypto");
 let TripService = TripService_1 = class TripService {
     constructor(tripModel, userService) {
         this.tripModel = tripModel;
@@ -28,12 +29,12 @@ let TripService = TripService_1 = class TripService {
     _getTripDetails(trip) {
         return {
             id: trip._id,
-            destination: 'for implement, obtain location.',
-            origen: 'for implement, obtain location.',
+            destination: trip.destinationId,
+            origen: trip.originId,
             checkIn: trip.checkIn,
             checkOut: trip.checkOut,
-            kilometros: 80,
-            peopleCapacity: 4,
+            kilometros: (0, crypto_1.randomInt)(248),
+            peopleCapacity: trip.peopleCapacity,
             status: trip.status
         };
     }

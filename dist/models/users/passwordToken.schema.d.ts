@@ -23,26 +23,10 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document } from 'mongoose';
-import { Location } from '../locations/location.schema';
-import { Package } from '../packages/package.schema';
-import { Request } from '../requests/request.schema';
-import { Trip } from '../trips/trip.schema';
-import { PasswordToken } from './passwordToken.schema';
-export declare type UserDocument = User & Document;
-export declare class User {
-    username: string;
-    name: string;
-    email: string;
-    password: string;
-    validated: string;
-    verificationCode: number;
-    trips: Trip[];
-    locations: Location[];
-    packages: Package[];
-    tripsFavourites: Trip[];
-    subscribedTrips: Trip[];
-    tripsCreated: Trip[];
-    joinRequests: Request[];
-    resetPasswordToken: PasswordToken;
+export declare type PasswordTokenDocument = PasswordToken & Document;
+export declare class PasswordToken {
+    code: string;
+    created: Date;
+    expire: Date;
 }
-export declare const UserSchema: import("mongoose").Schema<User, import("mongoose").Model<User, any, any, any, any>, {}, {}, {}, {}, "type", User>;
+export declare const PasswordTokenSchema: import("mongoose").Schema<PasswordToken, import("mongoose").Model<PasswordToken, any, any, any, any>, {}, {}, {}, {}, "type", PasswordToken>;

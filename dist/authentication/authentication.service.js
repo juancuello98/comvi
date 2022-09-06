@@ -17,12 +17,33 @@ const bcrypt = require("bcrypt");
 const config_service_1 = require("../config/mail/config.service");
 const user_service_1 = require("../models/users/user.service");
 const authentication_enum_1 = require("./authentication.enum");
+const passwordToken_schema_1 = require("../models/users/passwordToken.schema");
 let AuthService = AuthService_1 = class AuthService {
     constructor(mailService, jwtService, userService) {
         this.mailService = mailService;
         this.jwtService = jwtService;
         this.userService = userService;
         this.logger = new common_1.Logger(AuthService_1.name);
+    }
+    generateRandomString(num) {
+        return Math.random().toString(36).substring(0, num);
+        ;
+    }
+    async GenerateToken() {
+        const token = new passwordToken_schema_1.PasswordToken();
+        const auxDate = new Date();
+        token.created = auxDate;
+        auxDate.setTime(auxDate.getTime() + 60 * 60 * 1000);
+        token.expire = auxDate;
+        token.code = this.generateRandomString(6);
+        return token;
+    }
+    async IsExpired(token) {
+        const auxDate = new Date();
+        return auxDate < token.expire ? true : false;
+    }
+    async compareResetPasswordCode(token, user) {
+        return token === user.resetPasswordToken.code ? true : false;
     }
     async hashPassword(password) {
         return bcrypt.hash(password, 12);
@@ -94,6 +115,53 @@ let AuthService = AuthService_1 = class AuthService {
         const userValidated = this.userService.update(user);
         this.logger.log('Verificacion de email exitosa. Email: ' + email + '. ESTADO: ' + (await userValidated).validated);
         return this.userService._getUserValidatedOK(user);
+    }
+    async sendEmailPasswordToken(email, name, token) {
+        const mail = await this.mailService.sendCodePasswordToken(email, name, token);
+        this.logger.log('Se envió el mail de repureracion de contraseña. A:  ' + mail);
+    }
+    async requestResetPassword(userEmail) {
+        const email = userEmail;
+        const findUser = await this.userService.findByEmail(email);
+        if (!findUser) {
+            this.logger.log('El usuario no existe: ' + email);
+            return new common_1.HttpException('USER_NOT_FOUND', 404);
+        }
+        findUser.resetPasswordToken = await this.GenerateToken();
+        const updated = await this.userService.update(findUser);
+        this.logger.log('Se le actualizó el código de recuperación de contraseña a ' + updated.email + ' codigo ' + updated.resetPasswordToken.code);
+        await this.sendEmailPasswordToken(findUser.email, findUser.name, findUser.resetPasswordToken.code);
+        this.logger.log('Se le envió un mail con el código de recuperación de contraseña a: ' + email);
+        return {
+            success: true,
+            statusCode: 200
+        };
+    }
+    async resetPassword(resetPasswordDTO) {
+        const { email } = resetPasswordDTO;
+        const { password } = resetPasswordDTO;
+        const findUser = await this.userService.findByEmail(email);
+        if (!findUser) {
+            this.logger.log('El usuario no existe: ' + email);
+            return new common_1.HttpException('USER_NOT_FOUND', 404);
+        }
+        findUser.resetPasswordToken = null;
+        findUser.password = await this.hashPassword(password);
+        const updated = await this.userService.update(findUser);
+        this.logger.log('Se le actualizó la contraseña a: ' + updated.email);
+        return {
+            success: true,
+            statusCode: 200
+        };
+    }
+    async validatePasswordToken(passwordTokenDTO) {
+        const { email, passwordToken } = passwordTokenDTO;
+        const findUser = await this.userService.findByEmail(email);
+        if (!findUser) {
+            this.logger.log('El usuario no existe: ' + email);
+            return new common_1.HttpException('USER_NOT_FOUND', 404);
+        }
+        return await this.IsExpired(findUser.resetPasswordToken) && await this.compareResetPasswordCode(passwordToken, findUser) ? this.userService._getUserValidatedOK(findUser) : this.userService._getUserValidatedFAIL(findUser);
     }
 };
 AuthService = AuthService_1 = __decorate([
