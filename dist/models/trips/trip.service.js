@@ -20,6 +20,7 @@ const mongoose_2 = require("mongoose");
 const user_service_1 = require("../users/user.service");
 const trip_schema_1 = require("./trip.schema");
 const crypto_1 = require("crypto");
+const state_enum_1 = require("./enums/state.enum");
 let TripService = TripService_1 = class TripService {
     constructor(tripModel, userService) {
         this.tripModel = tripModel;
@@ -29,17 +30,23 @@ let TripService = TripService_1 = class TripService {
     _getTripDetails(trip) {
         return {
             id: trip._id,
-            destination: trip.destinationId,
-            origen: trip.originId,
+            destination: trip.destination,
+            origen: trip.origin,
             checkIn: trip.checkIn,
-            checkOut: trip.checkOut,
             kilometros: (0, crypto_1.randomInt)(248),
-            peopleCapacity: trip.peopleCapacity,
+            peopleCapacity: trip.peopleQuantity,
             status: trip.status
         };
     }
-    async findTripsByDriver(driverId) {
-        return this.tripModel.find({ driverId }).exec();
+    async findTripsByDriver(driverEmail) {
+        console.log(driverEmail);
+        const trips = await this.tripModel.find({ driverEmail }).exec();
+        return {
+            hasError: false,
+            errorMessage: 'User trips found.',
+            data: { trips },
+            status: common_1.HttpStatus.OK
+        };
     }
     async findByStatus(status) {
         return this.tripModel.find({ status }).exec();
@@ -57,17 +64,26 @@ let TripService = TripService_1 = class TripService {
         return this._getTripDetails(trip);
     }
     async create(trip) {
-        const user = await this.userService.findByEmail(trip.driverEmail);
         const newTrip = new this.tripModel({
-            originId: trip.origin,
-            destinationId: trip.destination,
-            peopleCapacity: trip.peopleCapacity,
-            driverId: user._id,
-            checkOut: trip.checkOut,
-            checkIn: trip.checkIn,
-            status: trip.status
+            driverEmail: trip.email,
+            origin: trip.origin,
+            destination: trip.destination,
+            allowPackage: trip.allowPackage,
+            allowPassenger: trip.allowPassenger,
+            peopleQuantity: trip.peopleQuantity,
+            vehicle: trip.vehicle,
+            checkIn: trip.startedTimestamp,
+            status: state_enum_1.TripStatus.OPEN,
+            createdTimestamp: Date.now().toString()
         });
-        return newTrip.save();
+        const tripCreated = await newTrip.save();
+        const resp = {
+            hasError: false,
+            errorMessage: 'Trip was created succesfully.',
+            data: tripCreated,
+            status: common_1.HttpStatus.CREATED
+        };
+        return resp;
     }
     async update(trip) {
         return trip.save();

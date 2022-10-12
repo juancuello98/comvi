@@ -12,36 +12,46 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NewTripDTO = void 0;
 const mapped_types_1 = require("@nestjs/mapped-types");
 const class_validator_1 = require("class-validator");
+const location_schema_1 = require("../../cars/location.schema");
+const location_schema_2 = require("../../locations/location.schema");
 const existing_trip_dto_1 = require("./existing-trip.dto");
 class NewTripDTO extends (0, mapped_types_1.PartialType)(existing_trip_dto_1.ExistingtTripDTO) {
 }
 __decorate([
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
+], NewTripDTO.prototype, "email", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", location_schema_2.Location)
 ], NewTripDTO.prototype, "origin", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
+    __metadata("design:type", location_schema_2.Location)
 ], NewTripDTO.prototype, "destination", void 0);
 __decorate([
+    (0, class_validator_1.IsBoolean)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", Boolean)
+], NewTripDTO.prototype, "allowPackage", void 0);
+__decorate([
+    (0, class_validator_1.IsBoolean)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", Boolean)
+], NewTripDTO.prototype, "allowPassenger", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
-], NewTripDTO.prototype, "peopleCapacity", void 0);
+], NewTripDTO.prototype, "peopleQuantity", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], NewTripDTO.prototype, "driverEmail", void 0);
+    __metadata("design:type", location_schema_1.Vehicle)
+], NewTripDTO.prototype, "vehicle", void 0);
 __decorate([
+    (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], NewTripDTO.prototype, "checkOut", void 0);
-__decorate([
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], NewTripDTO.prototype, "checkIn", void 0);
-__decorate([
-    (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
-], NewTripDTO.prototype, "status", void 0);
+], NewTripDTO.prototype, "startedTimestamp", void 0);
 exports.NewTripDTO = NewTripDTO;
 //# sourceMappingURL=new-trip.dto.js.map

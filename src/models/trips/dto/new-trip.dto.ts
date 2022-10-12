@@ -1,28 +1,37 @@
 import { PartialType } from '@nestjs/mapped-types';
-import {IsDate, IsNotEmpty} from 'class-validator'
+import { IsDate, IsNotEmpty, IsNumber, IsBoolean, IsOptional, IsString} from 'class-validator'
+import { Vehicle } from 'src/models/cars/location.schema';
+import { Location } from '../../locations/location.schema';
 import { ExistingtTripDTO } from './existing-trip.dto';
 
 export class NewTripDTO extends PartialType(ExistingtTripDTO) {
 
+    @IsOptional()
+    email : string;
+
     @IsNotEmpty() // para propiedades requeridas
-    origin : string;
+    origin : Location;
   
     @IsNotEmpty()
-    destination : string;
+    destination : Location;
 
+    @IsBoolean()
     @IsNotEmpty()
-    peopleCapacity : number;
+    allowPackage : boolean;
 
+    @IsBoolean()
     @IsNotEmpty() 
-    driverEmail : string;
+    allowPassenger : boolean;
 
+    @IsNumber()
     @IsNotEmpty()
-    checkOut : string
+    peopleQuantity : number;
     
     @IsNotEmpty()
-    checkIn: string
+    vehicle: Vehicle;
 
-    @IsNotEmpty() 
-    status : string;
+    @IsString()
+    @IsNotEmpty()
+    startedTimestamp: string;
 
 }

@@ -18,13 +18,17 @@ const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../../common/guards/jwt-auth.guard");
 const new_trip_dto_1 = require("./dto/new-trip.dto");
 const trip_service_1 = require("./trip.service");
+const request_helper_1 = require("../../common/helpers/request.helper");
 let TripController = class TripController {
-    constructor(tripsService) {
+    constructor(tripsService, requestHelper) {
         this.tripsService = tripsService;
+        this.requestHelper = requestHelper;
     }
-    async create(trip) {
-        const tripCreated = await this.tripsService.create(trip);
-        return this.tripsService._getTripDetails(tripCreated);
+    async create(trip, request) {
+        const userEmail = this.requestHelper.getPayload(request);
+        const tripModify = Object.assign(Object.assign({}, trip), { email: userEmail });
+        const resp = await this.tripsService.create(tripModify);
+        return resp;
     }
     async findAll() {
         return this.tripsService.findAll();
@@ -32,13 +36,18 @@ let TripController = class TripController {
     findOne(id) {
         return this.tripsService.findById(id);
     }
+    findMyTrips(request) {
+        const userEmail = this.requestHelper.getPayload(request);
+        return this.tripsService.findTripsByDriver(userEmail);
+    }
 };
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Post)('/publish'),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [new_trip_dto_1.NewTripDTO]),
+    __metadata("design:paramtypes", [new_trip_dto_1.NewTripDTO, Object]),
     __metadata("design:returntype", Promise)
 ], TripController.prototype, "create", null);
 __decorate([
@@ -54,10 +63,19 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", void 0)
 ], TripController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('myTrips'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], TripController.prototype, "findMyTrips", null);
 TripController = __decorate([
     (0, swagger_1.ApiTags)('trips'),
     (0, common_1.Controller)('trips'),
-    __metadata("design:paramtypes", [trip_service_1.TripService])
+    __metadata("design:paramtypes", [trip_service_1.TripService,
+        request_helper_1.RequestHelper])
 ], TripController);
 exports.TripController = TripController;
 //# sourceMappingURL=trip.controller.js.map

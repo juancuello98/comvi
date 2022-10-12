@@ -25,7 +25,13 @@
 import { Document } from 'mongoose';
 export declare type LocationDocument = Location & Document;
 export declare class Location {
-    nombre: string;
-    coordenadas: string;
+    country: string;
+    province: string;
+    departament: string;
+    locality: string;
+    format_address: string;
+    latitud: string;
+    longitud: string;
+    place_id: string;
 }
 export declare const LocationSchema: import("mongoose").Schema<Location, import("mongoose").Model<Location, any, any, any, any>, {}, {}, {}, {}, "type", Location>;

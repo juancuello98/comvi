@@ -1,9 +1,8 @@
 export interface TripDetails {
     id: string;
-    destination: string;
-    origen: string;
+    destination: any;
+    origen: any;
     checkIn: string;
-    checkOut: string;
     kilometros: number;
     peopleCapacity: number;
     status: string;

@@ -1,13 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-
-
 import { TripDetails } from '../trips/interface/trips-details.interface';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { UserService } from '../users/user.service';
 import { Trip, TripDocument } from './trip.schema';
 import { randomInt } from 'crypto';
+import { ResponseDTO } from 'src/common/interfaces/responses.interface';
+import { TripStatus } from './enums/state.enum';
 
 @Injectable()
 export class TripService {
@@ -22,18 +22,24 @@ export class TripService {
   _getTripDetails(trip: TripDocument): TripDetails {
     return {
       id: trip._id,
-      destination: trip.destinationId,
-      origen: trip.originId,
+      destination: trip.destination,
+      origen: trip.origin,
       checkIn: trip.checkIn,
-      checkOut: trip.checkOut,
       kilometros: randomInt(248),
-      peopleCapacity: trip.peopleCapacity,
+      peopleCapacity: trip.peopleQuantity,
       status: trip.status
     };
   }
 
-  async findTripsByDriver(driverId: string): Promise<TripDocument[]> {
-    return this.tripModel.find({ driverId }).exec();
+  async findTripsByDriver(driverEmail: string): Promise<ResponseDTO> {
+    console.log(driverEmail);
+    const trips = await this.tripModel.find({driverEmail}).exec();
+    return {
+      hasError: false,
+      errorMessage: 'User trips found.',
+      data: {trips},
+      status: HttpStatus.OK
+    }
   }
 
   async findByStatus(status: string): Promise<TripDocument[]> {
@@ -53,22 +59,33 @@ export class TripService {
     return this._getTripDetails(trip);
   }
 
-  async create( trip: NewTripDTO ): Promise<TripDocument> {
+  async create( trip: NewTripDTO ): Promise<ResponseDTO> {
 
-    const user = await this.userService.findByEmail(trip.driverEmail)
-    
     const newTrip = new this.tripModel(
     { 
-      originId: trip.origin,
-      destinationId: trip.destination,
-      peopleCapacity: trip.peopleCapacity,
-      driverId: user._id,
-      checkOut: trip.checkOut,
-      checkIn: trip.checkIn,
-      status: trip.status
+      driverEmail: trip.email,
+      origin: trip.origin,
+      destination: trip.destination,
+      allowPackage: trip.allowPackage,
+      allowPassenger: trip.allowPassenger,
+      peopleQuantity: trip.peopleQuantity,
+      vehicle: trip.vehicle,
+      checkIn: trip.startedTimestamp,
+      status: TripStatus.OPEN,
+      createdTimestamp: Date.now().toString()
     });
 
-    return newTrip.save();
+    const tripCreated = await newTrip.save();
+
+    const resp : ResponseDTO = {
+      hasError: false,
+      errorMessage: 'Trip was created succesfully.',
+      data: tripCreated,
+      status: HttpStatus.CREATED
+
+    }
+
+    return resp;
   }
 
   async update(

@@ -23,20 +23,26 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document } from 'mongoose';
+import { Vehicle } from '../cars/location.schema';
+import { Location } from '../locations/location.schema';
+import { TripStatus } from './enums/state.enum';
 export declare type TripDocument = Trip & Document;
 export declare class Trip {
-    originId: string;
-    destinationId: string;
-    peopleCapacity: number;
-    driverId: string;
-    checkOut: string;
+    origin: Location;
+    destination: Location;
+    allowPackage: boolean;
+    allowPassenger: boolean;
+    peopleQuantity: number;
+    vehicle: Vehicle;
+    driverEmail: string;
     checkIn: string;
-    status: string;
+    status: TripStatus;
     passengers: string[];
     paquetes: string[];
     estimatedCosts: number;
-    kilometros: number;
-    requests: string[];
+    kilometers: number;
+    createdTimestamp: string;
+    tripsRequests: string[];
     valuations: string[];
 }
 export declare const TripSchema: import("mongoose").Schema<Trip, import("mongoose").Model<Trip, any, any, any, any>, {}, {}, {}, {}, "type", Trip>;

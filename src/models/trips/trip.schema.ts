@@ -1,5 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { Vehicle } from '../cars/location.schema';
+import { Location } from '../locations/location.schema';
+import { User } from '../users/user.schema';
+import { TripStatus } from './enums/state.enum';
 
 export type TripDocument = Trip & Document;
 
@@ -9,25 +13,31 @@ export type TripDocument = Trip & Document;
 export class Trip {
 
     @Prop({required: true}) // para propiedades requeridas
-    originId : string;
+    origin : Location;
   
     @Prop({required: true}) 
-    destinationId : string;
+    destination : Location;
 
     @Prop({required: true}) 
-    peopleCapacity : number;
+    allowPackage : boolean;
 
     @Prop({required: true}) 
-    driverId : string;
+    allowPassenger : boolean;
 
     @Prop({required: true}) 
-    checkOut : string
+    peopleQuantity : number;
+
+    @Prop({required: true}) 
+    vehicle: Vehicle;
+
+    @Prop({required: true}) 
+    driverEmail : string;
     
     @Prop({required: true}) 
     checkIn: string
     
     @Prop({required: true}) 
-    status: string
+    status: TripStatus
 
     passengers : string [] //va a ir un array con los ids de los usuarios para no replicar data
 
@@ -35,9 +45,11 @@ export class Trip {
 
     estimatedCosts: number
 
-    kilometros: number
+    kilometers: number
 
-    requests : string [] // array con los ids de las solicitudes
+    createdTimestamp: string
+
+    tripsRequests : string [] // array con los ids de las solicitudes
 
     valuations : string [] // id de las valuaciones que van a ser consultadas por otros servicios
 }

@@ -16,6 +16,7 @@ const config_module_1 = require("./config/mail/config.module");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const trip_module_1 = require("./models/trips/trip.module");
+const common_module_1 = require("./common/common.module");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -28,7 +29,8 @@ AppModule = __decorate([
             config_module_1.MailModule,
             authentication_module_1.AuthModule,
             user_module_1.UserModule,
-            trip_module_1.TripModule
+            trip_module_1.TripModule,
+            common_module_1.CommonModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService]

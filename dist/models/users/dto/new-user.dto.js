@@ -18,10 +18,10 @@ class NewUserDTO extends (0, mapped_types_1.PartialType)(existing_user_dto_1.Exi
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], NewUserDTO.prototype, "lastname", void 0);
+], NewUserDTO.prototype, "lastName", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], NewUserDTO.prototype, "name", void 0);
+], NewUserDTO.prototype, "firstName", void 0);
 exports.NewUserDTO = NewUserDTO;
 //# sourceMappingURL=new-user.dto.js.map

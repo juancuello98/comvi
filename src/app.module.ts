@@ -8,6 +8,7 @@ import { MailModule } from './config/mail/config.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TripModule } from './models/trips/trip.module';
+import { CommonModule } from './common/common.module';
 
 
 
@@ -20,7 +21,8 @@ import { TripModule } from './models/trips/trip.module';
     MailModule,
     AuthModule, 
     UserModule,
-    TripModule
+    TripModule,
+    CommonModule
 
   ],
   controllers: [AppController],
