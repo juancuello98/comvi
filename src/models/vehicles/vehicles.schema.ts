@@ -21,6 +21,10 @@ export class Vehicles {
 
     pics : string []; //urls de imagenes
     
+    @Prop({required: true}) 
+    email: string;
+
+    color: string;
     //documentacion?
 }
 
