@@ -49,7 +49,7 @@ let AuthService = AuthService_1 = class AuthService {
         return bcrypt.hash(password, 12);
     }
     async register(user) {
-        const { lastName, firstName, password, email } = user;
+        const { lastname, name, password, email } = user;
         const existingUser = await this.userService.findByEmail(email);
         if (existingUser) {
             this.logger.log('Ya existe en la base de datos: Email ' + email);
@@ -57,11 +57,11 @@ let AuthService = AuthService_1 = class AuthService {
         }
         this.logger.log('No existe en la base de datos: Email ' + email);
         const verificationCode = await this.generateAndSendEmailCodeVerification();
-        await this.mailService.sendCodeVerification(email, firstName, verificationCode);
+        await this.mailService.sendCodeVerification(email, name, verificationCode);
         this.logger.log('Email de verificacion enviado. A:  ' + email);
         const validated = authentication_enum_1.VERIFICATION_CODE_STATUS.IN_PROGRESS;
         const hashedPassword = await this.hashPassword(password);
-        const newUser = await this.userService.create(firstName, email, hashedPassword, lastName, validated, verificationCode.toString());
+        const newUser = await this.userService.create(name, email, hashedPassword, lastname, validated, verificationCode.toString());
         this.logger.log('Usuario creado: User ' + JSON.stringify(newUser));
         return this.userService._getUserDetails(newUser);
     }

@@ -59,7 +59,7 @@ export class AuthService {
 
   //TODO: Registro del usuario
   async register(user: Readonly<NewUserDTO>): Promise<UserDetails | any> {
-    const { lastName, firstName, password, email } = user;
+    const { lastname, name, password, email } = user;
 
     const existingUser = await this.userService.findByEmail(email);
 
@@ -76,7 +76,7 @@ export class AuthService {
 
     const verificationCode = await this.generateAndSendEmailCodeVerification();
 
-    await this.mailService.sendCodeVerification(email, firstName, verificationCode);
+    await this.mailService.sendCodeVerification(email, name, verificationCode);
 
     this.logger.log('Email de verificacion enviado. A:  ' + email);
 
@@ -85,10 +85,10 @@ export class AuthService {
     const hashedPassword = await this.hashPassword(password);
 
     const newUser = await this.userService.create(
-      firstName,
+      name,
       email,
       hashedPassword,
-      lastName,
+      lastname,
       validated,
       verificationCode.toString(),
     );
