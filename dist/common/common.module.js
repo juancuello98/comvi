@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommonModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
+const user_module_1 = require("../models/users/user.module");
 const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 const request_helper_1 = require("./helpers/request.helper");
 const auth_firebase_middleware_1 = require("./middleware/auth-firebase.middleware");
@@ -18,6 +19,7 @@ let CommonModule = class CommonModule {
 CommonModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            user_module_1.UserModule,
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
             }),
@@ -30,7 +32,8 @@ CommonModule = __decorate([
             jwt_strategy_1.JwtStrategy
         ],
         exports: [
-            request_helper_1.RequestHelper
+            request_helper_1.RequestHelper,
+            user_module_1.UserModule
         ]
     })
 ], CommonModule);

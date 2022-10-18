@@ -2,12 +2,13 @@ import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { Model } from 'mongoose';
 import { VehiclesDocument } from './vehicles.schema';
-import { UserService } from '../users/user.service';
+import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 export declare class VehiclesService {
     private readonly vehiclesModel;
-    private userService;
     private readonly logger;
-    constructor(vehiclesModel: Model<VehiclesDocument>, userService: UserService);
-    create(createVehicleDto: CreateVehicleDto): Promise<VehiclesDocument>;
+    constructor(vehiclesModel: Model<VehiclesDocument>);
+    create(createVehicleDto: CreateVehicleDto): Promise<ResponseDTO>;
     update(id: number, updateVehicleDto: UpdateVehicleDto): Promise<VehiclesDocument>;
+    findById(id: any): Promise<ResponseDTO>;
+    findByUser(email: string): Promise<ResponseDTO>;
 }

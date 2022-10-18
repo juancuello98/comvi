@@ -37,7 +37,12 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
-], CreateVehicleDto.prototype, "mail", void 0);
+], CreateVehicleDto.prototype, "email", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CreateVehicleDto.prototype, "age", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),

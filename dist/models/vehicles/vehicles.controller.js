@@ -17,24 +17,47 @@ const common_1 = require("@nestjs/common");
 const vehicles_service_1 = require("./vehicles.service");
 const create_vehicle_dto_1 = require("./dto/create-vehicle.dto");
 const update_vehicle_dto_1 = require("./dto/update-vehicle.dto");
+const request_helper_1 = require("../../common/helpers/request.helper");
 let VehiclesController = class VehiclesController {
-    constructor(vehiclesService) {
+    constructor(vehiclesService, requestHelper) {
         this.vehiclesService = vehiclesService;
+        this.requestHelper = requestHelper;
     }
     create(createVehicleDto) {
         return this.vehiclesService.create(createVehicleDto);
+    }
+    findMyVehicles(request) {
+        const userEmail = this.requestHelper.getPayload(request);
+        return this.vehiclesService.findByUser(userEmail);
+    }
+    findOne(id) {
+        return this.vehiclesService.findById(id);
     }
     update(id, updateVehicleDto) {
         return this.vehiclesService.update(+id, updateVehicleDto);
     }
 };
 __decorate([
-    (0, common_1.Post)(),
+    (0, common_1.Post)('/create'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [create_vehicle_dto_1.CreateVehicleDto]),
     __metadata("design:returntype", void 0)
 ], VehiclesController.prototype, "create", null);
+__decorate([
+    (0, common_1.Get)('/myvehicles'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], VehiclesController.prototype, "findMyVehicles", null);
+__decorate([
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], VehiclesController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id'),
     __param(0, (0, common_1.Param)('id')),
@@ -45,7 +68,8 @@ __decorate([
 ], VehiclesController.prototype, "update", null);
 VehiclesController = __decorate([
     (0, common_1.Controller)('vehicles'),
-    __metadata("design:paramtypes", [vehicles_service_1.VehiclesService])
+    __metadata("design:paramtypes", [vehicles_service_1.VehiclesService,
+        request_helper_1.RequestHelper])
 ], VehiclesController);
 exports.VehiclesController = VehiclesController;
 //# sourceMappingURL=vehicles.controller.js.map

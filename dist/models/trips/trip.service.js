@@ -43,7 +43,7 @@ let TripService = TripService_1 = class TripService {
         const trips = await this.tripModel.find({ driverEmail }).exec();
         return {
             hasError: false,
-            errorMessage: 'User trips found.',
+            message: 'User trips found.',
             data: { trips },
             status: common_1.HttpStatus.OK
         };
@@ -79,7 +79,7 @@ let TripService = TripService_1 = class TripService {
         const tripCreated = await newTrip.save();
         const resp = {
             hasError: false,
-            errorMessage: 'Trip was created succesfully.',
+            message: 'Trip was created succesfully.',
             data: tripCreated,
             status: common_1.HttpStatus.CREATED
         };

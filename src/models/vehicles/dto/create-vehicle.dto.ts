@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsArray, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsArray, IsOptional, IsNumber } from 'class-validator';
 
 export class CreateVehicleDto {
     
@@ -22,7 +22,12 @@ export class CreateVehicleDto {
 
     @IsOptional()
     @IsString()
-    mail : string;
+    email : string;
+    
+    
+    @IsOptional()
+    @IsNumber()
+    age : number;
 
     @IsOptional()
     @IsArray()

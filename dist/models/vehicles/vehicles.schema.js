@@ -16,10 +16,6 @@ let Vehicles = class Vehicles {
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
-], Vehicles.prototype, "id", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
 ], Vehicles.prototype, "patentPlate", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
@@ -31,8 +27,20 @@ __decorate([
 ], Vehicles.prototype, "brand", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", Number)
+], Vehicles.prototype, "age", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Array)
+], Vehicles.prototype, "pics", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], Vehicles.prototype, "email", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], Vehicles.prototype, "color", void 0);
 Vehicles = __decorate([
     (0, mongoose_1.Schema)()
 ], Vehicles);

@@ -18,6 +18,7 @@ import { ResetPasswordDTO } from './dto/reset-password-dto';
 import { PasswordTokenDTO } from './dto/token-password.dto';
 import { PasswordToken } from '../models/users/passwordToken.schema';
 import { UserDocument } from 'src/models/users/user.schema';
+import { jwtConstants } from 'src/common/constants/settings';
 
 @Injectable()
 export class AuthService {

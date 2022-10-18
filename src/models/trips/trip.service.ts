@@ -36,7 +36,7 @@ export class TripService {
     const trips = await this.tripModel.find({driverEmail}).exec();
     return {
       hasError: false,
-      errorMessage: 'User trips found.',
+      message: 'User trips found.',
       data: {trips},
       status: HttpStatus.OK
     }
@@ -79,7 +79,7 @@ export class TripService {
 
     const resp : ResponseDTO = {
       hasError: false,
-      errorMessage: 'Trip was created succesfully.',
+      message: 'Trip was created succesfully.',
       data: tripCreated,
       status: HttpStatus.CREATED
 

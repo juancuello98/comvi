@@ -3,6 +3,7 @@ export declare class CreateVehicleDto {
     model: string;
     brand: string;
     color: string;
-    mail: string;
+    email: string;
+    age: number;
     pics: string[];
 }

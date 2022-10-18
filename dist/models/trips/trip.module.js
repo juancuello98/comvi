@@ -10,7 +10,6 @@ exports.TripModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const common_module_1 = require("../../common/common.module");
-const user_module_1 = require("../users/user.module");
 const trip_controller_1 = require("./trip.controller");
 const trip_schema_1 = require("./trip.schema");
 const trip_service_1 = require("./trip.service");
@@ -18,8 +17,7 @@ let TripModule = class TripModule {
 };
 TripModule = __decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: trip_schema_1.Trip.name, schema: trip_schema_1.TripSchema }]),
-            user_module_1.UserModule, common_module_1.CommonModule
+        imports: [mongoose_1.MongooseModule.forFeature([{ name: trip_schema_1.Trip.name, schema: trip_schema_1.TripSchema }]), common_module_1.CommonModule
         ],
         controllers: [trip_controller_1.TripController],
         providers: [trip_service_1.TripService],

@@ -1,7 +1,7 @@
 import { HttpStatus } from "@nestjs/common";
 export interface ResponseDTO {
     hasError: boolean;
-    errorMessage: string;
+    message: string;
     data: any;
     status: HttpStatus;
 }

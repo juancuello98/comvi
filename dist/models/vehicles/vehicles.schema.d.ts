@@ -25,10 +25,10 @@
 import { Document } from 'mongoose';
 export declare type VehiclesDocument = Vehicles & Document;
 export declare class Vehicles {
-    id: string;
     patentPlate: string;
     model: string;
     brand: string;
+    age: number;
     pics: string[];
     email: string;
     color: string;

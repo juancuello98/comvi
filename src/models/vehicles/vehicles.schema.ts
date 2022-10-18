@@ -7,9 +7,6 @@ export type VehiclesDocument = Vehicles & Document;
 @Schema()
 export class Vehicles {
 
-    @Prop({required: true}) // para propiedades requeridas
-    id : string;
-  
     @Prop({required: true}) 
     patentPlate : string;
 
@@ -19,13 +16,17 @@ export class Vehicles {
     @Prop({required: true}) 
     brand : string;
 
-    pics : string []; //urls de imagenes
+    @Prop({required: true})
+    age : number;
+
+    @Prop()
+    pics : string [];
     
     @Prop({required: true}) 
     email: string;
 
+    @Prop()
     color: string;
-    //documentacion?
 }
 
 export const VehiclesSchema = SchemaFactory.createForClass(Vehicles);

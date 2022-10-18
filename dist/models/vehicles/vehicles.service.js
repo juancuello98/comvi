@@ -17,34 +17,64 @@ exports.VehiclesService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("mongoose");
 const vehicles_schema_1 = require("./vehicles.schema");
-const user_service_1 = require("../users/user.service");
 const mongoose_2 = require("@nestjs/mongoose");
 let VehiclesService = VehiclesService_1 = class VehiclesService {
-    constructor(vehiclesModel, userService) {
+    constructor(vehiclesModel) {
         this.vehiclesModel = vehiclesModel;
-        this.userService = userService;
         this.logger = new common_1.Logger(VehiclesService_1.name);
     }
     async create(createVehicleDto) {
-        const newVehicle = new this.vehiclesModel(createVehicleDto);
-        const user = await this.userService.findByEmail(createVehicleDto.mail);
-        const doesUserExist = !!user;
-        if (!doesUserExist) {
-            this.logger.log('El usuario no existe: ' + createVehicleDto.mail);
-            return null;
+        try {
+            const newVehicle = new this.vehiclesModel(createVehicleDto);
+            const data = newVehicle.save();
+            const resp = {
+                hasError: false,
+                message: 'Vehicle created successfully',
+                data: data,
+                status: common_1.HttpStatus.CREATED
+            };
+            return resp;
         }
-        return newVehicle.save();
+        catch (error) {
+            console.error(error);
+            const resp = {
+                hasError: true,
+                message: 'Vehicles created failed.',
+                data: error,
+                status: common_1.HttpStatus.INTERNAL_SERVER_ERROR
+            };
+            return resp;
+        }
     }
     async update(id, updateVehicleDto) {
         const vehicle = new this.vehiclesModel(updateVehicleDto);
         return vehicle.save();
     }
+    async findById(id) {
+        console.log(id);
+        const vehicles = await this.vehiclesModel.findById(id).exec();
+        return {
+            hasError: false,
+            message: 'User vehicles found.',
+            data: vehicles,
+            status: common_1.HttpStatus.OK
+        };
+    }
+    async findByUser(email) {
+        console.log(email);
+        const vehicles = await this.vehiclesModel.find({ email }).exec();
+        return {
+            hasError: false,
+            message: 'User vehicles found.',
+            data: vehicles,
+            status: common_1.HttpStatus.OK
+        };
+    }
 };
 VehiclesService = VehiclesService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_2.InjectModel)(vehicles_schema_1.Vehicles.name)),
-    __metadata("design:paramtypes", [mongoose_1.Model,
-        user_service_1.UserService])
+    __metadata("design:paramtypes", [mongoose_1.Model])
 ], VehiclesService);
 exports.VehiclesService = VehiclesService;
 //# sourceMappingURL=vehicles.service.js.map
