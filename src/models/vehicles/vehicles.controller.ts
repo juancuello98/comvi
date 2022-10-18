@@ -13,8 +13,9 @@ export class VehiclesController {
   ) {}
 
   @Post('/create')
-  create(@Body() createVehicleDto: CreateVehicleDto) {
-    return this.vehiclesService.create(createVehicleDto);
+  create(@Body() createVehicleDto: CreateVehicleDto, @Req() request: Request) {
+    const userEmail = this.requestHelper.getPayload(request)
+    return this.vehiclesService.create({...createVehicleDto, email: userEmail});
   }
 
   @Get('/myvehicles')

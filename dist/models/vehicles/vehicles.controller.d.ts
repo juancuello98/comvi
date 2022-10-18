@@ -7,7 +7,7 @@ export declare class VehiclesController {
     private readonly vehiclesService;
     private readonly requestHelper;
     constructor(vehiclesService: VehiclesService, requestHelper: RequestHelper);
-    create(createVehicleDto: CreateVehicleDto): Promise<import("../../common/interfaces/responses.interface").ResponseDTO>;
+    create(createVehicleDto: CreateVehicleDto, request: Request): Promise<import("../../common/interfaces/responses.interface").ResponseDTO>;
     findMyVehicles(request: Request): Promise<import("../../common/interfaces/responses.interface").ResponseDTO>;
     findOne(id: string): Promise<import("../../common/interfaces/responses.interface").ResponseDTO>;
     update(id: string, updateVehicleDto: UpdateVehicleDto): Promise<import("./vehicles.schema").VehiclesDocument>;

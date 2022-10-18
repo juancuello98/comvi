@@ -9,6 +9,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TripModule } from './models/trips/trip.module';
 import { CommonModule } from './common/common.module';
+import { VehiclesModule } from './models/vehicles/vehicles.module';
 
 
 
@@ -22,7 +23,8 @@ import { CommonModule } from './common/common.module';
     AuthModule, 
     UserModule,
     TripModule,
-    CommonModule
+    CommonModule,
+    VehiclesModule
 
   ],
   controllers: [AppController],

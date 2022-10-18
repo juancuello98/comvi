@@ -23,8 +23,9 @@ let VehiclesController = class VehiclesController {
         this.vehiclesService = vehiclesService;
         this.requestHelper = requestHelper;
     }
-    create(createVehicleDto) {
-        return this.vehiclesService.create(createVehicleDto);
+    create(createVehicleDto, request) {
+        const userEmail = this.requestHelper.getPayload(request);
+        return this.vehiclesService.create(Object.assign(Object.assign({}, createVehicleDto), { email: userEmail }));
     }
     findMyVehicles(request) {
         const userEmail = this.requestHelper.getPayload(request);
@@ -40,8 +41,9 @@ let VehiclesController = class VehiclesController {
 __decorate([
     (0, common_1.Post)('/create'),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_vehicle_dto_1.CreateVehicleDto]),
+    __metadata("design:paramtypes", [create_vehicle_dto_1.CreateVehicleDto, Object]),
     __metadata("design:returntype", void 0)
 ], VehiclesController.prototype, "create", null);
 __decorate([
