@@ -37,6 +37,10 @@ __decorate([
     __metadata("design:type", Number)
 ], Trip.prototype, "peopleQuantity", void 0);
 __decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], Trip.prototype, "placesAvailable", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", location_schema_1.Vehicle)
 ], Trip.prototype, "vehicle", void 0);
@@ -52,6 +56,34 @@ __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
 ], Trip.prototype, "status", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Array)
+], Trip.prototype, "passengers", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Array)
+], Trip.prototype, "paquetes", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], Trip.prototype, "estimatedCosts", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Number)
+], Trip.prototype, "kilometers", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], Trip.prototype, "createdTimestamp", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Array)
+], Trip.prototype, "tripsRequests", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", Array)
+], Trip.prototype, "valuations", void 0);
 Trip = __decorate([
     (0, mongoose_1.Schema)()
 ], Trip);

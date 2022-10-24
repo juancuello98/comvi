@@ -29,7 +29,9 @@ let VehiclesController = class VehiclesController {
     }
     findMyVehicles(request) {
         const userEmail = this.requestHelper.getPayload(request);
-        return this.vehiclesService.findByUser(userEmail);
+        const resp = this.vehiclesService.findByUser(userEmail);
+        console.log(`@Get('/myvehicles'): ${JSON.stringify(resp)}`);
+        return resp;
     }
     findOne(id) {
         return this.vehiclesService.findById(id);

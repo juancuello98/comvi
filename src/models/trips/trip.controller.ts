@@ -29,8 +29,9 @@ export class TripController {
   }
 
   @Get('/list')
-  async findAll() : Promise<TripDocument[] | null >{
-    return this.tripsService.findAll();
+  async findAll(@Req() request: Request) : Promise<ResponseDTO >{
+    const userEmail = this.requestHelper.getPayload(request)
+    return this.tripsService.findAll(userEmail);
   }
 
   @Get('/list/:id')

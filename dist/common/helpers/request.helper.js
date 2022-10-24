@@ -15,18 +15,23 @@ const jwt_decode_1 = require("jwt-decode");
 let RequestHelper = class RequestHelper {
     constructor() {
         this.getPayload = (request) => {
-            let auth;
-            let token;
-            let email = '';
-            const req = request;
-            const head = req.headers;
-            if (head.authorization) {
-                auth = head.authorization;
-                token = auth.split(' ')[1];
-                const payload = (0, jwt_decode_1.default)(token);
-                email = payload.user.email;
+            try {
+                let auth;
+                let token;
+                let email = '';
+                const req = request;
+                const head = req.headers;
+                if (head.authorization) {
+                    auth = head.authorization;
+                    token = auth.split(' ')[1];
+                    const payload = (0, jwt_decode_1.default)(token);
+                    email = payload.user.email;
+                }
+                return email;
             }
-            return email;
+            catch (error) {
+                console.error(error);
+            }
         };
     }
 };

@@ -20,8 +20,10 @@ export class VehiclesController {
 
   @Get('/myvehicles')
   findMyVehicles (@Req() request: Request) {
-    const userEmail = this.requestHelper.getPayload(request)
-    return this.vehiclesService.findByUser(userEmail);
+    const userEmail = this.requestHelper.getPayload(request);
+    const resp = this.vehiclesService.findByUser(userEmail);
+    console.log(`@Get('/myvehicles'): ${JSON.stringify(resp)}`);
+    return resp;
   }
 
   @Get(':id')

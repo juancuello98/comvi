@@ -27,6 +27,9 @@ export class Trip {
     @Prop({required: true}) 
     peopleQuantity : number;
 
+    @Prop()
+    placesAvailable : number;
+
     @Prop({required: true}) 
     vehicle: Vehicle;
 
@@ -39,18 +42,25 @@ export class Trip {
     @Prop({required: true}) 
     status: TripStatus
 
+    @Prop()
     passengers : string [] //va a ir un array con los ids de los usuarios para no replicar data
 
+    @Prop()
     paquetes: string [] // id de los paquetes que van a ir en el viaje
 
+    @Prop()
     estimatedCosts: number
 
+    @Prop()
     kilometers: number
 
+    @Prop()
     createdTimestamp: string
 
+    @Prop()
     tripsRequests : string [] // array con los ids de las solicitudes
 
+    @Prop()
     valuations : string [] // id de las valuaciones que van a ser consultadas por otros servicios
 }
 

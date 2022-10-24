@@ -19,49 +19,65 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const user_service_1 = require("../users/user.service");
 const trip_schema_1 = require("./trip.schema");
-const crypto_1 = require("crypto");
 const state_enum_1 = require("./enums/state.enum");
 let TripService = TripService_1 = class TripService {
     constructor(tripModel, userService) {
         this.tripModel = tripModel;
         this.userService = userService;
         this.logger = new common_1.Logger(TripService_1.name);
-    }
-    _getTripDetails(trip) {
-        return {
-            id: trip._id,
-            destination: trip.destination,
-            origen: trip.origin,
-            checkIn: trip.checkIn,
-            kilometros: (0, crypto_1.randomInt)(248),
-            peopleCapacity: trip.peopleQuantity,
-            status: trip.status
+        this.makeResponse = (hasError, message, data, status) => {
+            return {
+                hasError: hasError,
+                message: message,
+                data: data,
+                status: status
+            };
         };
     }
     async findTripsByDriver(driverEmail) {
         console.log(driverEmail);
+        const trips = await this.findByDriver(driverEmail);
+        return this.makeResponse(false, 'User trips found.', trips, common_1.HttpStatus.OK);
+    }
+    async findByDriver(driverEmail) {
+        console.log(driverEmail);
         const trips = await this.tripModel.find({ driverEmail }).exec();
-        return {
-            hasError: false,
-            message: 'User trips found.',
-            data: { trips },
-            status: common_1.HttpStatus.OK
-        };
+        this.logger.log(`Trips of user ${driverEmail} founded. STATUS: SUCCESS`);
+        return trips;
     }
     async findByStatus(status) {
         return this.tripModel.find({ status }).exec();
     }
-    async findAll() {
-        const items = await this.tripModel.find().exec();
-        if (items.length == 0)
-            return null;
-        return items;
+    async findAll(email) {
+        console.log('findAll: ', email);
+        let message = 'Trips not found';
+        try {
+            const items = await this.tripModel.find().exec();
+            if (items.length == 0)
+                this.makeResponse(false, message, null, common_1.HttpStatus.NOT_FOUND);
+            message = 'Successfully found trips';
+            const itemsFiltered = items.filter(x => x.driverEmail !== email);
+            if (itemsFiltered.length == 0)
+                this.makeResponse(false, message, null, common_1.HttpStatus.NOT_FOUND);
+            return this.makeResponse(false, message, itemsFiltered, common_1.HttpStatus.OK);
+        }
+        catch (error) {
+            console.error('Error in findAll: ', error);
+            return this.makeResponse(true, message, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     async findById(tripId) {
-        const trip = await this.tripModel.findById(tripId).exec();
-        if (!trip)
-            return null;
-        return this._getTripDetails(trip);
+        try {
+            let trip = await this.tripModel.findById(tripId).exec();
+            if (!trip)
+                trip = null;
+            const message = 'Successfully found trips';
+            return this.makeResponse(false, message, trip, common_1.HttpStatus.OK);
+        }
+        catch (error) {
+            console.error('Error: ', error);
+            return this.makeResponse(true, 'Error in findById', null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     async create(trip) {
         const newTrip = new this.tripModel({
@@ -71,6 +87,7 @@ let TripService = TripService_1 = class TripService {
             allowPackage: trip.allowPackage,
             allowPassenger: trip.allowPassenger,
             peopleQuantity: trip.peopleQuantity,
+            placesAvailable: trip.peopleQuantity,
             vehicle: trip.vehicle,
             checkIn: trip.startedTimestamp,
             status: state_enum_1.TripStatus.OPEN,

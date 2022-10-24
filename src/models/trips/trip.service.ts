@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, UseFilters } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { TripDetails } from '../trips/interface/trips-details.interface';
@@ -8,6 +8,7 @@ import { Trip, TripDocument } from './trip.schema';
 import { randomInt } from 'crypto';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { TripStatus } from './enums/state.enum';
+import { Filters } from './enums/filters.enum';
 
 @Injectable()
 export class TripService {
@@ -19,44 +20,59 @@ export class TripService {
     private readonly userService: UserService,
   ) {}
 
-  _getTripDetails(trip: TripDocument): TripDetails {
-    return {
-      id: trip._id,
-      destination: trip.destination,
-      origen: trip.origin,
-      checkIn: trip.checkIn,
-      kilometros: randomInt(248),
-      peopleCapacity: trip.peopleQuantity,
-      status: trip.status
-    };
-  }
-
   async findTripsByDriver(driverEmail: string): Promise<ResponseDTO> {
     console.log(driverEmail);
+    const trips = await this.findByDriver(driverEmail);
+    return this.makeResponse(false,'User trips found.',trips,HttpStatus.OK);
+  }
+
+  async findByDriver(driverEmail:string):Promise<TripDocument[]>{
+    console.log(driverEmail);
     const trips = await this.tripModel.find({driverEmail}).exec();
-    return {
-      hasError: false,
-      message: 'User trips found.',
-      data: {trips},
-      status: HttpStatus.OK
-    }
+    this.logger.log(`Trips of user ${driverEmail} founded. STATUS: SUCCESS`);
+    return trips;
   }
 
   async findByStatus(status: string): Promise<TripDocument[]> {
     return this.tripModel.find({status}).exec();
   }
 
-  async findAll(): Promise<TripDocument[] | null> {
-    const items = await this.tripModel.find().exec();
-    if(items.length == 0) return null;
-    return items;
+  async findAll(email: string): Promise<ResponseDTO> {
+
+    console.log('findAll: ', email);
+
+    let message = 'Trips not found';
+
+    try {
+      const items = await this.tripModel.find().exec();
+
+      if(items.length == 0) this.makeResponse(false,message,null,HttpStatus.NOT_FOUND);
+
+      message = 'Successfully found trips';
+
+      const itemsFiltered = items.filter(x => x.driverEmail !== email )
+
+      if(itemsFiltered.length == 0) this.makeResponse(false,message,null,HttpStatus.NOT_FOUND);
     
+      return this.makeResponse(false,message,itemsFiltered,HttpStatus.OK);
+
+    } catch (error) {
+      console.error('Error in findAll: ',error);
+
+      return this.makeResponse(true,message,null,HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
-  async findById(tripId: string): Promise<TripDetails | null> {
-    const trip = await this.tripModel.findById(tripId).exec();
-    if (!trip) return null;
-    return this._getTripDetails(trip);
+  async findById(tripId: string): Promise<ResponseDTO> {
+    try {
+      let trip = await this.tripModel.findById(tripId).exec();
+      if (!trip) trip = null;
+      const message = 'Successfully found trips';
+      return this.makeResponse(false, message,trip,HttpStatus.OK );
+    } catch (error) {
+      console.error('Error: ',error);
+      return this.makeResponse(true,'Error in findById',null,HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async create( trip: NewTripDTO ): Promise<ResponseDTO> {
@@ -69,6 +85,7 @@ export class TripService {
       allowPackage: trip.allowPackage,
       allowPassenger: trip.allowPassenger,
       peopleQuantity: trip.peopleQuantity,
+      placesAvailable: trip.peopleQuantity,
       vehicle: trip.vehicle,
       checkIn: trip.startedTimestamp,
       status: TripStatus.OPEN,
@@ -93,4 +110,16 @@ export class TripService {
   ): Promise<TripDocument> {
     return trip.save();
   }
+
+  makeResponse = (hasError: boolean, message: string,data:any,status: HttpStatus) : ResponseDTO => {
+    return {
+      hasError: hasError,
+      message: message,
+      data: data,
+      status: status
+    }
+  }
 }
+
+
+

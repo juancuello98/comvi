@@ -33,6 +33,7 @@ export declare class Trip {
     allowPackage: boolean;
     allowPassenger: boolean;
     peopleQuantity: number;
+    placesAvailable: number;
     vehicle: Vehicle;
     driverEmail: string;
     checkIn: string;

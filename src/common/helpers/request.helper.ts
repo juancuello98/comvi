@@ -25,21 +25,25 @@ export class RequestHelper {
   constructor() {}
 
   getPayload = (request : Request) : string  => {
-    let auth;
-    let token;
-    let email: string = '';
+    try {
+      let auth;
+      let token;
+      let email: string = '';
 
-    const req : Request = request;
-    const head : ComviHeader = req.headers;
+      const req : Request = request;
+      const head : ComviHeader = req.headers;
 
-    if(head.authorization){
-      auth = head.authorization;
-      token = auth.split(' ')[1];
-      const payload : Payload = jwtDecode(token);
-      email = payload.user.email;
+      if(head.authorization){
+        auth = head.authorization;
+        token = auth.split(' ')[1];
+        const payload : Payload = jwtDecode(token);
+        email = payload.user.email;
+      }
+
+      return email;
+    } catch (error) {
+      console.error(error);
     }
-
-    return email;
   }
 }
 

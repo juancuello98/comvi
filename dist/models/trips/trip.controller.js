@@ -30,8 +30,9 @@ let TripController = class TripController {
         const resp = await this.tripsService.create(tripModify);
         return resp;
     }
-    async findAll() {
-        return this.tripsService.findAll();
+    async findAll(request) {
+        const userEmail = this.requestHelper.getPayload(request);
+        return this.tripsService.findAll(userEmail);
     }
     findOne(id) {
         return this.tripsService.findById(id);
@@ -52,8 +53,9 @@ __decorate([
 ], TripController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)('/list'),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], TripController.prototype, "findAll", null);
 __decorate([
