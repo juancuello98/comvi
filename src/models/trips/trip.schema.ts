@@ -19,6 +19,9 @@ export class Trip {
     destination : Location;
 
     @Prop({required: true}) 
+    description : string;
+
+    @Prop({required: true}) 
     allowPackage : boolean;
 
     @Prop({required: true}) 
@@ -37,7 +40,7 @@ export class Trip {
     driverEmail : string;
     
     @Prop({required: true}) 
-    checkIn: string
+    startedTimestamp: string
     
     @Prop({required: true}) 
     status: TripStatus

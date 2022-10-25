@@ -30,6 +30,11 @@ __decorate([
     __metadata("design:type", location_schema_2.Location)
 ], NewTripDTO.prototype, "destination", void 0);
 __decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], NewTripDTO.prototype, "description", void 0);
+__decorate([
     (0, class_validator_1.IsBoolean)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Boolean)

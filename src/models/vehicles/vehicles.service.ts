@@ -3,10 +3,8 @@ import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { Model } from 'mongoose';
 import { Vehicles , VehiclesDocument } from './vehicles.schema'
-import { UserService } from '../users/user.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
-import { CONNREFUSED } from 'dns';
 
 @Injectable()
 export class VehiclesService {

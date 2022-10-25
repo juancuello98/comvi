@@ -26,6 +26,10 @@ __decorate([
 ], Trip.prototype, "destination", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Trip.prototype, "description", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", Boolean)
 ], Trip.prototype, "allowPackage", void 0);
 __decorate([
@@ -51,7 +55,7 @@ __decorate([
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
-], Trip.prototype, "checkIn", void 0);
+], Trip.prototype, "startedTimestamp", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)

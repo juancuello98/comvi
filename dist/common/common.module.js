@@ -12,6 +12,7 @@ const config_1 = require("@nestjs/config");
 const user_module_1 = require("../models/users/user.module");
 const jwt_auth_guard_1 = require("./guards/jwt-auth.guard");
 const request_helper_1 = require("./helpers/request.helper");
+const response_helper_1 = require("./helpers/response.helper");
 const auth_firebase_middleware_1 = require("./middleware/auth-firebase.middleware");
 const jwt_strategy_1 = require("./strategies/jwt.strategy");
 let CommonModule = class CommonModule {
@@ -26,12 +27,14 @@ CommonModule = __decorate([
         ],
         controllers: [],
         providers: [
+            response_helper_1.ResponseHelper,
             request_helper_1.RequestHelper,
             jwt_auth_guard_1.JwtAuthGuard,
             auth_firebase_middleware_1.AuthFirebaseMiddleware,
             jwt_strategy_1.JwtStrategy
         ],
         exports: [
+            response_helper_1.ResponseHelper,
             request_helper_1.RequestHelper,
             user_module_1.UserModule
         ]

@@ -1,14 +1,12 @@
 import { HttpStatus, Injectable, Logger, UseFilters } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { TripDetails } from '../trips/interface/trips-details.interface';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { UserService } from '../users/user.service';
 import { Trip, TripDocument } from './trip.schema';
-import { randomInt } from 'crypto';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { TripStatus } from './enums/state.enum';
-import { Filters } from './enums/filters.enum';
+import { ResponseHelper } from 'src/common/helpers/response.helper';
 
 @Injectable()
 export class TripService {
@@ -17,13 +15,13 @@ export class TripService {
 
   constructor(
     @InjectModel(Trip.name) private readonly tripModel: Model<TripDocument>,
-    private readonly userService: UserService,
+    private readonly responseHelper : ResponseHelper
   ) {}
 
   async findTripsByDriver(driverEmail: string): Promise<ResponseDTO> {
     console.log(driverEmail);
     const trips = await this.findByDriver(driverEmail);
-    return this.makeResponse(false,'User trips found.',trips,HttpStatus.OK);
+    return this.responseHelper.makeResponse(false,'User trips found.',trips,HttpStatus.OK);
   }
 
   async findByDriver(driverEmail:string):Promise<TripDocument[]>{
@@ -39,39 +37,44 @@ export class TripService {
 
   async findAll(email: string): Promise<ResponseDTO> {
 
-    console.log('findAll: ', email);
-
     let message = 'Trips not found';
 
     try {
       const items = await this.tripModel.find().exec();
 
-      if(items.length == 0) this.makeResponse(false,message,null,HttpStatus.NOT_FOUND);
+      if(items.length == 0) this.responseHelper.makeResponse(false,message,null,HttpStatus.NOT_FOUND);
 
       message = 'Successfully found trips';
 
       const itemsFiltered = items.filter(x => x.driverEmail !== email )
 
-      if(itemsFiltered.length == 0) this.makeResponse(false,message,null,HttpStatus.NOT_FOUND);
+      if(itemsFiltered.length == 0) this.responseHelper.makeResponse(false,message,null,HttpStatus.NOT_FOUND);
     
-      return this.makeResponse(false,message,itemsFiltered,HttpStatus.OK);
+      return this.responseHelper.makeResponse(false,message,itemsFiltered,HttpStatus.OK);
 
     } catch (error) {
       console.error('Error in findAll: ',error);
 
-      return this.makeResponse(true,message,null,HttpStatus.INTERNAL_SERVER_ERROR);
+      return this.responseHelper.makeResponse(true,message,null,HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   async findById(tripId: string): Promise<ResponseDTO> {
     try {
+      
+      let message = 'Successfully found trips';
+      let status = HttpStatus.OK;
       let trip = await this.tripModel.findById(tripId).exec();
-      if (!trip) trip = null;
-      const message = 'Successfully found trips';
-      return this.makeResponse(false, message,trip,HttpStatus.OK );
+      if (!trip)
+      {
+        trip = null;
+        message = 'Not found trips';
+        status = HttpStatus.NOT_FOUND;
+      };
+      return this.responseHelper.makeResponse(false, message,trip,status);
     } catch (error) {
       console.error('Error: ',error);
-      return this.makeResponse(true,'Error in findById',null,HttpStatus.INTERNAL_SERVER_ERROR);
+      return this.responseHelper.makeResponse(true,'Error in findById',null,HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -87,7 +90,7 @@ export class TripService {
       peopleQuantity: trip.peopleQuantity,
       placesAvailable: trip.peopleQuantity,
       vehicle: trip.vehicle,
-      checkIn: trip.startedTimestamp,
+      startedTimestamp: trip.startedTimestamp,
       status: TripStatus.OPEN,
       createdTimestamp: Date.now().toString()
     });
@@ -109,15 +112,6 @@ export class TripService {
     trip: TripDocument
   ): Promise<TripDocument> {
     return trip.save();
-  }
-
-  makeResponse = (hasError: boolean, message: string,data:any,status: HttpStatus) : ResponseDTO => {
-    return {
-      hasError: hasError,
-      message: message,
-      data: data,
-      status: status
-    }
   }
 }
 

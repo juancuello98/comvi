@@ -6,6 +6,7 @@ export declare class NewTripDTO extends NewTripDTO_base {
     email: string;
     origin: Location;
     destination: Location;
+    description: string;
     allowPackage: boolean;
     allowPassenger: boolean;
     peopleQuantity: number;

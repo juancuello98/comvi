@@ -3,8 +3,6 @@ import { ApiTags } from '@nestjs/swagger';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { NewTripDTO } from './dto/new-trip.dto';
-import { TripDetails } from './interface/trips-details.interface';
-import { TripDocument } from './trip.schema';
 import { TripService } from './trip.service';
 import { RequestHelper } from '../../common/helpers/request.helper';
 import { Request } from 'express';

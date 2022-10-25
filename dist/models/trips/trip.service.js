@@ -17,27 +17,19 @@ exports.TripService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-const user_service_1 = require("../users/user.service");
 const trip_schema_1 = require("./trip.schema");
 const state_enum_1 = require("./enums/state.enum");
+const response_helper_1 = require("../../common/helpers/response.helper");
 let TripService = TripService_1 = class TripService {
-    constructor(tripModel, userService) {
+    constructor(tripModel, responseHelper) {
         this.tripModel = tripModel;
-        this.userService = userService;
+        this.responseHelper = responseHelper;
         this.logger = new common_1.Logger(TripService_1.name);
-        this.makeResponse = (hasError, message, data, status) => {
-            return {
-                hasError: hasError,
-                message: message,
-                data: data,
-                status: status
-            };
-        };
     }
     async findTripsByDriver(driverEmail) {
         console.log(driverEmail);
         const trips = await this.findByDriver(driverEmail);
-        return this.makeResponse(false, 'User trips found.', trips, common_1.HttpStatus.OK);
+        return this.responseHelper.makeResponse(false, 'User trips found.', trips, common_1.HttpStatus.OK);
     }
     async findByDriver(driverEmail) {
         console.log(driverEmail);
@@ -49,34 +41,38 @@ let TripService = TripService_1 = class TripService {
         return this.tripModel.find({ status }).exec();
     }
     async findAll(email) {
-        console.log('findAll: ', email);
         let message = 'Trips not found';
         try {
             const items = await this.tripModel.find().exec();
             if (items.length == 0)
-                this.makeResponse(false, message, null, common_1.HttpStatus.NOT_FOUND);
+                this.responseHelper.makeResponse(false, message, null, common_1.HttpStatus.NOT_FOUND);
             message = 'Successfully found trips';
             const itemsFiltered = items.filter(x => x.driverEmail !== email);
             if (itemsFiltered.length == 0)
-                this.makeResponse(false, message, null, common_1.HttpStatus.NOT_FOUND);
-            return this.makeResponse(false, message, itemsFiltered, common_1.HttpStatus.OK);
+                this.responseHelper.makeResponse(false, message, null, common_1.HttpStatus.NOT_FOUND);
+            return this.responseHelper.makeResponse(false, message, itemsFiltered, common_1.HttpStatus.OK);
         }
         catch (error) {
             console.error('Error in findAll: ', error);
-            return this.makeResponse(true, message, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+            return this.responseHelper.makeResponse(true, message, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     async findById(tripId) {
         try {
+            let message = 'Successfully found trips';
+            let status = common_1.HttpStatus.OK;
             let trip = await this.tripModel.findById(tripId).exec();
-            if (!trip)
+            if (!trip) {
                 trip = null;
-            const message = 'Successfully found trips';
-            return this.makeResponse(false, message, trip, common_1.HttpStatus.OK);
+                message = 'Not found trips';
+                status = common_1.HttpStatus.NOT_FOUND;
+            }
+            ;
+            return this.responseHelper.makeResponse(false, message, trip, status);
         }
         catch (error) {
             console.error('Error: ', error);
-            return this.makeResponse(true, 'Error in findById', null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+            return this.responseHelper.makeResponse(true, 'Error in findById', null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     async create(trip) {
@@ -89,7 +85,7 @@ let TripService = TripService_1 = class TripService {
             peopleQuantity: trip.peopleQuantity,
             placesAvailable: trip.peopleQuantity,
             vehicle: trip.vehicle,
-            checkIn: trip.startedTimestamp,
+            startedTimestamp: trip.startedTimestamp,
             status: state_enum_1.TripStatus.OPEN,
             createdTimestamp: Date.now().toString()
         });
@@ -110,7 +106,7 @@ TripService = TripService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(trip_schema_1.Trip.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
-        user_service_1.UserService])
+        response_helper_1.ResponseHelper])
 ], TripService);
 exports.TripService = TripService;
 //# sourceMappingURL=trip.service.js.map

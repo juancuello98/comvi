@@ -1,14 +1,13 @@
-import { HttpStatus } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { NewTripDTO } from './dto/new-trip.dto';
-import { UserService } from '../users/user.service';
 import { TripDocument } from './trip.schema';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
+import { ResponseHelper } from 'src/common/helpers/response.helper';
 export declare class TripService {
     private readonly tripModel;
-    private readonly userService;
+    private readonly responseHelper;
     private readonly logger;
-    constructor(tripModel: Model<TripDocument>, userService: UserService);
+    constructor(tripModel: Model<TripDocument>, responseHelper: ResponseHelper);
     findTripsByDriver(driverEmail: string): Promise<ResponseDTO>;
     findByDriver(driverEmail: string): Promise<TripDocument[]>;
     findByStatus(status: string): Promise<TripDocument[]>;
@@ -16,5 +15,4 @@ export declare class TripService {
     findById(tripId: string): Promise<ResponseDTO>;
     create(trip: NewTripDTO): Promise<ResponseDTO>;
     update(trip: TripDocument): Promise<TripDocument>;
-    makeResponse: (hasError: boolean, message: string, data: any, status: HttpStatus) => ResponseDTO;
 }
