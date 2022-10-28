@@ -75,7 +75,7 @@ let RequestService = RequestService_1 = class RequestService {
             hasPartner: req.hasPartner,
             partnerQuantity: partnerQuantity,
             totalPassenger: 1 + partnerQuantity,
-            createdTimestamp: Date.now().toString(),
+            createdTimestamp: new Date().toISOString(),
             status: status_enum_1.StatusRequest.ON_HOLD
         });
         const requestCreated = await newRequest.save();

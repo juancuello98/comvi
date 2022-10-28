@@ -85,6 +85,7 @@ export class TripService {
       driverEmail: trip.email,
       origin: trip.origin,
       destination: trip.destination,
+      description: trip.description,
       allowPackage: trip.allowPackage,
       allowPassenger: trip.allowPassenger,
       peopleQuantity: trip.peopleQuantity,
@@ -92,7 +93,7 @@ export class TripService {
       vehicle: trip.vehicle,
       startedTimestamp: trip.startedTimestamp,
       status: TripStatus.OPEN,
-      createdTimestamp: Date.now().toString()
+      createdTimestamp: new Date().toISOString()
     });
 
     const tripCreated = await newTrip.save();

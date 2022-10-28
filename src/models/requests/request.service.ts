@@ -77,7 +77,7 @@ export class RequestService {
       hasPartner : req.hasPartner,
       partnerQuantity : partnerQuantity,
       totalPassenger : 1 + partnerQuantity,
-      createdTimestamp : Date.now().toString(),
+      createdTimestamp : new Date().toISOString(),
       status : StatusRequest.ON_HOLD
     });
 

@@ -80,6 +80,7 @@ let TripService = TripService_1 = class TripService {
             driverEmail: trip.email,
             origin: trip.origin,
             destination: trip.destination,
+            description: trip.description,
             allowPackage: trip.allowPackage,
             allowPassenger: trip.allowPassenger,
             peopleQuantity: trip.peopleQuantity,
@@ -87,7 +88,7 @@ let TripService = TripService_1 = class TripService {
             vehicle: trip.vehicle,
             startedTimestamp: trip.startedTimestamp,
             status: state_enum_1.TripStatus.OPEN,
-            createdTimestamp: Date.now().toString()
+            createdTimestamp: new Date().toISOString()
         });
         const tripCreated = await newTrip.save();
         const resp = {
