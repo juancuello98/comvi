@@ -38,6 +38,10 @@ let RequestController = class RequestController {
         const userEmail = this.requestHelper.getPayload(request);
         return this.requestService.findMyRequests(userEmail);
     }
+    async requestsByTrips(request) {
+        const userEmail = this.requestHelper.getPayload(request);
+        return this.requestService.requestsByTrips(userEmail);
+    }
 };
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
@@ -49,12 +53,19 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], RequestController.prototype, "create", null);
 __decorate([
-    (0, common_1.Get)('/bytrips'),
+    (0, common_1.Get)('/myrequests'),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], RequestController.prototype, "findMyRequests", null);
+__decorate([
+    (0, common_1.Get)('/requestsBytrips'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], RequestController.prototype, "requestsByTrips", null);
 RequestController = __decorate([
     (0, swagger_1.ApiTags)('request'),
     (0, common_1.Controller)('request'),

@@ -91,21 +91,26 @@ let RequestService = RequestService_1 = class RequestService {
     async update(request) {
         return request.save();
     }
-    async updateUserRequests(email, id) {
-        const update = { "$push": { "joinRequests": id } };
-        const user = await this.userModel.findOneAndUpdate({ email: email }, update);
-        if (!user)
-            return user;
-        this.logger.log('updateUserRequests: User updated when new request in joinRequests.');
-        return await user.save();
+    async requestsByTrips(email) {
+        try {
+            const trips = await this.tripModel.find({ driverEmail: email, status: 'OPEN' });
+            console.log(trips);
+            const requests = trips.map(x => this.getRequests(x));
+            return this.responseHelper.makeResponse(false, `${RequestService_1.name}: Requests founded.`, requests, common_1.HttpStatus.OK);
+        }
+        catch (error) {
+            return this.responseHelper.makeResponse(false, `${RequestService_1.name}: error ${error.message}.`, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-    async updateTripRequests(tripId, requestId) {
-        const update = { "$push": { "tripsRequests": requestId } };
-        const trip = await this.tripModel.findByIdAndUpdate(tripId, update);
-        if (!trip)
-            return trip;
-        this.logger.log('updateTripRequests: Trip updated when new request in tripsRequests.');
-        return await trip.save();
+    async getRequests(trip) {
+        let requests;
+        console.log(trip);
+        for (const req in trip.tripsRequests) {
+            let newRequest = await this.requestModel.findById(req);
+            console.log(newRequest);
+            requests = Object.assign({ requests }, newRequest);
+        }
+        return requests;
     }
 };
 RequestService = RequestService_1 = __decorate([

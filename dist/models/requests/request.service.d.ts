@@ -3,8 +3,8 @@ import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { RequestDocument } from './request.schema';
 import { ResponseHelper } from '../../common/helpers/http/response.helper';
 import { ExtendedRequestDTO } from './dto/extended-request.dto';
-import { Trip, TripDocument } from '../trips/trip.schema';
-import { User, UserDocument } from '../users/user.schema';
+import { TripDocument } from '../trips/trip.schema';
+import { UserDocument } from '../users/user.schema';
 export declare class RequestService {
     private readonly requestModel;
     private readonly tripModel;
@@ -17,8 +17,6 @@ export declare class RequestService {
     findById(requestId: string): Promise<ResponseDTO>;
     send(req: ExtendedRequestDTO): Promise<ResponseDTO>;
     update(request: RequestDocument): Promise<RequestDocument>;
-    updateUserRequests(email: string, id: any): Promise<User & import("mongoose").Document<any, any, any> & {
-        _id: import("mongoose").Types.ObjectId;
-    }>;
-    updateTripRequests(tripId: string, requestId: string): Promise<Trip & TripDocument>;
+    requestsByTrips(email: string): Promise<ResponseDTO>;
+    getRequests(trip: TripDocument): Promise<any>;
 }

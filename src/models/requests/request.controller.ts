@@ -29,12 +29,17 @@ export class RequestController {
     return resp;
   }
 
-  @Get('/bytrips')
+  @Get('/myrequests')
   async findMyRequests(@Req() request: Request) : Promise<ResponseDTO >{
     const userEmail = this.requestHelper.getPayload(request)
     return this.requestService.findMyRequests(userEmail);
   }
 
+  @Get('/requestsBytrips')
+  async requestsByTrips(@Req() request: Request) : Promise<ResponseDTO >{
+    const userEmail = this.requestHelper.getPayload(request)
+    return this.requestService.requestsByTrips(userEmail);
+  }
   // @Get('/list/:id')
   // findOne(@Param('id') id: string) {
   //   return this.requestService.findById(id);
