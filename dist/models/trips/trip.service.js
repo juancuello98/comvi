@@ -19,7 +19,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const trip_schema_1 = require("./trip.schema");
 const state_enum_1 = require("./enums/state.enum");
-const response_helper_1 = require("../../common/helpers/response.helper");
+const response_helper_1 = require("../../common/helpers/http/response.helper");
 let TripService = TripService_1 = class TripService {
     constructor(tripModel, responseHelper) {
         this.tripModel = tripModel;

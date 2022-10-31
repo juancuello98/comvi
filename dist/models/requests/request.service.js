@@ -18,11 +18,15 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const request_schema_1 = require("./request.schema");
-const response_helper_1 = require("../../common/helpers/response.helper");
+const response_helper_1 = require("../../common/helpers/http/response.helper");
 const status_enum_1 = require("./enums/status.enum");
+const trip_schema_1 = require("../trips/trip.schema");
+const user_schema_1 = require("../users/user.schema");
 let RequestService = RequestService_1 = class RequestService {
-    constructor(requestModel, responseHelper) {
+    constructor(requestModel, tripModel, userModel, responseHelper) {
         this.requestModel = requestModel;
+        this.tripModel = tripModel;
+        this.userModel = userModel;
         this.responseHelper = responseHelper;
         this.logger = new common_1.Logger(RequestService_1.name);
     }
@@ -30,21 +34,18 @@ let RequestService = RequestService_1 = class RequestService {
         const requests = this.requestModel.find({ status }).exec();
         return this.responseHelper.makeResponse(true, 'requests by status succesfully.', requests, common_1.HttpStatus.OK);
     }
-    async findAll(email) {
-        let message = 'requests not found';
+    async findMyRequests(email) {
+        let message = 'Requests not found.';
         try {
-            const items = await this.requestModel.find().exec();
+            const items = await this.requestModel.find({ email: email }).exec();
             if (items.length == 0)
                 this.responseHelper.makeResponse(false, message, null, common_1.HttpStatus.NOT_FOUND);
             message = 'Successfully found requests';
-            const itemsFiltered = items.filter(x => x.email !== email);
-            if (itemsFiltered.length == 0)
-                this.responseHelper.makeResponse(false, message, null, common_1.HttpStatus.NOT_FOUND);
-            return this.responseHelper.makeResponse(false, message, itemsFiltered, common_1.HttpStatus.OK);
+            return this.responseHelper.makeResponse(false, message, items, common_1.HttpStatus.OK);
         }
         catch (error) {
-            console.error('Error in: ', error);
-            return this.responseHelper.makeResponse(true, message, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+            this.logger.error('Error in: ', error);
+            return this.responseHelper.makeResponse(true, error.message, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     async findById(requestId) {
@@ -61,34 +62,60 @@ let RequestService = RequestService_1 = class RequestService {
             return this.responseHelper.makeResponse(false, message, request, status);
         }
         catch (error) {
-            console.error('Error: ', error);
+            this.logger.error('Error: ', error);
             return this.responseHelper.makeResponse(true, 'Error in findById', null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    async create(req) {
-        let partnerQuantity = !req.partnerQuantity ? 0 : req.partnerQuantity;
-        const newRequest = new this.requestModel({
-            email: req.email,
-            tripId: req.tripId,
-            description: req.description,
-            hasEquipment: req.hasEquipment,
-            hasPartner: req.hasPartner,
-            partnerQuantity: partnerQuantity,
-            totalPassenger: 1 + partnerQuantity,
-            createdTimestamp: new Date().toISOString(),
-            status: status_enum_1.StatusRequest.ON_HOLD
-        });
-        const requestCreated = await newRequest.save();
-        return this.responseHelper.makeResponse(false, 'Request was sended succesfully.', requestCreated, common_1.HttpStatus.OK);
+    async send(req) {
+        try {
+            let partnerQuantity = !req.partnerQuantity ? 0 : req.partnerQuantity;
+            const newRequest = new this.requestModel({
+                email: req.email,
+                tripId: req.tripId,
+                description: req.description,
+                hasEquipment: req.hasEquipment,
+                hasPartner: req.hasPartner,
+                partnerQuantity: partnerQuantity,
+                totalPassenger: 1 + partnerQuantity,
+                createdTimestamp: new Date().toISOString(),
+                status: status_enum_1.StatusRequest.ON_HOLD
+            });
+            const requestCreated = await newRequest.save();
+            return this.responseHelper.makeResponse(false, 'Request was sended succesfully.', requestCreated, common_1.HttpStatus.OK);
+        }
+        catch (error) {
+            this.logger.error(error);
+            return this.responseHelper.makeResponse(false, `${RequestService_1.name}: error in send method.`, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     async update(request) {
         return request.save();
+    }
+    async updateUserRequests(email, id) {
+        const update = { "$push": { "joinRequests": id } };
+        const user = await this.userModel.findOneAndUpdate({ email: email }, update);
+        if (!user)
+            return user;
+        this.logger.log('updateUserRequests: User updated when new request in joinRequests.');
+        return await user.save();
+    }
+    async updateTripRequests(tripId, requestId) {
+        const update = { "$push": { "tripsRequests": requestId } };
+        const trip = await this.tripModel.findByIdAndUpdate(tripId, update);
+        if (!trip)
+            return trip;
+        this.logger.log('updateTripRequests: Trip updated when new request in tripsRequests.');
+        return await trip.save();
     }
 };
 RequestService = RequestService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(request_schema_1.Request.name)),
+    __param(1, (0, mongoose_1.InjectModel)(trip_schema_1.Trip.name)),
+    __param(2, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
+        mongoose_2.Model,
         response_helper_1.ResponseHelper])
 ], RequestService);
 exports.RequestService = RequestService;

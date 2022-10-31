@@ -27,7 +27,6 @@ let AuthService = AuthService_1 = class AuthService {
     }
     generateRandomString(num) {
         return Math.random().toString(36).substring(0, num);
-        ;
     }
     async GenerateToken() {
         const token = new passwordToken_schema_1.PasswordToken();

@@ -12,6 +12,7 @@ export type TripDocument = Trip & Document;
 @Schema()
 export class Trip {
 
+
     @Prop({required: true}) // para propiedades requeridas
     origin : Location;
   

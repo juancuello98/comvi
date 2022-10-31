@@ -16,10 +16,12 @@ exports.UserService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
+const response_helper_1 = require("../../common/helpers/http/response.helper");
 const user_schema_1 = require("../users/user.schema");
 let UserService = class UserService {
-    constructor(userModel) {
+    constructor(userModel, responseHelper) {
         this.userModel = userModel;
+        this.responseHelper = responseHelper;
     }
     _getUserDetails(user) {
         return {
@@ -70,7 +72,8 @@ let UserService = class UserService {
 UserService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        response_helper_1.ResponseHelper])
 ], UserService);
 exports.UserService = UserService;
 //# sourceMappingURL=user.service.js.map

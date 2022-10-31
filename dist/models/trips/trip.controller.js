@@ -18,7 +18,7 @@ const swagger_1 = require("@nestjs/swagger");
 const jwt_auth_guard_1 = require("../../common/guards/jwt-auth.guard");
 const new_trip_dto_1 = require("./dto/new-trip.dto");
 const trip_service_1 = require("./trip.service");
-const request_helper_1 = require("../../common/helpers/request.helper");
+const request_helper_1 = require("../../common/helpers/http/request.helper");
 let TripController = class TripController {
     constructor(tripsService, requestHelper) {
         this.tripsService = tripsService;

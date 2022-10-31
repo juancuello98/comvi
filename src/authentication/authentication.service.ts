@@ -32,7 +32,7 @@ export class AuthService {
 
   
   generateRandomString(num) {
-    return Math.random().toString(36).substring(0,num); ;
+    return Math.random().toString(36).substring(0,num);
   }
 
   async GenerateToken() : Promise<PasswordToken> {

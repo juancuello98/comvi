@@ -1,12 +1,12 @@
-import { HttpStatus, Injectable, Logger, UseFilters } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { NewTripDTO } from './dto/new-trip.dto';
-import { UserService } from '../users/user.service';
 import { Trip, TripDocument } from './trip.schema';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { TripStatus } from './enums/state.enum';
-import { ResponseHelper } from 'src/common/helpers/response.helper';
+import { ResponseHelper } from '../../common/helpers/http/response.helper';
+
 
 @Injectable()
 export class TripService {

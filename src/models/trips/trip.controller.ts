@@ -4,7 +4,7 @@ import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { TripService } from './trip.service';
-import { RequestHelper } from '../../common/helpers/request.helper';
+import { RequestHelper } from '../../common/helpers/http/request.helper';
 import { Request } from 'express';
 
 

@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { ResponseHelper } from 'src/common/helpers/http/response.helper';
 
 import { User, UserDocument } from '../users/user.schema';
 import { UserDetails } from './interfaces/user-details.interface';
@@ -8,8 +9,10 @@ import { UserValidated } from './interfaces/user-validated.interface';
 
 @Injectable()
 export class UserService {
+ 
   constructor(
-    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,    
+    private readonly responseHelper : ResponseHelper
   ) {}
 
   _getUserDetails(user: UserDocument): UserDetails {

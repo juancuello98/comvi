@@ -2,7 +2,7 @@ import { Model } from 'mongoose';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { TripDocument } from './trip.schema';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
-import { ResponseHelper } from 'src/common/helpers/response.helper';
+import { ResponseHelper } from '../../common/helpers/http/response.helper';
 export declare class TripService {
     private readonly tripModel;
     private readonly responseHelper;
