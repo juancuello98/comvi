@@ -22,7 +22,7 @@ export class RequestController {
   @UseGuards(JwtAuthGuard)
   @Post('/send')
   async create(@Body() tripRequest: NewRequestDTO, @Req() request: Request): Promise<ResponseDTO> {
-    const userEmail = this.requestHelper.getPayload(request)
+    const userEmail = this.requestHelper.getPayload(request);
     const requestUpdated = {...tripRequest, email: userEmail };
     const resp = await this.requestService.send(requestUpdated);
     if(!resp.hasError) this.transaction.processSendRequest(resp.data,userEmail);
@@ -40,16 +40,5 @@ export class RequestController {
     const userEmail = this.requestHelper.getPayload(request)
     return this.requestService.getRequestsForTrips(userEmail);
   }
-  // @Get('/list/:id')
-  // findOne(@Param('id') id: string) {
-  //   return this.requestService.findById(id);
-  // }
-
-  // @UseGuards(JwtAuthGuard)
-  // @Get('myRequests')
-  // findMyTrips(@Req() request: Request) {
-  //   const userEmail = this.requestHelper.getPayload(request)
-  //   return this.requestService.findTripsByDriver(userEmail);
-  // }
   
 }
