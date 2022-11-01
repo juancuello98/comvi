@@ -30,7 +30,7 @@ export class RequestController {
   }
 
   @Get('/myrequests')
-  async findMyRequests(@Req() request: Request) : Promise<ResponseDTO >{
+  async findMyRequests(@Req() request: Request) : Promise<ResponseDTO>{
     const userEmail = this.requestHelper.getPayload(request)
     return this.requestService.findMyRequests(userEmail);
   }
@@ -38,7 +38,7 @@ export class RequestController {
   @Get('/requestsBytrips')
   async requestsByTrips(@Req() request: Request) : Promise<ResponseDTO >{
     const userEmail = this.requestHelper.getPayload(request)
-    return this.requestService.requestsByTrips(userEmail);
+    return this.requestService.getRequestsForTrips(userEmail);
   }
   // @Get('/list/:id')
   // findOne(@Param('id') id: string) {

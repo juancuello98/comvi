@@ -33,7 +33,7 @@ let TripService = TripService_1 = class TripService {
     }
     async findByDriver(driverEmail) {
         console.log(driverEmail);
-        const trips = await this.tripModel.find({ driverEmail }).exec();
+        const trips = await this.tripModel.find({ driverEmail }).sort({ createdTimestamp: 'desc' }).exec();
         this.logger.log(`Trips of user ${driverEmail} founded. STATUS: SUCCESS`);
         return trips;
     }
@@ -43,7 +43,7 @@ let TripService = TripService_1 = class TripService {
     async findAll(email) {
         let message = 'Trips not found';
         try {
-            const items = await this.tripModel.find().exec();
+            const items = await this.tripModel.find().sort({ createdTimestamp: 'desc' }).exec();
             if (items.length == 0)
                 this.responseHelper.makeResponse(false, message, null, common_1.HttpStatus.NOT_FOUND);
             message = 'Successfully found trips';

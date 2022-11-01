@@ -31,7 +31,7 @@ export class RequestService {
     let message = 'Requests not found.';
 
     try {
-      const items = await this.requestModel.find({email: email}).exec();
+      const items = await this.requestModel.find({email: email}).sort({createdTimestamp: 'desc'}).exec();
 
       if(items.length == 0) this.responseHelper.makeResponse(false,message,null,HttpStatus.NOT_FOUND);
 
@@ -102,28 +102,78 @@ export class RequestService {
     return request.save();
   }
 
-  async requestsByTrips(email: string){
+  async getRequestsForTrips(email: string){
     try {
       const trips = await this.tripModel.find({driverEmail:email,status:'OPEN'});
-      console.log(trips);
-      const requests = trips.map(x => this.getRequests(x));
-      return this.responseHelper.makeResponse(false,`${RequestService.name}: Requests founded.`,requests,HttpStatus.OK);
+
+      if(trips.length === 0) 
+      {
+        this.logger.log('Not found trips with OPEN status.')
+        return this.responseHelper.makeResponse(false,`${RequestService.name}: The user not have trips OPEN.`,null,HttpStatus.NOT_FOUND);
+      }
+
+      this.logger.log('Init process to get requests from trips...');
+
+      const requests = await Promise.all(trips.map(async x => await this.getRequests(x)));
+      
+      if(requests.length === 0)
+      {
+        this.logger.log('Not found requests in trips with OPEN status.')
+        return this.responseHelper.makeResponse(false,`${RequestService.name}: The user driver not have trips with requests.`,null,HttpStatus.NOT_FOUND);
+      }
+
+      this.logger.log(`Process finished. Requests: ${JSON.stringify(requests)}`);
+
+      const responseRequests = requests.flat();
+
+      responseRequests.sort(this.custom_sort);
+
+      return this.responseHelper.makeResponse(false,`${RequestService.name}: Requests founded.`,responseRequests,HttpStatus.OK);
  
     } catch (error) {
-      return this.responseHelper.makeResponse(false,`${RequestService.name}: error ${error.message}.`,null,HttpStatus.INTERNAL_SERVER_ERROR);
+      return this.responseHelper.makeResponse(true,`${RequestService.name}: error ${error.message}.`,null,HttpStatus.INTERNAL_SERVER_ERROR);
     }
    
   }
+  
+  custom_sort(a, b) {
+    return new Date(b.createdTimestamp).getTime() - new Date(a.createdTimestamp).getTime();
+  }
 
   async getRequests( trip : TripDocument){
-    let requests;
-    console.log(trip)
+    let requests = [];
+
     for (const req in trip.tripsRequests) {
-      let newRequest = await this.requestModel.findById(req);
-      console.log(newRequest)
-      requests = {requests,...newRequest} 
+
+      let id = trip.tripsRequests[req];
+
+      let requestFounded = await this.requestModel.findById(id);
+
+      requests.push(this._getRequestDetails(requestFounded,trip));
+
+      console.log(`${trip.id}: ${JSON.stringify(requests)}`);
     }
+
+    //const jsonRequests = JSON.stringify(requests);
+    //const respRequests = JSON.parse(jsonRequests);
+
     return requests;
+  }
+
+  _getRequestDetails(request : RequestDocument, trip: TripDocument){
+    return {
+      id: request.id,
+      email: request.email,
+      description: request.description,
+      hasEquipment: request.hasEquipment,
+      hasPartner: request.hasPartner,
+      partnerQuantity: request.partnerQuantity,
+      totalPassenger: request.totalPassenger,
+      createdTimestamp: request.createdTimestamp,
+      status: request.status,
+      tripId: request.tripId,
+      trip: trip
+    }
   }
 }
 

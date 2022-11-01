@@ -26,7 +26,7 @@ export class TripService {
 
   async findByDriver(driverEmail:string):Promise<TripDocument[]>{
     console.log(driverEmail);
-    const trips = await this.tripModel.find({driverEmail}).exec();
+    const trips = await this.tripModel.find({driverEmail}).sort({createdTimestamp: 'desc'}).exec(); //TODO: Hacer generico el metodo este de buscar viajes por email y devolverlos ordenados
     this.logger.log(`Trips of user ${driverEmail} founded. STATUS: SUCCESS`);
     return trips;
   }
@@ -40,7 +40,7 @@ export class TripService {
     let message = 'Trips not found';
 
     try {
-      const items = await this.tripModel.find().exec();
+      const items = await this.tripModel.find().sort({createdTimestamp: 'desc'}).exec();
 
       if(items.length == 0) this.responseHelper.makeResponse(false,message,null,HttpStatus.NOT_FOUND);
 

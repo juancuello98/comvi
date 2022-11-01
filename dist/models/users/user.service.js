@@ -25,10 +25,10 @@ let UserService = class UserService {
     }
     _getUserDetails(user) {
         return {
-            id: user._id,
+            id: user.id,
             name: user.name,
             lastname: user.lastname,
-            email: user.email,
+            email: user.email
         };
     }
     _getUserValidatedOK(user) {
@@ -47,6 +47,29 @@ let UserService = class UserService {
     }
     async findByEmail(email) {
         return this.userModel.findOne({ email }).exec();
+    }
+    async getUserData(email) {
+        try {
+            const user = await this.findByEmail(email);
+            if (!user) {
+                return this.responseHelper.makeResponse(false, 'User not found.', null, common_1.HttpStatus.NOT_FOUND);
+            }
+            const userData = {
+                name: user.name,
+                lastname: user.lastname,
+                email: user.email,
+                trips: user.trips,
+                packages: user.packages,
+                tripsFavourites: user.tripsFavourites,
+                subscribedTrips: user.subscribedTrips,
+                tripsCreated: user.tripsCreated,
+                joinRequests: user.joinRequests
+            };
+            return this.responseHelper.makeResponse(false, 'User data successfully found.', userData, common_1.HttpStatus.OK);
+        }
+        catch (error) {
+            return this.responseHelper.makeResponse(true, 'Error recovering user data.', null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     async findById(id) {
         const user = await this.userModel.findById(id).exec();

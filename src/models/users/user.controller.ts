@@ -5,6 +5,7 @@ import { CreateUserDto } from '../../models/users/dto/create-user.dto';
 import { UpdateUserDto } from '../../models/users/dto/update-user.dto';
 import { Request } from 'express';
 import { RequestHelper } from 'src/common/helpers/http/request.helper';
+import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 
 
 @ApiTags('users')
@@ -18,9 +19,10 @@ export class UserController {
     //return this.usersService.create(createUserDto);
   }
   
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    //return this.usersService.findOne(+id);
+  @Get('myData')
+  findOne(@Req() request: Request) : Promise<ResponseDTO> {
+    const userEmail = this.requestHelper.getPayload(request);
+    return this.usersService.getUserData(userEmail);
   }
 
   @Patch(':id')

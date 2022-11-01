@@ -17,6 +17,20 @@ export declare class RequestService {
     findById(requestId: string): Promise<ResponseDTO>;
     send(req: ExtendedRequestDTO): Promise<ResponseDTO>;
     update(request: RequestDocument): Promise<RequestDocument>;
-    requestsByTrips(email: string): Promise<ResponseDTO>;
-    getRequests(trip: TripDocument): Promise<any>;
+    getRequestsForTrips(email: string): Promise<ResponseDTO>;
+    custom_sort(a: any, b: any): number;
+    getRequests(trip: TripDocument): Promise<any[]>;
+    _getRequestDetails(request: RequestDocument, trip: TripDocument): {
+        id: any;
+        email: string;
+        description: string;
+        hasEquipment: boolean;
+        hasPartner: boolean;
+        partnerQuantity: number;
+        totalPassenger: number;
+        createdTimestamp: string;
+        status: string;
+        tripId: string;
+        trip: TripDocument;
+    };
 }

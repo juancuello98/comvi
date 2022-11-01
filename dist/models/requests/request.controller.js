@@ -40,7 +40,7 @@ let RequestController = class RequestController {
     }
     async requestsByTrips(request) {
         const userEmail = this.requestHelper.getPayload(request);
-        return this.requestService.requestsByTrips(userEmail);
+        return this.requestService.getRequestsForTrips(userEmail);
     }
 };
 __decorate([
