@@ -41,12 +41,17 @@ let RequestService = RequestService_1 = class RequestService {
             if (items.length == 0)
                 this.responseHelper.makeResponse(false, message, null, common_1.HttpStatus.NOT_FOUND);
             message = 'Successfully found requests';
-            return this.responseHelper.makeResponse(false, message, items, common_1.HttpStatus.OK);
+            const itemsWrapped = await Promise.all(items.map(async (x) => await this.addTripToRequest(x)));
+            return this.responseHelper.makeResponse(false, message, itemsWrapped, common_1.HttpStatus.OK);
         }
         catch (error) {
             this.logger.error('Error in: ', error);
             return this.responseHelper.makeResponse(true, error.message, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+    async addTripToRequest(x) {
+        const trip = await this.tripModel.findById(x.tripId).exec();
+        return this._getRequestDetails(x, trip);
     }
     async findById(requestId) {
         try {

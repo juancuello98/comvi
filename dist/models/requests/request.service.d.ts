@@ -14,6 +14,19 @@ export declare class RequestService {
     constructor(requestModel: Model<RequestDocument>, tripModel: Model<TripDocument>, userModel: Model<UserDocument>, responseHelper: ResponseHelper);
     findByStatus(status: string): Promise<ResponseDTO>;
     findMyRequests(email: string): Promise<ResponseDTO>;
+    addTripToRequest(x: RequestDocument): Promise<{
+        id: any;
+        email: string;
+        description: string;
+        hasEquipment: boolean;
+        hasPartner: boolean;
+        partnerQuantity: number;
+        totalPassenger: number;
+        createdTimestamp: string;
+        status: string;
+        tripId: string;
+        trip: TripDocument;
+    }>;
     findById(requestId: string): Promise<ResponseDTO>;
     send(req: ExtendedRequestDTO): Promise<ResponseDTO>;
     update(request: RequestDocument): Promise<RequestDocument>;

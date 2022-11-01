@@ -36,14 +36,21 @@ export class RequestService {
       if(items.length == 0) this.responseHelper.makeResponse(false,message,null,HttpStatus.NOT_FOUND);
 
       message = 'Successfully found requests';
+
+      const itemsWrapped = await Promise.all(items.map(async x => await this.addTripToRequest(x)));
     
-      return this.responseHelper.makeResponse(false,message,items,HttpStatus.OK);
+      return this.responseHelper.makeResponse(false,message,itemsWrapped,HttpStatus.OK);
 
     } catch (error) {
       this.logger.error('Error in: ',error);
 
       return this.responseHelper.makeResponse(true,error.message,null,HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+  
+  async addTripToRequest(x: RequestDocument) {
+    const trip = await this.tripModel.findById(x.tripId).exec();
+    return this._getRequestDetails(x,trip);
   }
 
   async findById(requestId: string): Promise<ResponseDTO> {
@@ -153,9 +160,6 @@ export class RequestService {
 
       console.log(`${trip.id}: ${JSON.stringify(requests)}`);
     }
-
-    //const jsonRequests = JSON.stringify(requests);
-    //const respRequests = JSON.parse(jsonRequests);
 
     return requests;
   }
