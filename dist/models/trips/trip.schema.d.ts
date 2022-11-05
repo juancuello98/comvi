@@ -30,13 +30,14 @@ export declare type TripDocument = Trip & Document;
 export declare class Trip {
     origin: Location;
     destination: Location;
+    description: string;
     allowPackage: boolean;
     allowPassenger: boolean;
     peopleQuantity: number;
     placesAvailable: number;
     vehicle: Vehicle;
     driverEmail: string;
-    checkIn: string;
+    startedTimestamp: string;
     status: TripStatus;
     passengers: string[];
     paquetes: string[];

@@ -16,11 +16,39 @@ let Request = class Request {
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
-], Request.prototype, "nombre", void 0);
+], Request.prototype, "email", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
-], Request.prototype, "coordenadas", void 0);
+], Request.prototype, "tripId", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Request.prototype, "description", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", Boolean)
+], Request.prototype, "hasEquipment", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", Boolean)
+], Request.prototype, "hasPartner", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: false }),
+    __metadata("design:type", Number)
+], Request.prototype, "partnerQuantity", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", Number)
+], Request.prototype, "totalPassenger", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Request.prototype, "createdTimestamp", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Request.prototype, "status", void 0);
 Request = __decorate([
     (0, mongoose_1.Schema)()
 ], Request);

@@ -18,6 +18,7 @@ const app_service_1 = require("./app.service");
 const trip_module_1 = require("./models/trips/trip.module");
 const common_module_1 = require("./common/common.module");
 const vehicles_module_1 = require("./models/vehicles/vehicles.module");
+const request_module_1 = require("./models/requests/request.module");
 let AppModule = class AppModule {
 };
 AppModule = __decorate([
@@ -32,7 +33,8 @@ AppModule = __decorate([
             user_module_1.UserModule,
             trip_module_1.TripModule,
             common_module_1.CommonModule,
-            vehicles_module_1.VehiclesModule
+            vehicles_module_1.VehiclesModule,
+            request_module_1.RequestModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService]

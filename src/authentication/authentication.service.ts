@@ -32,15 +32,13 @@ export class AuthService {
 
   
   generateRandomString(num) {
-    return Math.random().toString(36).substring(0,num); ;
+    return Math.random().toString(36).substring(0,num).toUpperCase().replace('.','');
   }
 
   async GenerateToken() : Promise<PasswordToken> {
     const token = new PasswordToken();
-    const auxDate = new Date();
-    token.created = auxDate;
-    auxDate.setTime(auxDate.getTime()+60*60*1000);
-    token.expire = auxDate; 
+    token.created = new Date();
+    token.expire = new Date(token.created.getTime()+2*60*60000);
     token.code = this.generateRandomString(6);
     return token;
   }

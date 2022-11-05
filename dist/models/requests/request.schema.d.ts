@@ -25,7 +25,14 @@
 import { Document } from 'mongoose';
 export declare type RequestDocument = Request & Document;
 export declare class Request {
-    nombre: string;
-    coordenadas: string;
+    email: string;
+    tripId: string;
+    description: string;
+    hasEquipment: boolean;
+    hasPartner: boolean;
+    partnerQuantity: number;
+    totalPassenger: number;
+    createdTimestamp: string;
+    status: string;
 }
 export declare const RequestSchema: import("mongoose").Schema<Request, import("mongoose").Model<Request, any, any, any, any>, {}, {}, {}, {}, "type", Request>;

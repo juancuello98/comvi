@@ -1,7 +1,7 @@
 import { VehiclesService } from './vehicles.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
-import { RequestHelper } from 'src/common/helpers/request.helper';
+import { RequestHelper } from 'src/common/helpers/http/request.helper';
 import { Request } from 'express';
 export declare class VehiclesController {
     private readonly vehiclesService;

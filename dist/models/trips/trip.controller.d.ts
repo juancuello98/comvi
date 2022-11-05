@@ -1,7 +1,7 @@
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { TripService } from './trip.service';
-import { RequestHelper } from '../../common/helpers/request.helper';
+import { RequestHelper } from '../../common/helpers/http/request.helper';
 import { Request } from 'express';
 export declare class TripController {
     private readonly tripsService;

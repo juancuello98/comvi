@@ -18,15 +18,17 @@ const swagger_1 = require("@nestjs/swagger");
 const user_service_1 = require("../users/user.service");
 const create_user_dto_1 = require("../../models/users/dto/create-user.dto");
 const update_user_dto_1 = require("../../models/users/dto/update-user.dto");
+const request_helper_1 = require("../../common/helpers/http/request.helper");
 let UserController = class UserController {
-    constructor(usersService) {
+    constructor(usersService, requestHelper) {
         this.usersService = usersService;
+        this.requestHelper = requestHelper;
     }
     create(createUserDto) {
     }
-    findAll() {
-    }
-    findOne(id) {
+    findOne(request) {
+        const userEmail = this.requestHelper.getPayload(request);
+        return this.usersService.getUserData(userEmail);
     }
     update(id, updateUserDto) {
     }
@@ -44,17 +46,11 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], UserController.prototype, "create", null);
 __decorate([
-    (0, common_1.Get)('findAll'),
+    (0, common_1.Get)('myData'),
+    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
-    __metadata("design:returntype", void 0)
-], UserController.prototype, "findAll", null);
-__decorate([
-    (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
 ], UserController.prototype, "findOne", null);
 __decorate([
     (0, common_1.Patch)(':id'),
@@ -81,7 +77,8 @@ __decorate([
 UserController = __decorate([
     (0, swagger_1.ApiTags)('users'),
     (0, common_1.Controller)('users'),
-    __metadata("design:paramtypes", [user_service_1.UserService])
+    __metadata("design:paramtypes", [user_service_1.UserService,
+        request_helper_1.RequestHelper])
 ], UserController);
 exports.UserController = UserController;
 //# sourceMappingURL=user.controller.js.map

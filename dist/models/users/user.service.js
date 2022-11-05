@@ -16,17 +16,19 @@ exports.UserService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
+const response_helper_1 = require("../../common/helpers/http/response.helper");
 const user_schema_1 = require("../users/user.schema");
 let UserService = class UserService {
-    constructor(userModel) {
+    constructor(userModel, responseHelper) {
         this.userModel = userModel;
+        this.responseHelper = responseHelper;
     }
     _getUserDetails(user) {
         return {
-            id: user._id,
+            id: user.id,
             name: user.name,
             lastname: user.lastname,
-            email: user.email,
+            email: user.email
         };
     }
     _getUserValidatedOK(user) {
@@ -45,6 +47,29 @@ let UserService = class UserService {
     }
     async findByEmail(email) {
         return this.userModel.findOne({ email }).exec();
+    }
+    async getUserData(email) {
+        try {
+            const user = await this.findByEmail(email);
+            if (!user) {
+                return this.responseHelper.makeResponse(false, 'User not found.', null, common_1.HttpStatus.NOT_FOUND);
+            }
+            const userData = {
+                name: user.name,
+                lastname: user.lastname,
+                email: user.email,
+                trips: user.trips,
+                packages: user.packages,
+                tripsFavourites: user.tripsFavourites,
+                subscribedTrips: user.subscribedTrips,
+                tripsCreated: user.tripsCreated,
+                joinRequests: user.joinRequests
+            };
+            return this.responseHelper.makeResponse(false, 'User data successfully found.', userData, common_1.HttpStatus.OK);
+        }
+        catch (error) {
+            return this.responseHelper.makeResponse(true, 'Error recovering user data.', null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     async findById(id) {
         const user = await this.userModel.findById(id).exec();
@@ -70,7 +95,8 @@ let UserService = class UserService {
 UserService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        response_helper_1.ResponseHelper])
 ], UserService);
 exports.UserService = UserService;
 //# sourceMappingURL=user.service.js.map

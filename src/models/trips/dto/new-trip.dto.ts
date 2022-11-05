@@ -15,6 +15,10 @@ export class NewTripDTO extends PartialType(ExistingtTripDTO) {
     @IsNotEmpty()
     destination : Location;
 
+    @IsString()
+    @IsNotEmpty()
+    description : string;
+
     @IsBoolean()
     @IsNotEmpty()
     allowPackage : boolean;

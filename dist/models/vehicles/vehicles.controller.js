@@ -17,7 +17,7 @@ const common_1 = require("@nestjs/common");
 const vehicles_service_1 = require("./vehicles.service");
 const create_vehicle_dto_1 = require("./dto/create-vehicle.dto");
 const update_vehicle_dto_1 = require("./dto/update-vehicle.dto");
-const request_helper_1 = require("../../common/helpers/request.helper");
+const request_helper_1 = require("../../common/helpers/http/request.helper");
 let VehiclesController = class VehiclesController {
     constructor(vehiclesService, requestHelper) {
         this.vehiclesService = vehiclesService;

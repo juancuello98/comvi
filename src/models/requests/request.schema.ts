@@ -9,10 +9,31 @@ export type RequestDocument = Request & Document;
 export class Request {
 
     @Prop({required: true}) // para propiedades requeridas
-    nombre : string;
+    email : string;
   
     @Prop({required: true}) // para propiedades requeridas
-    coordenadas : string;
+    tripId : string;
+
+    @Prop({required: true}) // para propiedades requeridas
+    description : string;
+
+    @Prop({required: true}) // para propiedades requeridas
+    hasEquipment : boolean;    
+
+    @Prop({required: true}) // para propiedades requeridas
+    hasPartner : boolean;
+
+    @Prop({required: false}) // para propiedades requeridas
+    partnerQuantity : number;
+
+    @Prop({required: true})
+    totalPassenger : number;
+
+    @Prop({required: true})
+    createdTimestamp : string;
+
+    @Prop({required: true})
+    status : string;
 }
 
 export const RequestSchema = SchemaFactory.createForClass(Request);
