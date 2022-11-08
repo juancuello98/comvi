@@ -228,17 +228,16 @@ export class RequestService {
 
       let requestFounded = await this.requestModel.findById(id);
 
-      requests.push(this._getRequestDetails(requestFounded,trip));
+      requests.push(await this._getRequestDetails(requestFounded,trip));
 
       console.log(`${trip.id}: ${JSON.stringify(requests)}`);
-      
-
     }
 
     return requests;
   }
 
-  _getRequestDetails(request : RequestDocument, trip: TripDocument){
+  async _getRequestDetails(request : RequestDocument, trip: TripDocument){
+    const user = await this.userModel.findOne({ email: request.email }).exec();
     return {
       id: request.id,
       email: request.email,
@@ -250,8 +249,14 @@ export class RequestService {
       createdTimestamp: request.createdTimestamp,
       status: request.status,
       tripId: request.tripId,
-      trip: trip
+      trip: trip,
+      user: {
+        name : user.name,
+        lastname: user.lastname
+      }
     }
+  }
+
   }
 
 }
