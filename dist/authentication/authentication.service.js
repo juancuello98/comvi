@@ -63,7 +63,7 @@ let AuthService = AuthService_1 = class AuthService {
         return this.userService._getUserDetails(newUser);
     }
     async generateAndSendEmailCodeVerification() {
-        return 8080;
+        return Math.floor(Math.random() * (9999 - 1000 + 1) + 1000);
     }
     async emailVerificated(email) {
         const user = await this.userService.findByEmail(email);

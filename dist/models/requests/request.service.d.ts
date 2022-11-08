@@ -33,7 +33,8 @@ export declare class RequestService {
         };
     }>;
     findById(requestId: string): Promise<ResponseDTO>;
-    responseRequest(req: ChangeStatusOfRequestDTO, driverEmail: string): Promise<ResponseDTO>;
+    acceptRequest(req: ChangeStatusOfRequestDTO, driverEmail: string): Promise<ResponseDTO>;
+    rejectRequest(req: ChangeStatusOfRequestDTO, driverEmail: string): Promise<ResponseDTO>;
     cancelRequest(req: ChangeStatusOfRequestDTO, passengerEmail: string): Promise<ResponseDTO>;
     send(req: ExtendedRequestDTO): Promise<ResponseDTO>;
     update(request: RequestDocument): Promise<RequestDocument>;
