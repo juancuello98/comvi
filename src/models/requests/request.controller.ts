@@ -37,7 +37,6 @@ export class RequestController {
     const userEmail = this.requestHelper.getPayload(request);
     action.newStatus = StatusRequest.ACCEPTED;
     const resp = await this.requestService.responseRequest(action, userEmail);
-    if(!resp.hasError) this.transaction.processSendRequest(resp.data,userEmail);
     return resp;
   }
 
@@ -47,7 +46,6 @@ export class RequestController {
     const userEmail = this.requestHelper.getPayload(request);
     action.newStatus = StatusRequest.REJECTED;
     const resp = await this.requestService.responseRequest(action, userEmail);
-    if(!resp.hasError) this.transaction.processSendRequest(resp.data,userEmail);
     return resp;
   }
 
@@ -57,7 +55,6 @@ export class RequestController {
     const userEmail = this.requestHelper.getPayload(request);
     action.newStatus = StatusRequest.CANCELLED;
     const resp = await this.requestService.cancelRequest(action, userEmail);
-    if(!resp.hasError) this.transaction.processSendRequest(resp.data,userEmail);
     return resp;
   }
 
