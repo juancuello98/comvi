@@ -257,7 +257,5 @@ export class RequestService {
     }
   }
 
-  }
-
 }
 
