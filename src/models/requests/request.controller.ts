@@ -6,7 +6,9 @@ import { RequestHelper } from '../../common/helpers/http/request.helper';
 import { Request } from 'express';
 import { RequestService } from './request.service';
 import { NewRequestDTO } from './dto/new-request.dto';
+import { ChangeStatusOfRequestDTO } from './dto/change-status-request.dto';
 import { TransactionService } from '../transactions/transaction.service';
+import { StatusRequest } from './enums/status.enum';
 
 
 @ApiTags('request')
@@ -29,6 +31,36 @@ export class RequestController {
     return resp;
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Post('/myrequests')
+  async AcceptRequest(@Body() action: ChangeStatusOfRequestDTO, @Req() request: Request): Promise<ResponseDTO> {
+    const userEmail = this.requestHelper.getPayload(request);
+    action.newStatus = StatusRequest.ACCEPTED;
+    const resp = await this.requestService.responseRequest(action, userEmail);
+    if(!resp.hasError) this.transaction.processSendRequest(resp.data,userEmail);
+    return resp;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/myrequests')
+  async RejectRequest(@Body() action: ChangeStatusOfRequestDTO, @Req() request: Request): Promise<ResponseDTO> {
+    const userEmail = this.requestHelper.getPayload(request);
+    action.newStatus = StatusRequest.REJECTED;
+    const resp = await this.requestService.responseRequest(action, userEmail);
+    if(!resp.hasError) this.transaction.processSendRequest(resp.data,userEmail);
+    return resp;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/myrequests')
+  async CancelRequest(@Body() action: ChangeStatusOfRequestDTO, @Req() request: Request): Promise<ResponseDTO> {
+    const userEmail = this.requestHelper.getPayload(request);
+    action.newStatus = StatusRequest.CANCELLED;
+    const resp = await this.requestService.cancelRequest(action, userEmail);
+    if(!resp.hasError) this.transaction.processSendRequest(resp.data,userEmail);
+    return resp;
+  }
+
   @Get('/myrequests')
   async findMyRequests(@Req() request: Request) : Promise<ResponseDTO>{
     const userEmail = this.requestHelper.getPayload(request)
@@ -40,5 +72,7 @@ export class RequestController {
     const userEmail = this.requestHelper.getPayload(request)
     return this.requestService.getRequestsForTrips(userEmail);
   }
+
+  
   
 }
