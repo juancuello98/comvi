@@ -172,12 +172,13 @@ let RequestService = RequestService_1 = class RequestService {
         for (const req in trip.tripsRequests) {
             let id = trip.tripsRequests[req];
             let requestFounded = await this.requestModel.findById(id);
-            requests.push(this._getRequestDetails(requestFounded, trip));
+            requests.push(await this._getRequestDetails(requestFounded, trip));
             console.log(`${trip.id}: ${JSON.stringify(requests)}`);
         }
         return requests;
     }
-    _getRequestDetails(request, trip) {
+    async _getRequestDetails(request, trip) {
+        const user = await this.userModel.findOne({ email: request.email }).exec();
         return {
             id: request.id,
             email: request.email,
@@ -189,7 +190,11 @@ let RequestService = RequestService_1 = class RequestService {
             createdTimestamp: request.createdTimestamp,
             status: request.status,
             tripId: request.tripId,
-            trip: trip
+            trip: trip,
+            user: {
+                name: user.name,
+                lastname: user.lastname
+            }
         };
     }
 };

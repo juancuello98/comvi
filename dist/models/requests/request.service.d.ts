@@ -27,6 +27,10 @@ export declare class RequestService {
         status: string;
         tripId: string;
         trip: TripDocument;
+        user: {
+            name: string;
+            lastname: string;
+        };
     }>;
     findById(requestId: string): Promise<ResponseDTO>;
     responseRequest(req: ChangeStatusOfRequestDTO, driverEmail: string): Promise<ResponseDTO>;
@@ -36,7 +40,7 @@ export declare class RequestService {
     getRequestsForTrips(email: string): Promise<ResponseDTO>;
     custom_sort(a: any, b: any): number;
     getRequests(trip: TripDocument): Promise<any[]>;
-    _getRequestDetails(request: RequestDocument, trip: TripDocument): {
+    _getRequestDetails(request: RequestDocument, trip: TripDocument): Promise<{
         id: any;
         email: string;
         description: string;
@@ -48,5 +52,9 @@ export declare class RequestService {
         status: string;
         tripId: string;
         trip: TripDocument;
-    };
+        user: {
+            name: string;
+            lastname: string;
+        };
+    }>;
 }
