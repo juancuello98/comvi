@@ -27,7 +27,7 @@ __decorate([
 ], TripResume.prototype, "fechaHoraRealInicio", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),
-    __metadata("design:type", Boolean)
+    __metadata("design:type", String)
 ], TripResume.prototype, "fechaHoraRealFin", void 0);
 TripResume = __decorate([
     (0, mongoose_1.Schema)()

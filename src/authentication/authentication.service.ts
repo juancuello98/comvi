@@ -98,6 +98,7 @@ export class AuthService {
   }
 
   async generateAndSendEmailCodeVerification() {
+<<<<<<< HEAD
     // input from the user
     const min = 1000;
     const max = 9999;
@@ -109,6 +110,9 @@ export class AuthService {
     console.log(`Random value between ${min} and ${max} is ${a}`);
     
     return a;
+=======
+    return Math.floor(Math.random() * (9999 - 1000 + 1) + 1000);
+>>>>>>> 9456d31efdcf214902daf744b88340d29d339714
   }
 
   async emailVerificated(email: string): Promise<boolean> {

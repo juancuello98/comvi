@@ -18,7 +18,7 @@ export class TripResume {
     fechaHoraRealInicio : string;
 
     @Prop()
-    fechaHoraRealFin : boolean;
+    fechaHoraRealFin : string;
 }
 
 export const TripResumeSchema = SchemaFactory.createForClass(TripResume);
