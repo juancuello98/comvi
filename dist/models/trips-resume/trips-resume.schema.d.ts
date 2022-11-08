@@ -28,6 +28,6 @@ export declare class TripResume {
     passengers: string[];
     valoraciones: string[];
     fechaHoraRealInicio: string;
-    fechaHoraRealFin: boolean;
+    fechaHoraRealFin: string;
 }
 export declare const TripResumeSchema: import("mongoose").Schema<TripResume, import("mongoose").Model<TripResume, any, any, any, any>, {}, {}, {}, {}, "type", TripResume>;
