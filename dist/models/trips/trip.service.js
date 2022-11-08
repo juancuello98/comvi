@@ -74,7 +74,10 @@ let TripService = TripService_1 = class TripService {
                 status = common_1.HttpStatus.NOT_FOUND;
             }
             ;
-            return this.responseHelper.makeResponse(false, message, trip, status);
+            let user = await this.userModel.findOne({ email: trip.driverEmail }).exec();
+            user = this.userWraped(user);
+            const tripWrapped = this._tripDetails(trip, user);
+            return this.responseHelper.makeResponse(false, message, tripWrapped, status);
         }
         catch (error) {
             console.error('Error: ', error);
@@ -209,8 +212,26 @@ let TripService = TripService_1 = class TripService {
             identityHasVerified: true
         };
     }
-    wrapperListWithPassengers(trip, passengers) {
-        return {};
+    _tripDetails(trip, driver) {
+        return {
+            _id: trip.id,
+            allowPackage: trip.allowPackage,
+            allowPassenger: trip.allowPassenger,
+            createdTimestamp: trip.createdTimestamp,
+            description: trip.description,
+            destination: trip.destination,
+            origin: trip.origin,
+            paquetes: trip.paquetes,
+            passengers: trip.passengers,
+            peopleQuantity: trip.peopleQuantity,
+            placesAvailable: trip.placesAvailable,
+            startedTimestamp: trip.startedTimestamp,
+            status: trip.status,
+            tripsRequests: trip.tripsRequests,
+            valuations: trip.valuations,
+            vehicle: trip.vehicle,
+            driver: driver
+        };
     }
 };
 TripService = TripService_1 = __decorate([

@@ -77,7 +77,13 @@ export class TripService {
         message = 'Not found trips';
         status = HttpStatus.NOT_FOUND;
       };
-      return this.responseHelper.makeResponse(false, message,trip,status);
+      
+      let user = await this.userModel.findOne({email: trip.driverEmail}).exec();
+      user = this.userWraped(user);
+
+      const tripWrapped = this._tripDetails(trip,user);
+
+      return this.responseHelper.makeResponse(false, message,tripWrapped,status);
     } catch (error) {
       console.error('Error: ',error);
       return this.responseHelper.makeResponse(true,'Error in findById',null,HttpStatus.INTERNAL_SERVER_ERROR);
@@ -265,7 +271,7 @@ export class TripService {
     }
   }
 
-  userWraped(user: any): any {
+  userWraped(user: UserDocument): any {
     return {
       name : user.name,
       lastname : user.lastname,
@@ -276,11 +282,27 @@ export class TripService {
     }
   }
 
-  wrapperListWithPassengers(trip: Trip, passengers : any) {
-    
+  _tripDetails(trip: TripDocument, driver: any): any {
     return {
-
+      _id: trip.id,
+      allowPackage: trip.allowPackage,
+      allowPassenger: trip.allowPassenger,
+      createdTimestamp:trip.createdTimestamp,
+      description: trip.description,
+      destination: trip.destination,
+      origin:trip.origin,
+      paquetes: trip.paquetes,
+      passengers: trip.passengers,
+      peopleQuantity: trip.peopleQuantity,
+      placesAvailable: trip.placesAvailable,
+      startedTimestamp:trip.startedTimestamp,
+      status: trip.status,
+      tripsRequests:trip.tripsRequests,
+      valuations:trip.valuations,
+      vehicle:trip.vehicle,
+      driver: driver
     }
   }
+
 }
 

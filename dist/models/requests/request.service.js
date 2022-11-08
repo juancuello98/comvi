@@ -85,19 +85,12 @@ let RequestService = RequestService_1 = class RequestService {
                 throw new handlebars_1.Exception("You can only response requests from your OWN trip").name = "Unathorized action";
             }
             request.status = req.newStatus;
-<<<<<<< HEAD
             const passengerUser = await this.userModel.findOne({ email: request.email }).exec();
             const driverUser = await this.userModel.findOne({ email: driverEmail }).exec();
             trip.passengers.push(passengerUser.id);
             await request.save();
             await trip.save();
             await this.mailService.sendAcceptedRequestNotification(passengerUser.email, passengerUser.name, driverUser.name, trip.origin.locality, trip.destination.locality, req.description);
-=======
-            const user = await this.userModel.findOne({ email: request.email }).exec();
-            trip.passengers.push(user.id);
-            await request.save();
-            await trip.save();
->>>>>>> 9456d31efdcf214902daf744b88340d29d339714
             return this.responseHelper.makeResponse(false, 'Request accepted succesfully.', null, common_1.HttpStatus.OK);
         }
         catch (error) {
@@ -117,21 +110,14 @@ let RequestService = RequestService_1 = class RequestService {
             if (trip.driverEmail != driverEmail) {
                 throw new handlebars_1.Exception("You can only response requests from your OWN trip").name = "Unathorized action";
             }
-<<<<<<< HEAD
             const passengerUser = await this.userModel.findOne({ email: request.email }).exec();
             const driverUser = await this.userModel.findOne({ email: driverEmail }).exec();
             await this.mailService.sendRejectedRequestNotification(passengerUser.email, passengerUser.name, driverUser.name, trip.origin.locality, trip.destination.locality, req.description);
-=======
->>>>>>> 9456d31efdcf214902daf744b88340d29d339714
             return this.responseHelper.makeResponse(false, 'Request rejected succesfully.', null, common_1.HttpStatus.OK);
         }
         catch (error) {
             this.logger.error(error);
-<<<<<<< HEAD
             return this.responseHelper.makeResponse(true, `${RequestService_1.name}: ${error.name} in send method. \n ${error.message}`, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
-=======
-            return this.responseHelper.makeResponse(true, `${RequestService_1.name}: ${error.name} in send method.\n${error.message}`, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
->>>>>>> 9456d31efdcf214902daf744b88340d29d339714
         }
     }
     async cancelRequest(req, passengerEmail) {
@@ -149,11 +135,7 @@ let RequestService = RequestService_1 = class RequestService {
         }
         catch (error) {
             this.logger.error(error);
-<<<<<<< HEAD
             return this.responseHelper.makeResponse(true, `${RequestService_1.name}: ${error.name} in send method.\n ${error.message}`, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
-=======
-            return this.responseHelper.makeResponse(true, `${RequestService_1.name}: ${error.name} in send method.\n${error.message}`, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
->>>>>>> 9456d31efdcf214902daf744b88340d29d339714
         }
     }
     async send(req) {

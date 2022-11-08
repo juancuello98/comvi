@@ -1,6 +1,6 @@
 import { Model } from 'mongoose';
 import { NewTripDTO } from './dto/new-trip.dto';
-import { Trip, TripDocument } from './trip.schema';
+import { TripDocument } from './trip.schema';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { ResponseHelper } from '../../common/helpers/http/response.helper';
 import { TripResumeDocument } from '../trips-resume/trips-resume.schema';
@@ -23,6 +23,6 @@ export declare class TripService {
     init(id: string, userEmail: string): Promise<ResponseDTO>;
     finish(id: string, userEmail: string): Promise<ResponseDTO>;
     listOfPassengers(tripId: string): Promise<ResponseDTO>;
-    userWraped(user: any): any;
-    wrapperListWithPassengers(trip: Trip, passengers: any): {};
+    userWraped(user: UserDocument): any;
+    _tripDetails(trip: TripDocument, driver: any): any;
 }
