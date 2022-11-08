@@ -32,7 +32,7 @@ export class RequestController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('/myrequests')
+  @Post('/myrequests/acceptRequest')
   async AcceptRequest(@Body() action: ChangeStatusOfRequestDTO, @Req() request: Request): Promise<ResponseDTO> {
     const userEmail = this.requestHelper.getPayload(request);
     action.newStatus = StatusRequest.ACCEPTED;
@@ -42,7 +42,7 @@ export class RequestController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('/myrequests')
+  @Post('/myrequests/rejectRequest')
   async RejectRequest(@Body() action: ChangeStatusOfRequestDTO, @Req() request: Request): Promise<ResponseDTO> {
     const userEmail = this.requestHelper.getPayload(request);
     action.newStatus = StatusRequest.REJECTED;
@@ -52,7 +52,7 @@ export class RequestController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('/myrequests')
+  @Post('/myrequests/cancelRequest')
   async CancelRequest(@Body() action: ChangeStatusOfRequestDTO, @Req() request: Request): Promise<ResponseDTO> {
     const userEmail = this.requestHelper.getPayload(request);
     action.newStatus = StatusRequest.CANCELLED;
