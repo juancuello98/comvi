@@ -84,12 +84,12 @@ export class RequestService {
     
     try {
 
-      if (!Object.keys(StatusRequest).includes(req.newStatus)){
-        throw new Exception("The new state selected does not exist").name = "Unexisting status for the request";
-      }
-      if(!Object.keys([StatusRequest.ACCEPTED,StatusRequest.REJECTED]).includes(req.newStatus)){
-        throw new Exception("The new state selected can not be used for this method").name = "Wrong status for the request";        
-      }
+      // if (!Object.keys(StatusRequest).includes(req.newStatus)){
+      //   throw new Exception("The new state selected does not exist").name = "Unexisting status for the request";
+      // }
+      // if(!Object.keys([StatusRequest.ACCEPTED,StatusRequest.REJECTED]).includes(req.newStatus)){
+      //   throw new Exception("The new state selected can not be used for this method").name = "Wrong status for the request";        
+      // }
 
       let request = await this.requestModel.findById(req.requestId).exec();
       

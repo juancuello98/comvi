@@ -201,7 +201,7 @@ export class TripService {
     
     //await this.transactions.notifyUpdateTripStatus(hasUserTrip.passengers);
 
-    return this.responseHelper.makeResponse(false,`Trip successfully cancelled : ${id}`,tripUpdated,HttpStatus.OK);
+    return this.responseHelper.makeResponse(false,`Trip successfully initialize : ${id}`,tripUpdated,HttpStatus.OK);
   }
 
   async finish(id: string, userEmail: string): Promise<ResponseDTO> {

@@ -40,24 +40,18 @@ let RequestController = class RequestController {
         const userEmail = this.requestHelper.getPayload(request);
         action.newStatus = status_enum_1.StatusRequest.ACCEPTED;
         const resp = await this.requestService.responseRequest(action, userEmail);
-        if (!resp.hasError)
-            this.transaction.processSendRequest(resp.data, userEmail);
         return resp;
     }
     async RejectRequest(action, request) {
         const userEmail = this.requestHelper.getPayload(request);
         action.newStatus = status_enum_1.StatusRequest.REJECTED;
         const resp = await this.requestService.responseRequest(action, userEmail);
-        if (!resp.hasError)
-            this.transaction.processSendRequest(resp.data, userEmail);
         return resp;
     }
     async CancelRequest(action, request) {
         const userEmail = this.requestHelper.getPayload(request);
         action.newStatus = status_enum_1.StatusRequest.CANCELLED;
         const resp = await this.requestService.cancelRequest(action, userEmail);
-        if (!resp.hasError)
-            this.transaction.processSendRequest(resp.data, userEmail);
         return resp;
     }
     async findMyRequests(request) {
