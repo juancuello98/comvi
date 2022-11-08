@@ -14,7 +14,6 @@ export class ChangeStatusOfRequestDTO extends PartialType(ActionRequestDTO){
         })
         @IsString()
     @IsEnum(StatusRequest)
-    @IsNotEmpty()
     @IsOptional()
     newStatus : string;
     
@@ -24,7 +23,7 @@ export class ChangeStatusOfRequestDTO extends PartialType(ActionRequestDTO){
         enum:StatusRequest
         })
     @IsString()
-    @IsNotEmpty()
+    @IsOptional()
     description: string; 
     
 }
