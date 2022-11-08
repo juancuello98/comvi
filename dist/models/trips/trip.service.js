@@ -156,7 +156,7 @@ let TripService = TripService_1 = class TripService {
         hasUserTrip.tripResumeId = newTripResume.id;
         const tripUpdated = hasUserTrip.save();
         this.logger.log(`Update trip status to ${hasUserTrip.status}`);
-        return this.responseHelper.makeResponse(false, `Trip successfully cancelled : ${id}`, tripUpdated, common_1.HttpStatus.OK);
+        return this.responseHelper.makeResponse(false, `Trip successfully initialize : ${id}`, tripUpdated, common_1.HttpStatus.OK);
     }
     async finish(id, userEmail) {
         this.logger.log('Initialize process to finish trip...');

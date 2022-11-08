@@ -13,6 +13,32 @@ export declare class MailService {
             token: number;
         };
     }>;
+    sendAcceptedRequestNotification(email: string, passengerName: string, driverName: string, origin: string, destiny: string, description: string): Promise<{
+        to: string;
+        subject: string;
+        template: string;
+        context: {
+            passengerName: string;
+            url: string;
+            driverName: string;
+            origin: string;
+            destiny: string;
+            description: string;
+        };
+    }>;
+    sendRejectedRequestNotification(email: string, passengerName: string, driverName: string, origin: string, destiny: string, description: string): Promise<{
+        to: string;
+        subject: string;
+        template: string;
+        context: {
+            passengerName: string;
+            url: string;
+            driverName: string;
+            origin: string;
+            destiny: string;
+            description: string;
+        };
+    }>;
     sendCodePasswordToken(email: string, name: string, token: string): Promise<{
         to: string;
         subject: string;

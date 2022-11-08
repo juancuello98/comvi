@@ -10,6 +10,7 @@ import { Trip, TripDocument } from '../trips/trip.schema';
 import { User, UserDocument } from '../users/user.schema';
 import { ChangeStatusOfRequestDTO } from './dto/change-status-request.dto';
 import { Exception } from 'handlebars';
+import { MailService } from 'src/config/mail/config.service';
 
 
 
@@ -22,7 +23,7 @@ export class RequestService {
     @InjectModel(Request.name) private readonly requestModel: Model<RequestDocument>,
     @InjectModel(Trip.name) private readonly tripModel: Model<TripDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-    
+    private mailService: MailService,
     private readonly responseHelper : ResponseHelper
   ){}
 
@@ -99,15 +100,20 @@ export class RequestService {
       
       request.status = req.newStatus;
       
-      const user = await this.userModel.findOne({ email: request.email }).exec();
+      const passengerUser = await this.userModel.findOne({ email: request.email }).exec();
+
+      const driverUser = await this.userModel.findOne({ email: driverEmail }).exec();
 
 
-      trip.passengers.push(user.id);
+      trip.passengers.push(passengerUser.id);
     
       await request.save(); // debería esperar?
       
       await trip.save(); // debería esperar?
       
+      await this.mailService.sendAcceptedRequestNotification(passengerUser.email,passengerUser.name,driverUser.name,trip.origin.locality,trip.destination.locality,req.description);
+
+
       return this.responseHelper.makeResponse(false,'Request accepted succesfully.',null,HttpStatus.OK);
  
     } catch (error) {
@@ -138,13 +144,18 @@ export class RequestService {
       if(trip.driverEmail != driverEmail){
         throw new Exception("You can only response requests from your OWN trip").name = "Unathorized action";        
       }
+
+      const passengerUser = await this.userModel.findOne({ email: request.email }).exec();
+      const driverUser = await this.userModel.findOne({ email: driverEmail }).exec();
+
       
-      
-      return this.responseHelper.makeResponse(false,'Request rejected succesfully.',null,HttpStatus.OK);
- 
+      await this.mailService.sendRejectedRequestNotification(passengerUser.email,passengerUser.name,driverUser.name,trip.origin.locality,trip.destination.locality,req.description);
+
+      return this.responseHelper.makeResponse(false,'Request rejected succesfully.',null,HttpStatus.OK);      
+
     } catch (error) {
       this.logger.error(error);
-      return this.responseHelper.makeResponse(true,`${RequestService.name}: ${error.name} in send method.\n${error.message}`,null,HttpStatus.INTERNAL_SERVER_ERROR);
+      return this.responseHelper.makeResponse(true,`${RequestService.name}: ${error.name} in send method. \n ${error.message}`,null,HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
   }
@@ -171,7 +182,7 @@ export class RequestService {
  
     } catch (error) {
       this.logger.error(error);
-      return this.responseHelper.makeResponse(true,`${RequestService.name}: ${error.name} in send method.\n${error.message}`,null,HttpStatus.INTERNAL_SERVER_ERROR);
+      return this.responseHelper.makeResponse(true,`${RequestService.name}: ${error.name} in send method.\n ${error.message}`,null,HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
   }

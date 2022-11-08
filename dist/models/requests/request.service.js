@@ -23,11 +23,13 @@ const status_enum_1 = require("./enums/status.enum");
 const trip_schema_1 = require("../trips/trip.schema");
 const user_schema_1 = require("../users/user.schema");
 const handlebars_1 = require("handlebars");
+const config_service_1 = require("../../config/mail/config.service");
 let RequestService = RequestService_1 = class RequestService {
-    constructor(requestModel, tripModel, userModel, responseHelper) {
+    constructor(requestModel, tripModel, userModel, mailService, responseHelper) {
         this.requestModel = requestModel;
         this.tripModel = tripModel;
         this.userModel = userModel;
+        this.mailService = mailService;
         this.responseHelper = responseHelper;
         this.logger = new common_1.Logger(RequestService_1.name);
     }
@@ -72,30 +74,55 @@ let RequestService = RequestService_1 = class RequestService {
             return this.responseHelper.makeResponse(true, 'Error in findById', null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    async responseRequest(req, driverEmail) {
+    async acceptRequest(req, driverEmail) {
         try {
-            let request = await this.requestModel.findById(req.requestId).exec();
+            const request = await this.requestModel.findById(req.requestId).exec();
+            const trip = await this.tripModel.findById(request.tripId).exec();
+            if (request.status == status_enum_1.StatusRequest.CANCELLED) {
+                throw new handlebars_1.Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";
+            }
+            if (trip.driverEmail != driverEmail) {
+                throw new handlebars_1.Exception("You can only response requests from your OWN trip").name = "Unathorized action";
+            }
+            request.status = req.newStatus;
+            const passengerUser = await this.userModel.findOne({ email: request.email }).exec();
+            const driverUser = await this.userModel.findOne({ email: driverEmail }).exec();
+            trip.passengers.push(passengerUser.id);
+            await request.save();
+            await trip.save();
+            await this.mailService.sendAcceptedRequestNotification(passengerUser.email, passengerUser.name, driverUser.name, trip.origin.locality, trip.destination.locality, req.description);
+            return this.responseHelper.makeResponse(false, 'Request accepted succesfully.', null, common_1.HttpStatus.OK);
+        }
+        catch (error) {
+            this.logger.error(error);
+            return this.responseHelper.makeResponse(true, `${RequestService_1.name}: ${error.name} in send method.\n${error.message}`, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    async rejectRequest(req, driverEmail) {
+        try {
+            const request = await this.requestModel.findById(req.requestId).exec();
+            const trip = await this.tripModel.findById(request.tripId).exec();
             if (request.status == status_enum_1.StatusRequest.CANCELLED) {
                 throw new handlebars_1.Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";
             }
             request.status = req.newStatus;
             await request.save();
-            return this.responseHelper.makeResponse(false, 'Request was sended succesfully.', null, common_1.HttpStatus.OK);
+            if (trip.driverEmail != driverEmail) {
+                throw new handlebars_1.Exception("You can only response requests from your OWN trip").name = "Unathorized action";
+            }
+            const passengerUser = await this.userModel.findOne({ email: request.email }).exec();
+            const driverUser = await this.userModel.findOne({ email: driverEmail }).exec();
+            await this.mailService.sendRejectedRequestNotification(passengerUser.email, passengerUser.name, driverUser.name, trip.origin.locality, trip.destination.locality, req.description);
+            return this.responseHelper.makeResponse(false, 'Request rejected succesfully.', null, common_1.HttpStatus.OK);
         }
         catch (error) {
             this.logger.error(error);
-            return this.responseHelper.makeResponse(true, `${RequestService_1.name}: error in send method.`, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+            return this.responseHelper.makeResponse(true, `${RequestService_1.name}: ${error.name} in send method. \n ${error.message}`, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     async cancelRequest(req, passengerEmail) {
         try {
-            if (!Object.keys(status_enum_1.StatusRequest).includes(req.newStatus)) {
-                throw new handlebars_1.Exception("The new state selected does not exist").name = "Unexisting status for the request";
-            }
-            if (!Object.keys([status_enum_1.StatusRequest.CANCELLED]).includes(req.newStatus)) {
-                throw new handlebars_1.Exception("The new state selected can not be used for this method").name = "Wrong status for the request";
-            }
-            let request = await this.requestModel.findById(req.requestId).exec();
+            const request = await this.requestModel.findById(req.requestId).exec();
             if (request.status == status_enum_1.StatusRequest.CANCELLED) {
                 throw new handlebars_1.Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";
             }
@@ -104,11 +131,11 @@ let RequestService = RequestService_1 = class RequestService {
             }
             request.status = req.newStatus;
             await request.save();
-            return this.responseHelper.makeResponse(false, 'Request was sended succesfully.', null, common_1.HttpStatus.OK);
+            return this.responseHelper.makeResponse(false, 'Request cancelled succesfully.', null, common_1.HttpStatus.OK);
         }
         catch (error) {
             this.logger.error(error);
-            return this.responseHelper.makeResponse(true, `${RequestService_1.name}: error in send method.`, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+            return this.responseHelper.makeResponse(true, `${RequestService_1.name}: ${error.name} in send method.\n ${error.message}`, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     async send(req) {
@@ -200,6 +227,7 @@ RequestService = RequestService_1 = __decorate([
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
+        config_service_1.MailService,
         response_helper_1.ResponseHelper])
 ], RequestService);
 exports.RequestService = RequestService;

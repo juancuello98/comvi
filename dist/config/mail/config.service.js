@@ -34,6 +34,44 @@ let MailService = MailService_1 = class MailService {
         this.logger.log('Email enviado a:', email);
         return mailBody;
     }
+    async sendAcceptedRequestNotification(email, passengerName, driverName, origin, destiny, description) {
+        const url = process.env.URL_BUTTON;
+        const mailBody = {
+            to: email,
+            subject: process.env.SUBJECT,
+            template: './accepted_request.hbs',
+            context: {
+                passengerName: passengerName,
+                url,
+                driverName: driverName,
+                origin: origin,
+                destiny: destiny,
+                description: description,
+            },
+        };
+        await this.mailerService.sendMail(mailBody);
+        this.logger.log('Email enviado a:', email);
+        return mailBody;
+    }
+    async sendRejectedRequestNotification(email, passengerName, driverName, origin, destiny, description) {
+        const url = process.env.URL_BUTTON;
+        const mailBody = {
+            to: email,
+            subject: process.env.SUBJECT,
+            template: './accepted_request.hbs',
+            context: {
+                passengerName: passengerName,
+                url,
+                driverName: driverName,
+                origin: origin,
+                destiny: destiny,
+                description: description,
+            },
+        };
+        await this.mailerService.sendMail(mailBody);
+        this.logger.log('Email enviado a:', email);
+        return mailBody;
+    }
     async sendCodePasswordToken(email, name, token) {
         const url = process.env.URL_BUTTON;
         const mailBody = {

@@ -6,13 +6,15 @@ import { ExtendedRequestDTO } from './dto/extended-request.dto';
 import { TripDocument } from '../trips/trip.schema';
 import { UserDocument } from '../users/user.schema';
 import { ChangeStatusOfRequestDTO } from './dto/change-status-request.dto';
+import { MailService } from 'src/config/mail/config.service';
 export declare class RequestService {
     private readonly requestModel;
     private readonly tripModel;
     private readonly userModel;
+    private mailService;
     private readonly responseHelper;
     private readonly logger;
-    constructor(requestModel: Model<RequestDocument>, tripModel: Model<TripDocument>, userModel: Model<UserDocument>, responseHelper: ResponseHelper);
+    constructor(requestModel: Model<RequestDocument>, tripModel: Model<TripDocument>, userModel: Model<UserDocument>, mailService: MailService, responseHelper: ResponseHelper);
     findByStatus(status: string): Promise<ResponseDTO>;
     findMyRequests(email: string): Promise<ResponseDTO>;
     addTripToRequest(x: RequestDocument): Promise<{
@@ -33,7 +35,8 @@ export declare class RequestService {
         };
     }>;
     findById(requestId: string): Promise<ResponseDTO>;
-    responseRequest(req: ChangeStatusOfRequestDTO, driverEmail: string): Promise<ResponseDTO>;
+    acceptRequest(req: ChangeStatusOfRequestDTO, driverEmail: string): Promise<ResponseDTO>;
+    rejectRequest(req: ChangeStatusOfRequestDTO, driverEmail: string): Promise<ResponseDTO>;
     cancelRequest(req: ChangeStatusOfRequestDTO, passengerEmail: string): Promise<ResponseDTO>;
     send(req: ExtendedRequestDTO): Promise<ResponseDTO>;
     update(request: RequestDocument): Promise<RequestDocument>;

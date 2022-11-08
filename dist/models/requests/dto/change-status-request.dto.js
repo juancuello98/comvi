@@ -25,7 +25,6 @@ __decorate([
     }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsEnum)(status_enum_1.StatusRequest),
-    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], ChangeStatusOfRequestDTO.prototype, "newStatus", void 0);
@@ -36,7 +35,7 @@ __decorate([
         enum: status_enum_1.StatusRequest
     }),
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], ChangeStatusOfRequestDTO.prototype, "description", void 0);
 exports.ChangeStatusOfRequestDTO = ChangeStatusOfRequestDTO;

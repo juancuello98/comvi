@@ -28,6 +28,47 @@ export class MailService {
         return mailBody;
     }
 
+    async sendAcceptedRequestNotification (email: string, passengerName: string, driverName:string ,origin: string , destiny: string  ,description: string) {
+      const url = process.env.URL_BUTTON;
+      const mailBody = {
+          to: email,
+          subject: process.env.SUBJECT,
+          template: './accepted_request.hbs',
+          context: {
+            passengerName: passengerName,
+            url,
+            driverName: driverName,
+            origin: origin,
+            destiny: destiny, 
+            description:description,
+          },
+        }
+      await this.mailerService.sendMail(mailBody);
+      this.logger.log('Email enviado a:', email); // 2 logger?
+      return mailBody;
+  }
+
+  async sendRejectedRequestNotification(email: string, passengerName: string, driverName:string ,origin: string , destiny: string  ,description: string) {
+    const url = process.env.URL_BUTTON;
+    const mailBody = {
+        to: email,
+        subject: process.env.SUBJECT,
+        template: './accepted_request.hbs',
+        context: {
+          passengerName: passengerName,
+          url,
+          driverName: driverName,
+          origin: origin,
+          destiny: destiny, 
+          description:description,
+        },
+      }
+    await this.mailerService.sendMail(mailBody);
+    this.logger.log('Email enviado a:', email); // 2 logger?
+    return mailBody;
+}
+
+
     async sendCodePasswordToken(email: string, name: string, token: string) {
       const url = process.env.URL_BUTTON;
       const mailBody = {
