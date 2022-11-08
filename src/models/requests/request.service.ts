@@ -8,6 +8,9 @@ import { StatusRequest } from './enums/status.enum';
 import { ExtendedRequestDTO } from './dto/extended-request.dto';
 import { Trip, TripDocument } from '../trips/trip.schema';
 import { User, UserDocument } from '../users/user.schema';
+import { ChangeStatusOfRequestDTO } from './dto/change-status-request.dto';
+import { Exception } from 'handlebars';
+import { CancelRequestDTO } from './dto/cancel-request.dto';
 
 @Injectable()
 export class RequestService {
@@ -18,6 +21,7 @@ export class RequestService {
     @InjectModel(Request.name) private readonly requestModel: Model<RequestDocument>,
     @InjectModel(Trip.name) private readonly tripModel: Model<TripDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    
     private readonly responseHelper : ResponseHelper
   ){}
 
@@ -76,6 +80,74 @@ export class RequestService {
   //TODO: Hacer solo la creacion de la request , lo demas pasarlo a un modulo de transacciones.
   //TODO: Que los services estos sean para ABM nomas, las transacciones van en otro modulo, abstraer los metodos de moongose.
   
+   async responseRequest(req:ChangeStatusOfRequestDTO, driverEmail:string): Promise<ResponseDTO> {
+    
+    try {
+
+      if (!Object.keys(StatusRequest).includes(req.newStatus)){
+        throw new Exception("The new state selected does not exist").name = "Unexisting status for the request";
+      }
+      if(!Object.keys([StatusRequest.ACCEPTED,StatusRequest.REJECTED]).includes(req.newStatus)){
+        throw new Exception("The new state selected can not be used for this method").name = "Wrong status for the request";        
+      }
+
+      let request = await this.requestModel.findById(req.requestId).exec();
+      
+      if(request.status == StatusRequest.CANCELLED){
+        throw new Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";        
+      }
+
+      //validar que sea de su sesión
+      // a traves del viaje?
+
+      request.status = req.newStatus;
+    
+      await request.save(); // debería esperar?
+            
+      return this.responseHelper.makeResponse(false,'Request was sended succesfully.',null,HttpStatus.OK);
+ 
+    } catch (error) {
+      this.logger.error(error);
+      return this.responseHelper.makeResponse(true,`${RequestService.name}: error in send method.`,null,HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+  }
+
+  async cancelRequest(req:ChangeStatusOfRequestDTO, passengerEmail:string): Promise<ResponseDTO> {
+    
+    try {
+
+      if (!Object.keys(StatusRequest).includes(req.newStatus)){
+        throw new Exception("The new state selected does not exist").name = "Unexisting status for the request";
+      }
+      if(!Object.keys([StatusRequest.CANCELLED]).includes(req.newStatus)){
+        throw new Exception("The new state selected can not be used for this method").name = "Wrong status for the request";        
+      }
+
+      let request = await this.requestModel.findById(req.requestId).exec();
+      
+      if(request.status == StatusRequest.CANCELLED){
+        throw new Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";        
+      }
+    
+      if(request.email != passengerEmail){
+        throw new Exception("You can not cancel a requests that not belongs to you").name = "Unathorized action";        
+      }
+
+      request.status = req.newStatus;
+    
+      await request.save(); // debería esperar?
+            
+      return this.responseHelper.makeResponse(false,'Request was sended succesfully.',null,HttpStatus.OK);
+ 
+    } catch (error) {
+      this.logger.error(error);
+      return this.responseHelper.makeResponse(true,`${RequestService.name}: error in send method.`,null,HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+  }
+  
+  
   async send( req: ExtendedRequestDTO ): Promise<ResponseDTO> {
 
     try {
@@ -109,7 +181,7 @@ export class RequestService {
     return request.save();
   }
 
-  async getRequestsForTrips(email: string){ //TODO: Ver si se puede hacer como en sql la request al mongodb
+  async getRequestsForTrips(email: string){ //TODO: Ver si se puede hacer como en sql la request al mongodb # en eso jmc
     try {
       const trips = await this.tripModel.find({driverEmail:email,status:'OPEN'});
 
@@ -156,16 +228,17 @@ export class RequestService {
 
       let requestFounded = await this.requestModel.findById(id);
 
-      requests.push(await this._getRequestDetails(requestFounded,trip));
+      requests.push(this._getRequestDetails(requestFounded,trip));
 
       console.log(`${trip.id}: ${JSON.stringify(requests)}`);
+      
+
     }
 
     return requests;
   }
 
-  async _getRequestDetails(request : RequestDocument, trip: TripDocument){
-    const user = await this.userModel.findOne({ email: request.email }).exec();
+  _getRequestDetails(request : RequestDocument, trip: TripDocument){
     return {
       id: request.id,
       email: request.email,
@@ -177,12 +250,9 @@ export class RequestService {
       createdTimestamp: request.createdTimestamp,
       status: request.status,
       tripId: request.tripId,
-      trip: trip,
-      user: {
-        name : user.name,
-        lastname: user.lastname
-      }
+      trip: trip
     }
   }
+
 }
 
