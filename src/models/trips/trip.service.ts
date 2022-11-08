@@ -6,15 +6,20 @@ import { Trip, TripDocument } from './trip.schema';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { TripStatus } from './enums/state.enum';
 import { ResponseHelper } from '../../common/helpers/http/response.helper';
+import { TripResume, TripResumeDocument } from '../trips-resume/trips-resume.schema';
+import { todayDateWithFormat } from 'src/common/helpers/date/date.helper';
+import { User, UserDocument } from '../users/user.schema';
+import { GetUserDTO } from '../users/dto/user.dto';
 
 
 @Injectable()
 export class TripService {
-
   private readonly logger = new Logger(TripService.name);
 
   constructor(
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(Trip.name) private readonly tripModel: Model<TripDocument>,
+    @InjectModel(TripResume.name) private readonly tripResumeModel: Model<TripResumeDocument>,
     private readonly responseHelper : ResponseHelper
   ) {}
 
@@ -114,7 +119,166 @@ export class TripService {
   ): Promise<TripDocument> {
     return trip.save();
   }
+
+  async cancel(id: string, userEmail: string): Promise<ResponseDTO> {
+
+    this.logger.log('Initialize process to cancel trip...');
+
+    const filter = {
+      driverEmail: userEmail,
+      _id: id
+    }
+    const hasUserTrip = await this.tripModel.findOne(filter);
+
+    if(!hasUserTrip) return this.responseHelper.makeResponse(false, `Not found trip ${id} for user ${userEmail}`,null,HttpStatus.NOT_FOUND);
+
+    if(hasUserTrip.status === TripStatus.READY_FOR_START || hasUserTrip.status === TripStatus.FINISHED)
+    {
+      return this.responseHelper.makeResponse(false,`Incorrect trip status: ${hasUserTrip.status}`,null,HttpStatus.OK);
+    }
+
+    hasUserTrip.status = TripStatus.CANCELED;
+
+    const tripUpdated = hasUserTrip.save();
+    
+    this.logger.log(`Update trip status to ${hasUserTrip.status}`);
+    
+    //await this.transactions.notifyUpdateTripStatus(hasUserTrip.passengers);
+
+    return this.responseHelper.makeResponse(false,`Trip successfully cancelled : ${id}`,tripUpdated,HttpStatus.OK);
+  }
+
+  async init(id: string, userEmail: string): Promise<ResponseDTO> {
+
+    this.logger.log('Initialize process to init trip...');
+
+    let today = todayDateWithFormat();
+
+    const filter = {
+      driverEmail: userEmail,
+      _id: id
+    }
+
+    const hasUserTrip = await this.tripModel.findOne(filter);
+
+    if(!hasUserTrip) return this.responseHelper.makeResponse(false, `Not found trip ${id} for user ${userEmail}`,null,HttpStatus.NOT_FOUND);
+
+    if(hasUserTrip.status !== TripStatus.OPEN)
+    {
+      return this.responseHelper.makeResponse(false,`Incorrect trip status: ${hasUserTrip.status}`,null,HttpStatus.OK);
+    }
+
+    if(hasUserTrip.startedTimestamp !== today) {
+      return this.responseHelper.makeResponse(false,`The trip contains a different start date: ${hasUserTrip.startedTimestamp}`,null,HttpStatus.OK);
+    }
+
+    if(hasUserTrip.passengers.length === 0){
+      return this.responseHelper.makeResponse(false,`Your trip does not contain passengers: ${hasUserTrip.passengers.length}`,null,HttpStatus.OK);
+    }
+
+    
+    
+    hasUserTrip.status = TripStatus.IN_PROGRESS;
+   
+    const newTripResume = new this.tripResumeModel({
+      passengers: hasUserTrip.passengers,
+      fechaHoraRealInicio: new Date().toISOString()
+    })
+    
+    newTripResume.save();
+
+    this.logger.log(`Create new trip resume with id ${newTripResume.id}`);
+
+    hasUserTrip.tripResumeId = newTripResume.id;
+
+    const tripUpdated = hasUserTrip.save();
+
+    this.logger.log(`Update trip status to ${hasUserTrip.status}`);
+    
+    //await this.transactions.notifyUpdateTripStatus(hasUserTrip.passengers);
+
+    return this.responseHelper.makeResponse(false,`Trip successfully cancelled : ${id}`,tripUpdated,HttpStatus.OK);
+  }
+
+  async finish(id: string, userEmail: string): Promise<ResponseDTO> {
+
+    this.logger.log('Initialize process to finish trip...');
+
+    const filter = {
+      driverEmail: userEmail,
+      _id: id
+    }
+
+    const hasUserTrip = await this.tripModel.findOne(filter);
+
+    if(!hasUserTrip) return this.responseHelper.makeResponse(false, `Not found trip ${id} for user ${userEmail}`,null,HttpStatus.NOT_FOUND);
+
+    if(hasUserTrip.status !== TripStatus.IN_PROGRESS)
+    {
+      return this.responseHelper.makeResponse(false,`Incorrect trip status: ${hasUserTrip.status}`,null,HttpStatus.OK);
+    }
+    
+    hasUserTrip.status = TripStatus.PENDING_VALORATION;    
+
+    const tripUpdated = hasUserTrip.save();
+    
+    this.logger.log(`Update trip status to ${hasUserTrip.status}`);
+   
+    const _filter = {_id: hasUserTrip.tripResumeId};
+    const update = {fechaHoraRealFin: new Date().toISOString()};
+
+    const tripResume = await this.tripResumeModel.findOneAndUpdate(_filter,update);
+
+    tripResume.save();
+    
+    //await this.transactions.notifyUpdateTripStatus(hasUserTrip.passengers);
+
+    return this.responseHelper.makeResponse(false,`Trip successfully finished : ${id}`,tripUpdated,HttpStatus.OK);
+  }
+
+  async listOfPassengers(tripId: string): Promise<ResponseDTO> {
+    try {
+
+      let message = '';
+      let status = HttpStatus.OK;
+      
+      const trip = await this.tripModel.findById(tripId);
+
+      if (!trip)
+      {
+        message = 'Not found trips';
+        status = HttpStatus.NOT_FOUND;
+      };
+      
+      const passengersOfTrip = await this.userModel.find().where('_id').in(trip.passengers);
+      const resp = passengersOfTrip.map(x => this.userWraped(x));
+      return this.responseHelper.makeResponse(false, message,resp,status);
+      
+    } catch (error) {
+      console.error('Error: ',error);
+      return this.responseHelper.makeResponse(true,'Error in listWithPassengers.',null,HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  userWraped(user: any): any {
+    return {
+      name : user.name,
+      lastname : user.lastname,
+      email : user.email,
+      trips : user.trips,
+      packages : user.packages,
+      tripsFavourites : user.tripsFavourites,
+      subscribedTrips : user.subscribedTrips,
+      tripsCreated : user.tripsCreated,
+      joinRequests : user.joinRequests
+    } as GetUserDTO
+  }
+
+  wrapperListWithPassengers(trip: Trip, passengers : any) {
+    
+    return {
+
+    }
+  }
 }
-
-
 

@@ -37,9 +37,27 @@ let TripController = class TripController {
     findOne(id) {
         return this.tripsService.findById(id);
     }
+    listOfPassengers(id) {
+        return this.tripsService.listOfPassengers(id);
+    }
     findMyTrips(request) {
         const userEmail = this.requestHelper.getPayload(request);
         return this.tripsService.findTripsByDriver(userEmail);
+    }
+    async cancel(request, id) {
+        const userEmail = this.requestHelper.getPayload(request);
+        const resp = await this.tripsService.cancel(id, userEmail);
+        return resp;
+    }
+    async init(request, id) {
+        const userEmail = this.requestHelper.getPayload(request);
+        const resp = await this.tripsService.init(id, userEmail);
+        return resp;
+    }
+    async finish(request, id) {
+        const userEmail = this.requestHelper.getPayload(request);
+        const resp = await this.tripsService.finish(id, userEmail);
+        return resp;
     }
 };
 __decorate([
@@ -66,6 +84,13 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], TripController.prototype, "findOne", null);
 __decorate([
+    (0, common_1.Get)('/list/passengers/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], TripController.prototype, "listOfPassengers", null);
+__decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('myTrips'),
     __param(0, (0, common_1.Req)()),
@@ -73,6 +98,33 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], TripController.prototype, "findMyTrips", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('/cancel/:id'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], TripController.prototype, "cancel", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('/init/:id'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], TripController.prototype, "init", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('/finish/:id'),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], TripController.prototype, "finish", null);
 TripController = __decorate([
     (0, swagger_1.ApiTags)('trips'),
     (0, common_1.Controller)('trips'),

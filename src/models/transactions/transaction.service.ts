@@ -1,12 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model} from 'mongoose';
+import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { ResponseHelper } from '../../common/helpers/http/response.helper';
 import { Trip, TripDocument } from '../trips/trip.schema';
 import { User, UserDocument } from '../users/user.schema';
 
 @Injectable()
 export class TransactionService {
+
 
   private readonly logger = new Logger(TransactionService.name);
 
@@ -20,6 +22,10 @@ export class TransactionService {
     await this.updateUserRequests(userEmail,request.id);
     await this.updateTripRequests(request.tripId,request.id)
     // await this.sendNotificacion(payload) TODO: Notificar al usuario conductor de la nueva solicitud en su viaje
+  }
+
+  async notifyUpdateTripStatus(usersToNotifiy: any[]){
+    throw new Error('Method not implemented.');
   }
   
   async updateUserRequests(email: string, id: any) {

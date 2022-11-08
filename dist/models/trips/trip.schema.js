@@ -88,6 +88,10 @@ __decorate([
     (0, mongoose_1.Prop)(),
     __metadata("design:type", Array)
 ], Trip.prototype, "valuations", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", String)
+], Trip.prototype, "tripResumeId", void 0);
 Trip = __decorate([
     (0, mongoose_1.Schema)()
 ], Trip);

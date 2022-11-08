@@ -1,4 +1,4 @@
-export interface IdbconfigService {
+export interface IDatabaseConfigService {
 
     checkExistOneInUsers(condition: Object);
   

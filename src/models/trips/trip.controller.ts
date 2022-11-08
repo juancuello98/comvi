@@ -37,11 +37,40 @@ export class TripController {
     return this.tripsService.findById(id);
   }
 
+  @Get('/list/passengers/:id')
+  listOfPassengers(@Param('id') id: string) {
+    return this.tripsService.listOfPassengers(id);
+  }
+
+
   @UseGuards(JwtAuthGuard)
   @Get('myTrips')
   findMyTrips(@Req() request: Request) {
     const userEmail = this.requestHelper.getPayload(request)
     return this.tripsService.findTripsByDriver(userEmail);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/cancel/:id')
+  async cancel(@Req() request: Request, @Param('id') id: string): Promise<ResponseDTO> {
+    const userEmail = this.requestHelper.getPayload(request)
+    const resp = await this.tripsService.cancel(id,userEmail);
+    return resp;
+  }
   
+  @UseGuards(JwtAuthGuard)
+  @Post('/init/:id')
+  async init(@Req() request: Request, @Param('id') id: string): Promise<ResponseDTO> {
+    const userEmail = this.requestHelper.getPayload(request)
+    const resp = await this.tripsService.init(id,userEmail);
+    return resp;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/finish/:id')
+  async finish(@Req() request: Request, @Param('id') id: string): Promise<ResponseDTO> {
+    const userEmail = this.requestHelper.getPayload(request)
+    const resp = await this.tripsService.finish(id,userEmail);
+    return resp;
+  }
 }

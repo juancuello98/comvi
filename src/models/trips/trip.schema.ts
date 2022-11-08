@@ -66,6 +66,9 @@ export class Trip {
 
     @Prop()
     valuations : string [] // id de las valuaciones que van a ser consultadas por otros servicios
+
+    @Prop()
+    tripResumeId : string
 }
 
 export const TripSchema = SchemaFactory.createForClass(Trip);

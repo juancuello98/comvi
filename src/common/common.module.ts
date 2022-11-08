@@ -23,7 +23,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   ],
   exports: [
       ResponseHelper,
-      RequestHelper
+      RequestHelper,
   ]
 })
 
