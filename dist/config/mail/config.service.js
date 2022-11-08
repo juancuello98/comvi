@@ -38,7 +38,7 @@ let MailService = MailService_1 = class MailService {
         const url = process.env.URL_BUTTON;
         const mailBody = {
             to: email,
-            subject: process.env.SUBJECT,
+            subject: 'FELICIDADES! Tu solicitud ha sido aceptada.',
             template: './accepted_request.hbs',
             context: {
                 passengerName: passengerName,
@@ -57,7 +57,7 @@ let MailService = MailService_1 = class MailService {
         const url = process.env.URL_BUTTON;
         const mailBody = {
             to: email,
-            subject: process.env.SUBJECT,
+            subject: 'Tu solicitud ha sido rechazada.',
             template: './accepted_request.hbs',
             context: {
                 passengerName: passengerName,
@@ -76,7 +76,7 @@ let MailService = MailService_1 = class MailService {
         const url = process.env.URL_BUTTON;
         const mailBody = {
             to: email,
-            subject: 'Hola ' + name + ' aquí está tu código para cambiar tu contraseña',
+            subject: 'Hola ' + name + ' aquí está tu código para cambiar tu contraseña.',
             template: './configuration.hbs',
             context: {
                 name,
