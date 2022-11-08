@@ -22,6 +22,7 @@ const response_helper_1 = require("../../common/helpers/http/response.helper");
 const status_enum_1 = require("./enums/status.enum");
 const trip_schema_1 = require("../trips/trip.schema");
 const user_schema_1 = require("../users/user.schema");
+const handlebars_1 = require("handlebars");
 let RequestService = RequestService_1 = class RequestService {
     constructor(requestModel, tripModel, userModel, responseHelper) {
         this.requestModel = requestModel;
@@ -69,6 +70,51 @@ let RequestService = RequestService_1 = class RequestService {
         catch (error) {
             this.logger.error('Error: ', error);
             return this.responseHelper.makeResponse(true, 'Error in findById', null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    async responseRequest(req, driverEmail) {
+        try {
+            if (!Object.keys(status_enum_1.StatusRequest).includes(req.newStatus)) {
+                throw new handlebars_1.Exception("The new state selected does not exist").name = "Unexisting status for the request";
+            }
+            if (!Object.keys([status_enum_1.StatusRequest.ACCEPTED, status_enum_1.StatusRequest.REJECTED]).includes(req.newStatus)) {
+                throw new handlebars_1.Exception("The new state selected can not be used for this method").name = "Wrong status for the request";
+            }
+            let request = await this.requestModel.findById(req.requestId).exec();
+            if (request.status == status_enum_1.StatusRequest.CANCELLED) {
+                throw new handlebars_1.Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";
+            }
+            request.status = req.newStatus;
+            await request.save();
+            return this.responseHelper.makeResponse(false, 'Request was sended succesfully.', null, common_1.HttpStatus.OK);
+        }
+        catch (error) {
+            this.logger.error(error);
+            return this.responseHelper.makeResponse(true, `${RequestService_1.name}: error in send method.`, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    async cancelRequest(req, passengerEmail) {
+        try {
+            if (!Object.keys(status_enum_1.StatusRequest).includes(req.newStatus)) {
+                throw new handlebars_1.Exception("The new state selected does not exist").name = "Unexisting status for the request";
+            }
+            if (!Object.keys([status_enum_1.StatusRequest.CANCELLED]).includes(req.newStatus)) {
+                throw new handlebars_1.Exception("The new state selected can not be used for this method").name = "Wrong status for the request";
+            }
+            let request = await this.requestModel.findById(req.requestId).exec();
+            if (request.status == status_enum_1.StatusRequest.CANCELLED) {
+                throw new handlebars_1.Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";
+            }
+            if (request.email != passengerEmail) {
+                throw new handlebars_1.Exception("You can not cancel a requests that not belongs to you").name = "Unathorized action";
+            }
+            request.status = req.newStatus;
+            await request.save();
+            return this.responseHelper.makeResponse(false, 'Request was sended succesfully.', null, common_1.HttpStatus.OK);
+        }
+        catch (error) {
+            this.logger.error(error);
+            return this.responseHelper.makeResponse(true, `${RequestService_1.name}: error in send method.`, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     async send(req) {
@@ -126,13 +172,12 @@ let RequestService = RequestService_1 = class RequestService {
         for (const req in trip.tripsRequests) {
             let id = trip.tripsRequests[req];
             let requestFounded = await this.requestModel.findById(id);
-            requests.push(await this._getRequestDetails(requestFounded, trip));
+            requests.push(this._getRequestDetails(requestFounded, trip));
             console.log(`${trip.id}: ${JSON.stringify(requests)}`);
         }
         return requests;
     }
-    async _getRequestDetails(request, trip) {
-        const user = await this.userModel.findOne({ email: request.email }).exec();
+    _getRequestDetails(request, trip) {
         return {
             id: request.id,
             email: request.email,
@@ -144,11 +189,7 @@ let RequestService = RequestService_1 = class RequestService {
             createdTimestamp: request.createdTimestamp,
             status: request.status,
             tripId: request.tripId,
-            trip: trip,
-            user: {
-                name: user.name,
-                lastname: user.lastname
-            }
+            trip: trip
         };
     }
 };

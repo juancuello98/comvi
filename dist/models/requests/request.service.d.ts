@@ -5,6 +5,7 @@ import { ResponseHelper } from '../../common/helpers/http/response.helper';
 import { ExtendedRequestDTO } from './dto/extended-request.dto';
 import { TripDocument } from '../trips/trip.schema';
 import { UserDocument } from '../users/user.schema';
+import { ChangeStatusOfRequestDTO } from './dto/change-status-request.dto';
 export declare class RequestService {
     private readonly requestModel;
     private readonly tripModel;
@@ -26,18 +27,16 @@ export declare class RequestService {
         status: string;
         tripId: string;
         trip: TripDocument;
-        user: {
-            name: string;
-            lastname: string;
-        };
     }>;
     findById(requestId: string): Promise<ResponseDTO>;
+    responseRequest(req: ChangeStatusOfRequestDTO, driverEmail: string): Promise<ResponseDTO>;
+    cancelRequest(req: ChangeStatusOfRequestDTO, passengerEmail: string): Promise<ResponseDTO>;
     send(req: ExtendedRequestDTO): Promise<ResponseDTO>;
     update(request: RequestDocument): Promise<RequestDocument>;
     getRequestsForTrips(email: string): Promise<ResponseDTO>;
     custom_sort(a: any, b: any): number;
     getRequests(trip: TripDocument): Promise<any[]>;
-    _getRequestDetails(request: RequestDocument, trip: TripDocument): Promise<{
+    _getRequestDetails(request: RequestDocument, trip: TripDocument): {
         id: any;
         email: string;
         description: string;
@@ -49,9 +48,5 @@ export declare class RequestService {
         status: string;
         tripId: string;
         trip: TripDocument;
-        user: {
-            name: string;
-            lastname: string;
-        };
-    }>;
+    };
 }

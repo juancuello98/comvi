@@ -23,6 +23,7 @@ const response_helper_1 = require("../../common/helpers/http/response.helper");
 const trips_resume_schema_1 = require("../trips-resume/trips-resume.schema");
 const date_helper_1 = require("../../common/helpers/date/date.helper");
 const user_schema_1 = require("../users/user.schema");
+const crypto_1 = require("crypto");
 let TripService = TripService_1 = class TripService {
     constructor(userModel, tripModel, tripResumeModel, responseHelper) {
         this.userModel = userModel;
@@ -137,8 +138,10 @@ let TripService = TripService_1 = class TripService {
         if (hasUserTrip.status !== state_enum_1.TripStatus.OPEN) {
             return this.responseHelper.makeResponse(false, `Incorrect trip status: ${hasUserTrip.status}`, null, common_1.HttpStatus.OK);
         }
-        if (hasUserTrip.startedTimestamp !== today) {
-            return this.responseHelper.makeResponse(false, `The trip contains a different start date: ${hasUserTrip.startedTimestamp}`, null, common_1.HttpStatus.OK);
+        const dateTrip = hasUserTrip.startedTimestamp.substring(0, 10);
+        this.logger.log(`startedTimestamp ${dateTrip} and today is ${today}`);
+        if (dateTrip !== today) {
+            return this.responseHelper.makeResponse(false, `The trip contains a different start date: ${dateTrip}`, null, common_1.HttpStatus.OK);
         }
         if (hasUserTrip.passengers.length === 0) {
             return this.responseHelper.makeResponse(false, `Your trip does not contain passengers: ${hasUserTrip.passengers.length}`, null, common_1.HttpStatus.OK);
@@ -167,7 +170,7 @@ let TripService = TripService_1 = class TripService {
         if (hasUserTrip.status !== state_enum_1.TripStatus.IN_PROGRESS) {
             return this.responseHelper.makeResponse(false, `Incorrect trip status: ${hasUserTrip.status}`, null, common_1.HttpStatus.OK);
         }
-        hasUserTrip.status = state_enum_1.TripStatus.PENDING_VALORATION;
+        hasUserTrip.status = state_enum_1.TripStatus.FINISHED;
         const tripUpdated = hasUserTrip.save();
         this.logger.log(`Update trip status to ${hasUserTrip.status}`);
         const _filter = { _id: hasUserTrip.tripResumeId };
@@ -178,12 +181,13 @@ let TripService = TripService_1 = class TripService {
     }
     async listOfPassengers(tripId) {
         try {
-            let message = '';
+            let message = 'Passengers inside the trip.';
             let status = common_1.HttpStatus.OK;
-            const trip = await this.tripModel.findById(tripId);
+            const trip = await this.tripModel.findOne({ _id: tripId }).exec();
             if (!trip) {
                 message = 'Not found trips';
                 status = common_1.HttpStatus.NOT_FOUND;
+                return this.responseHelper.makeResponse(false, message, null, status);
             }
             ;
             const passengersOfTrip = await this.userModel.find().where('_id').in(trip.passengers);
@@ -200,12 +204,9 @@ let TripService = TripService_1 = class TripService {
             name: user.name,
             lastname: user.lastname,
             email: user.email,
-            trips: user.trips,
-            packages: user.packages,
-            tripsFavourites: user.tripsFavourites,
-            subscribedTrips: user.subscribedTrips,
-            tripsCreated: user.tripsCreated,
-            joinRequests: user.joinRequests
+            quantityReviews: (0, crypto_1.randomInt)(3, 8),
+            averageRating: (0, crypto_1.randomInt)(1, 5),
+            identityHasVerified: true
         };
     }
     wrapperListWithPassengers(trip, passengers) {
