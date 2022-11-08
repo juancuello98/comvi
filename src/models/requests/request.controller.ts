@@ -35,8 +35,8 @@ export class RequestController {
   @Post('/myrequests/acceptRequest')
   async AcceptRequest(@Body() action: ChangeStatusOfRequestDTO, @Req() request: Request): Promise<ResponseDTO> {
     const userEmail = this.requestHelper.getPayload(request);
-    action.newStatus = StatusRequest.ACCEPTED;
-    const resp = await this.requestService.responseRequest(action, userEmail);
+    action.newStatus = StatusRequest.ACCEPTED.toString();
+    const resp = await this.requestService.acceptRequest(action, userEmail);
     return resp;
   }
 
@@ -44,8 +44,8 @@ export class RequestController {
   @Post('/myrequests/rejectRequest')
   async RejectRequest(@Body() action: ChangeStatusOfRequestDTO, @Req() request: Request): Promise<ResponseDTO> {
     const userEmail = this.requestHelper.getPayload(request);
-    action.newStatus = StatusRequest.REJECTED;
-    const resp = await this.requestService.responseRequest(action, userEmail);
+    action.newStatus = StatusRequest.REJECTED.toString();
+    const resp = await this.requestService.rejectRequest(action, userEmail);
     return resp;
   }
 

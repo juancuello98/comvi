@@ -80,18 +80,50 @@ export class RequestService {
   //TODO: Hacer solo la creacion de la request , lo demas pasarlo a un modulo de transacciones.
   //TODO: Que los services estos sean para ABM nomas, las transacciones van en otro modulo, abstraer los metodos de moongose.
   
-   async responseRequest(req:ChangeStatusOfRequestDTO, driverEmail:string): Promise<ResponseDTO> {
+   async acceptRequest(req:ChangeStatusOfRequestDTO, driverEmail:string): Promise<ResponseDTO> {
     
     try {
 
-      if (!Object.keys(StatusRequest).includes(req.newStatus)){
-        throw new Exception("The new state selected does not exist").name = "Unexisting status for the request";
-      }
+      
       if(!Object.keys([StatusRequest.ACCEPTED,StatusRequest.REJECTED]).includes(req.newStatus)){
         throw new Exception("The new state selected can not be used for this method").name = "Wrong status for the request";        
       }
 
-      let request = await this.requestModel.findById(req.requestId).exec();
+      const request = await this.requestModel.findById(req.requestId).exec();
+      const trip = await this.tripModel.findById(request.tripId).exec();
+      
+      if(request.status == StatusRequest.CANCELLED){
+        throw new Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";        
+      }
+
+      if(trip.driverEmail != driverEmail){
+        throw new Exception("You can only response requests from your OWN trip").name = "Unathorized action";        
+      }
+      
+      request.status = req.newStatus;
+      
+
+      trip.passengers.push(request.email);
+    
+      await request.save(); // debería esperar?
+      
+      await trip.save(); // debería esperar?
+      
+      return this.responseHelper.makeResponse(false,'Request was sended succesfully.',null,HttpStatus.OK);
+ 
+    } catch (error) {
+      this.logger.error(error);
+      return this.responseHelper.makeResponse(true,`${RequestService.name}: ${error.name} in send method.\n${error.message}`,null,HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+  }
+
+  async rejectRequest(req:ChangeStatusOfRequestDTO, driverEmail:string): Promise<ResponseDTO> {
+    
+    try {
+
+      const request = await this.requestModel.findById(req.requestId).exec();
+      const trip = await this.tripModel.findById(request.tripId).exec();
       
       if(request.status == StatusRequest.CANCELLED){
         throw new Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";        
@@ -104,11 +136,15 @@ export class RequestService {
     
       await request.save(); // debería esperar?
             
+      if(trip.driverEmail != driverEmail){
+        throw new Exception("You can only response requests from your OWN trip").name = "Unathorized action";        
+      }
+      
       return this.responseHelper.makeResponse(false,'Request was sended succesfully.',null,HttpStatus.OK);
  
     } catch (error) {
       this.logger.error(error);
-      return this.responseHelper.makeResponse(true,`${RequestService.name}: error in send method.`,null,HttpStatus.INTERNAL_SERVER_ERROR);
+      return this.responseHelper.makeResponse(true,`${RequestService.name}: ${error.name} in send method.\n${error.message}`,null,HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
   }
@@ -142,7 +178,7 @@ export class RequestService {
  
     } catch (error) {
       this.logger.error(error);
-      return this.responseHelper.makeResponse(true,`${RequestService.name}: error in send method.`,null,HttpStatus.INTERNAL_SERVER_ERROR);
+      return this.responseHelper.makeResponse(true,`${RequestService.name}: ${error.name} in send method.\n${error.message}`,null,HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
   }

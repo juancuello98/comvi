@@ -8,7 +8,6 @@ export class ActionRequestDTO {
         name:"tripId"
         })
     @IsString()
-
     tripId : string;
 
     @ApiProperty({
