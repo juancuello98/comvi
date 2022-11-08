@@ -19,7 +19,9 @@ const jwt_auth_guard_1 = require("../../common/guards/jwt-auth.guard");
 const request_helper_1 = require("../../common/helpers/http/request.helper");
 const request_service_1 = require("./request.service");
 const new_request_dto_1 = require("./dto/new-request.dto");
+const change_status_request_dto_1 = require("./dto/change-status-request.dto");
 const transaction_service_1 = require("../transactions/transaction.service");
+const status_enum_1 = require("./enums/status.enum");
 let RequestController = class RequestController {
     constructor(requestService, requestHelper, transaction) {
         this.requestService = requestService;
@@ -32,6 +34,24 @@ let RequestController = class RequestController {
         const resp = await this.requestService.send(requestUpdated);
         if (!resp.hasError)
             this.transaction.processSendRequest(resp.data, userEmail);
+        return resp;
+    }
+    async AcceptRequest(action, request) {
+        const userEmail = this.requestHelper.getPayload(request);
+        action.newStatus = status_enum_1.StatusRequest.ACCEPTED;
+        const resp = await this.requestService.responseRequest(action, userEmail);
+        return resp;
+    }
+    async RejectRequest(action, request) {
+        const userEmail = this.requestHelper.getPayload(request);
+        action.newStatus = status_enum_1.StatusRequest.REJECTED;
+        const resp = await this.requestService.responseRequest(action, userEmail);
+        return resp;
+    }
+    async CancelRequest(action, request) {
+        const userEmail = this.requestHelper.getPayload(request);
+        action.newStatus = status_enum_1.StatusRequest.CANCELLED;
+        const resp = await this.requestService.cancelRequest(action, userEmail);
         return resp;
     }
     async findMyRequests(request) {
@@ -52,6 +72,33 @@ __decorate([
     __metadata("design:paramtypes", [new_request_dto_1.NewRequestDTO, Object]),
     __metadata("design:returntype", Promise)
 ], RequestController.prototype, "create", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('/myrequests/acceptRequest'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [change_status_request_dto_1.ChangeStatusOfRequestDTO, Object]),
+    __metadata("design:returntype", Promise)
+], RequestController.prototype, "AcceptRequest", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('/myrequests/rejectRequest'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [change_status_request_dto_1.ChangeStatusOfRequestDTO, Object]),
+    __metadata("design:returntype", Promise)
+], RequestController.prototype, "RejectRequest", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('/myrequests/cancelRequest'),
+    __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [change_status_request_dto_1.ChangeStatusOfRequestDTO, Object]),
+    __metadata("design:returntype", Promise)
+], RequestController.prototype, "CancelRequest", null);
 __decorate([
     (0, common_1.Get)('/myrequests'),
     __param(0, (0, common_1.Req)()),

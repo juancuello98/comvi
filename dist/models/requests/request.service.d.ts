@@ -5,6 +5,7 @@ import { ResponseHelper } from '../../common/helpers/http/response.helper';
 import { ExtendedRequestDTO } from './dto/extended-request.dto';
 import { TripDocument } from '../trips/trip.schema';
 import { UserDocument } from '../users/user.schema';
+import { ChangeStatusOfRequestDTO } from './dto/change-status-request.dto';
 export declare class RequestService {
     private readonly requestModel;
     private readonly tripModel;
@@ -32,6 +33,8 @@ export declare class RequestService {
         };
     }>;
     findById(requestId: string): Promise<ResponseDTO>;
+    responseRequest(req: ChangeStatusOfRequestDTO, driverEmail: string): Promise<ResponseDTO>;
+    cancelRequest(req: ChangeStatusOfRequestDTO, passengerEmail: string): Promise<ResponseDTO>;
     send(req: ExtendedRequestDTO): Promise<ResponseDTO>;
     update(request: RequestDocument): Promise<RequestDocument>;
     getRequestsForTrips(email: string): Promise<ResponseDTO>;

@@ -10,7 +10,8 @@ import { Trip, TripDocument } from '../trips/trip.schema';
 import { User, UserDocument } from '../users/user.schema';
 import { ChangeStatusOfRequestDTO } from './dto/change-status-request.dto';
 import { Exception } from 'handlebars';
-import { CancelRequestDTO } from './dto/cancel-request.dto';
+
+
 
 @Injectable()
 export class RequestService {
@@ -85,10 +86,6 @@ export class RequestService {
     try {
 
       
-      if(!Object.keys([StatusRequest.ACCEPTED,StatusRequest.REJECTED]).includes(req.newStatus)){
-        throw new Exception("The new state selected can not be used for this method").name = "Wrong status for the request";        
-      }
-
       const request = await this.requestModel.findById(req.requestId).exec();
       const trip = await this.tripModel.findById(request.tripId).exec();
       
@@ -102,14 +99,16 @@ export class RequestService {
       
       request.status = req.newStatus;
       
+      const user = await this.userModel.findOne({ email: request.email }).exec();
 
-      trip.passengers.push(request.email);
+
+      trip.passengers.push(user.id);
     
       await request.save(); // debería esperar?
       
       await trip.save(); // debería esperar?
       
-      return this.responseHelper.makeResponse(false,'Request was sended succesfully.',null,HttpStatus.OK);
+      return this.responseHelper.makeResponse(false,'Request accepted succesfully.',null,HttpStatus.OK);
  
     } catch (error) {
       this.logger.error(error);
@@ -140,7 +139,8 @@ export class RequestService {
         throw new Exception("You can only response requests from your OWN trip").name = "Unathorized action";        
       }
       
-      return this.responseHelper.makeResponse(false,'Request was sended succesfully.',null,HttpStatus.OK);
+      
+      return this.responseHelper.makeResponse(false,'Request rejected succesfully.',null,HttpStatus.OK);
  
     } catch (error) {
       this.logger.error(error);
@@ -153,14 +153,7 @@ export class RequestService {
     
     try {
 
-      if (!Object.keys(StatusRequest).includes(req.newStatus)){
-        throw new Exception("The new state selected does not exist").name = "Unexisting status for the request";
-      }
-      if(!Object.keys([StatusRequest.CANCELLED]).includes(req.newStatus)){
-        throw new Exception("The new state selected can not be used for this method").name = "Wrong status for the request";        
-      }
-
-      let request = await this.requestModel.findById(req.requestId).exec();
+      const request = await this.requestModel.findById(req.requestId).exec();
       
       if(request.status == StatusRequest.CANCELLED){
         throw new Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";        
@@ -174,7 +167,7 @@ export class RequestService {
     
       await request.save(); // debería esperar?
             
-      return this.responseHelper.makeResponse(false,'Request was sended succesfully.',null,HttpStatus.OK);
+      return this.responseHelper.makeResponse(false,'Request cancelled succesfully.',null,HttpStatus.OK);
  
     } catch (error) {
       this.logger.error(error);
@@ -264,17 +257,16 @@ export class RequestService {
 
       let requestFounded = await this.requestModel.findById(id);
 
-      requests.push(this._getRequestDetails(requestFounded,trip));
+      requests.push(await this._getRequestDetails(requestFounded,trip));
 
       console.log(`${trip.id}: ${JSON.stringify(requests)}`);
-      
-
     }
 
     return requests;
   }
 
-  _getRequestDetails(request : RequestDocument, trip: TripDocument){
+  async _getRequestDetails(request : RequestDocument, trip: TripDocument){
+    const user = await this.userModel.findOne({ email: request.email }).exec();
     return {
       id: request.id,
       email: request.email,
@@ -286,7 +278,11 @@ export class RequestService {
       createdTimestamp: request.createdTimestamp,
       status: request.status,
       tripId: request.tripId,
-      trip: trip
+      trip: trip,
+      user: {
+        name : user.name,
+        lastname: user.lastname
+      }
     }
   }
 
