@@ -31,6 +31,9 @@ let TransactionService = TransactionService_1 = class TransactionService {
         await this.updateUserRequests(userEmail, request.id);
         await this.updateTripRequests(request.tripId, request.id);
     }
+    async notifyUpdateTripStatus(usersToNotifiy) {
+        throw new Error('Method not implemented.');
+    }
     async updateUserRequests(email, id) {
         const update = { "$push": { "joinRequests": id } };
         const user = await this.userModel.findOneAndUpdate({ email: email }, update);

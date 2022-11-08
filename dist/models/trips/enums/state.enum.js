@@ -4,10 +4,10 @@ exports.TripStatus = void 0;
 var TripStatus;
 (function (TripStatus) {
     TripStatus["OPEN"] = "OPEN";
-    TripStatus["CLOSED"] = "CONFIRMED";
+    TripStatus["CANCELED"] = "CANCELED";
     TripStatus["IN_PROGRESS"] = "IN PROGRESS";
     TripStatus["FINISHED"] = "FINISHED";
     TripStatus["PENDING_VALORATION"] = "PENDING VALORATION";
-    TripStatus["COMPLETED"] = "COMPLETED";
+    TripStatus["READY_FOR_START"] = "READY FOR START";
 })(TripStatus = exports.TripStatus || (exports.TripStatus = {}));
 //# sourceMappingURL=state.enum.js.map

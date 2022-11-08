@@ -33,7 +33,7 @@ CommonModule = __decorate([
         ],
         exports: [
             response_helper_1.ResponseHelper,
-            request_helper_1.RequestHelper
+            request_helper_1.RequestHelper,
         ]
     })
 ], CommonModule);

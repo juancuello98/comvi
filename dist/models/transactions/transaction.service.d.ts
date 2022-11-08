@@ -33,6 +33,7 @@ export declare class TransactionService {
     private readonly logger;
     constructor(tripModel: Model<TripDocument>, userModel: Model<UserDocument>, responseHelper: ResponseHelper);
     processSendRequest(request: any, userEmail: string): Promise<void>;
+    notifyUpdateTripStatus(usersToNotifiy: any[]): Promise<void>;
     updateUserRequests(email: string, id: any): Promise<User & import("mongoose").Document<any, any, any> & {
         _id: import("mongoose").Types.ObjectId;
     }>;

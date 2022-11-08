@@ -20,9 +20,14 @@ const mongoose_2 = require("mongoose");
 const trip_schema_1 = require("./trip.schema");
 const state_enum_1 = require("./enums/state.enum");
 const response_helper_1 = require("../../common/helpers/http/response.helper");
+const trips_resume_schema_1 = require("../trips-resume/trips-resume.schema");
+const date_helper_1 = require("../../common/helpers/date/date.helper");
+const user_schema_1 = require("../users/user.schema");
 let TripService = TripService_1 = class TripService {
-    constructor(tripModel, responseHelper) {
+    constructor(userModel, tripModel, tripResumeModel, responseHelper) {
+        this.userModel = userModel;
         this.tripModel = tripModel;
+        this.tripResumeModel = tripResumeModel;
         this.responseHelper = responseHelper;
         this.logger = new common_1.Logger(TripService_1.name);
     }
@@ -102,11 +107,119 @@ let TripService = TripService_1 = class TripService {
     async update(trip) {
         return trip.save();
     }
+    async cancel(id, userEmail) {
+        this.logger.log('Initialize process to cancel trip...');
+        const filter = {
+            driverEmail: userEmail,
+            _id: id
+        };
+        const hasUserTrip = await this.tripModel.findOne(filter);
+        if (!hasUserTrip)
+            return this.responseHelper.makeResponse(false, `Not found trip ${id} for user ${userEmail}`, null, common_1.HttpStatus.NOT_FOUND);
+        if (hasUserTrip.status === state_enum_1.TripStatus.READY_FOR_START || hasUserTrip.status === state_enum_1.TripStatus.FINISHED) {
+            return this.responseHelper.makeResponse(false, `Incorrect trip status: ${hasUserTrip.status}`, null, common_1.HttpStatus.OK);
+        }
+        hasUserTrip.status = state_enum_1.TripStatus.CANCELED;
+        const tripUpdated = hasUserTrip.save();
+        this.logger.log(`Update trip status to ${hasUserTrip.status}`);
+        return this.responseHelper.makeResponse(false, `Trip successfully cancelled : ${id}`, tripUpdated, common_1.HttpStatus.OK);
+    }
+    async init(id, userEmail) {
+        this.logger.log('Initialize process to init trip...');
+        let today = (0, date_helper_1.todayDateWithFormat)();
+        const filter = {
+            driverEmail: userEmail,
+            _id: id
+        };
+        const hasUserTrip = await this.tripModel.findOne(filter);
+        if (!hasUserTrip)
+            return this.responseHelper.makeResponse(false, `Not found trip ${id} for user ${userEmail}`, null, common_1.HttpStatus.NOT_FOUND);
+        if (hasUserTrip.status !== state_enum_1.TripStatus.OPEN) {
+            return this.responseHelper.makeResponse(false, `Incorrect trip status: ${hasUserTrip.status}`, null, common_1.HttpStatus.OK);
+        }
+        if (hasUserTrip.startedTimestamp !== today) {
+            return this.responseHelper.makeResponse(false, `The trip contains a different start date: ${hasUserTrip.startedTimestamp}`, null, common_1.HttpStatus.OK);
+        }
+        if (hasUserTrip.passengers.length === 0) {
+            return this.responseHelper.makeResponse(false, `Your trip does not contain passengers: ${hasUserTrip.passengers.length}`, null, common_1.HttpStatus.OK);
+        }
+        hasUserTrip.status = state_enum_1.TripStatus.IN_PROGRESS;
+        const newTripResume = new this.tripResumeModel({
+            passengers: hasUserTrip.passengers,
+            fechaHoraRealInicio: new Date().toISOString()
+        });
+        newTripResume.save();
+        this.logger.log(`Create new trip resume with id ${newTripResume.id}`);
+        hasUserTrip.tripResumeId = newTripResume.id;
+        const tripUpdated = hasUserTrip.save();
+        this.logger.log(`Update trip status to ${hasUserTrip.status}`);
+        return this.responseHelper.makeResponse(false, `Trip successfully cancelled : ${id}`, tripUpdated, common_1.HttpStatus.OK);
+    }
+    async finish(id, userEmail) {
+        this.logger.log('Initialize process to finish trip...');
+        const filter = {
+            driverEmail: userEmail,
+            _id: id
+        };
+        const hasUserTrip = await this.tripModel.findOne(filter);
+        if (!hasUserTrip)
+            return this.responseHelper.makeResponse(false, `Not found trip ${id} for user ${userEmail}`, null, common_1.HttpStatus.NOT_FOUND);
+        if (hasUserTrip.status !== state_enum_1.TripStatus.IN_PROGRESS) {
+            return this.responseHelper.makeResponse(false, `Incorrect trip status: ${hasUserTrip.status}`, null, common_1.HttpStatus.OK);
+        }
+        hasUserTrip.status = state_enum_1.TripStatus.PENDING_VALORATION;
+        const tripUpdated = hasUserTrip.save();
+        this.logger.log(`Update trip status to ${hasUserTrip.status}`);
+        const _filter = { _id: hasUserTrip.tripResumeId };
+        const update = { fechaHoraRealFin: new Date().toISOString() };
+        const tripResume = await this.tripResumeModel.findOneAndUpdate(_filter, update);
+        tripResume.save();
+        return this.responseHelper.makeResponse(false, `Trip successfully finished : ${id}`, tripUpdated, common_1.HttpStatus.OK);
+    }
+    async listOfPassengers(tripId) {
+        try {
+            let message = '';
+            let status = common_1.HttpStatus.OK;
+            const trip = await this.tripModel.findById(tripId);
+            if (!trip) {
+                message = 'Not found trips';
+                status = common_1.HttpStatus.NOT_FOUND;
+            }
+            ;
+            const passengersOfTrip = await this.userModel.find().where('_id').in(trip.passengers);
+            const resp = passengersOfTrip.map(x => this.userWraped(x));
+            return this.responseHelper.makeResponse(false, message, resp, status);
+        }
+        catch (error) {
+            console.error('Error: ', error);
+            return this.responseHelper.makeResponse(true, 'Error in listWithPassengers.', null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    userWraped(user) {
+        return {
+            name: user.name,
+            lastname: user.lastname,
+            email: user.email,
+            trips: user.trips,
+            packages: user.packages,
+            tripsFavourites: user.tripsFavourites,
+            subscribedTrips: user.subscribedTrips,
+            tripsCreated: user.tripsCreated,
+            joinRequests: user.joinRequests
+        };
+    }
+    wrapperListWithPassengers(trip, passengers) {
+        return {};
+    }
 };
 TripService = TripService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(trip_schema_1.Trip.name)),
+    __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
+    __param(1, (0, mongoose_1.InjectModel)(trip_schema_1.Trip.name)),
+    __param(2, (0, mongoose_1.InjectModel)(trips_resume_schema_1.TripResume.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
+        mongoose_2.Model,
         response_helper_1.ResponseHelper])
 ], TripService);
 exports.TripService = TripService;

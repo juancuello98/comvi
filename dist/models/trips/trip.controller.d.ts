@@ -10,5 +10,9 @@ export declare class TripController {
     create(trip: NewTripDTO, request: Request): Promise<ResponseDTO>;
     findAll(request: Request): Promise<ResponseDTO>;
     findOne(id: string): Promise<ResponseDTO>;
+    listOfPassengers(id: string): Promise<ResponseDTO>;
     findMyTrips(request: Request): Promise<ResponseDTO>;
+    cancel(request: Request, id: string): Promise<ResponseDTO>;
+    init(request: Request, id: string): Promise<ResponseDTO>;
+    finish(request: Request, id: string): Promise<ResponseDTO>;
 }
