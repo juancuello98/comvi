@@ -9,7 +9,7 @@ variables:
   # Nombre del Azure App Service
   azureWebApp: 'comvi'
   # Nombre de la suscripción de Azure
-  azureSubscription: 'Azure for Students'
+  azureSubscription: '50bf9f4a-0d90-4294-9b13-e91d4f9a372a'
   # Nombre del grupo de recursos de Azure
   resourceGroup: 'comvi_group'
   # Nombre del plan de App Service de Azure
