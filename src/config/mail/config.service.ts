@@ -20,7 +20,6 @@ export class MailService {
               name: name,
               url,
               token,
-
             },
           }
         await this.mailerService.sendMail(mailBody);
