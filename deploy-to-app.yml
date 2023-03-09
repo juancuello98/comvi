@@ -1,109 +1,30 @@
-# Definición del trigger del pipeline
 trigger:
-  branches:
-    include:
-      - main
+- main
 
-# Definición de las variables
-variables:
-  # Nombre del Azure App Service
-  azureWebApp: 'comvi'
-  # Nombre de la suscripción de Azure
-  azureSubscription: '50bf9f4a-0d90-4294-9b13-e91d4f9a372a'
-  # Nombre del grupo de recursos de Azure
-  resourceGroup: 'comvi_group'
-  # Nombre del plan de App Service de Azure
-  appServicePlan: 'ASP-comvigroup-88c0'
+pool:
+  vmImage: 'ubuntu-latest'
 
-# Definición de los stages
-stages:
-  # Stage de build
-  - stage: Build
-    displayName: 'Build stage'
-    jobs:
-      - job: Build
-        displayName: 'Build job'
-        pool:
-          vmImage: 'ubuntu-latest'
-        steps:
-          # Clonación del repositorio
-          - checkout: self
-            submodules: recursive
-          # Instalación de dependencias
-          - task: NodeTool@0
-            inputs:
-              versionSpec: '14.x'
-            displayName: 'Install Node.js'
-          - script: |
-              npm install
-            displayName: 'npm install'
-          # Compilación de la aplicación
-          - script: |
-              npm run build
-            displayName: 'npm build'
-          # Publicación de los artefactos
-          - task: PublishBuildArtifacts@1
-            inputs:
-              pathtoPublish: '$(System.DefaultWorkingDirectory)/dist'
-              artifactName: 'dist'
-              publishLocation: 'Container'
+steps:
+- script: |
+    npm install
+    npm run build --if-present
+    npm run test --if-present
+  displayName: 'Install dependencies, build and test'
 
-  # Stage de test
-  - stage: Test
-    displayName: 'Test stage'
-    jobs:
-      - job: Test
-        displayName: 'Test job'
-        pool:
-          vmImage: 'ubuntu-latest'
-        steps:
-          # Descarga de los artefactos
-          - download: current
-            artifact: 'dist'
-          # Instalación de dependencias
-          - task: NodeTool@0
-            inputs:
-              versionSpec: '14.x'
-            displayName: 'Install Node.js'
-          - script: |
-              npm install
-            displayName: 'npm install'
-          # Ejecución de pruebas
-          - script: |
-              npm run test
-            displayName: 'npm test'
+- task: ArchiveFiles@2
+  displayName: 'Archive files'
+  inputs:
+    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/dist'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    replaceExistingArchive: true
 
-  # Stage de deploy
-  - stage: Deploy
-    displayName: 'Deploy stage'
-    jobs:
-      - job: Deploy
-        displayName: 'Deploy job'
-        pool:
-          vmImage: 'ubuntu-latest'
-        steps:
-          # Descarga de los artefactos
-          - download: current
-            artifact: 'dist'
-          # Autenticación con Azure
-          - task: AzureCLI@2
-            inputs:
-              azureSubscription: '$(azureSubscription)'
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              inlineScript: 'az account show'
-              displayName: 'Azure Login'
-          # Configuración del grupo de recursos y plan de App Service
-          - script: |
-              az configure --defaults group=$(resourceGroup)
-              az configure --defaults appserviceplan=$(appServicePlan)
-            displayName: 'Set Azure Defaults'
-          # Despliegue de la aplicación en el App Service
-          - task: AzureWebApp@1
-            inputs:
-              azureSubscription: '$(azureSubscription)'
-              appName: '$(azureWebApp)'
-              package: '$(System.DefaultWorkingDirectory)/dist/**/*.zip'
-              deploymentMethod: 'zipDeploy'
-              renameFiles: '*.js=app.js'
-            displayName: 'Deploy to Azure App Service'
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'Azure for Students'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az webapp deployment source config-zip --resource-group comvi_group --name comvi --src '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+  displayName: 'Deploy to Azure App Service'
