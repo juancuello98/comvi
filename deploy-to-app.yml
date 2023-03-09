@@ -1,0 +1,109 @@
+# Definición del trigger del pipeline
+trigger:
+  branches:
+    include:
+      - main
+
+# Definición de las variables
+variables:
+  # Nombre del Azure App Service
+  azureWebApp: 'comvi'
+  # Nombre de la suscripción de Azure
+  azureSubscription: 'Azure for Students'
+  # Nombre del grupo de recursos de Azure
+  resourceGroup: 'comvi_group'
+  # Nombre del plan de App Service de Azure
+  appServicePlan: 'ASP-comvigroup-88c0'
+
+# Definición de los stages
+stages:
+  # Stage de build
+  - stage: Build
+    displayName: 'Build stage'
+    jobs:
+      - job: Build
+        displayName: 'Build job'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          # Clonación del repositorio
+          - checkout: self
+            submodules: recursive
+          # Instalación de dependencias
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '14.x'
+            displayName: 'Install Node.js'
+          - script: |
+              npm install
+            displayName: 'npm install'
+          # Compilación de la aplicación
+          - script: |
+              npm run build
+            displayName: 'npm build'
+          # Publicación de los artefactos
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(System.DefaultWorkingDirectory)/dist'
+              artifactName: 'dist'
+              publishLocation: 'Container'
+
+  # Stage de test
+  - stage: Test
+    displayName: 'Test stage'
+    jobs:
+      - job: Test
+        displayName: 'Test job'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          # Descarga de los artefactos
+          - download: current
+            artifact: 'dist'
+          # Instalación de dependencias
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '14.x'
+            displayName: 'Install Node.js'
+          - script: |
+              npm install
+            displayName: 'npm install'
+          # Ejecución de pruebas
+          - script: |
+              npm run test
+            displayName: 'npm test'
+
+  # Stage de deploy
+  - stage: Deploy
+    displayName: 'Deploy stage'
+    jobs:
+      - job: Deploy
+        displayName: 'Deploy job'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          # Descarga de los artefactos
+          - download: current
+            artifact: 'dist'
+          # Autenticación con Azure
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: 'az account show'
+              displayName: 'Azure Login'
+          # Configuración del grupo de recursos y plan de App Service
+          - script: |
+              az configure --defaults group=$(resourceGroup)
+              az configure --defaults appserviceplan=$(appServicePlan)
+            displayName: 'Set Azure Defaults'
+          # Despliegue de la aplicación en el App Service
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appName: '$(azureWebApp)'
+              package: '$(System.DefaultWorkingDirectory)/dist/**/*.zip'
+              deploymentMethod: 'zipDeploy'
+              renameFiles: '*.js=app.js'
+            displayName: 'Deploy to Azure App Service'
