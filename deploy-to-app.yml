@@ -22,7 +22,7 @@ steps:
 
 - task: AzureCLI@2
   inputs:
-    azureSubscription: 'Azure for Students'
+    azureSubscription: '50bf9f4a-0d90-4294-9b13-e91d4f9a372a'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
