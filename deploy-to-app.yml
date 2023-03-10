@@ -1,6 +1,7 @@
 trigger:
 - main
 
+name: 'Deploy to Azure app'
 pool:
   vmImage: 'ubuntu-latest'
 
