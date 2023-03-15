@@ -1,0 +1,8 @@
+export declare enum TripStatus {
+    OPEN = "OPEN",
+    CANCELED = "CANCELED",
+    IN_PROGRESS = "IN PROGRESS",
+    FINISHED = "FINISHED",
+    PENDING_VALORATION = "PENDING VALORATION",
+    READY_FOR_START = "READY FOR START"
+}

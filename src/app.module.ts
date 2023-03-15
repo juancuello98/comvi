@@ -1,20 +1,36 @@
-import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AuthModule } from './modules/auth/authentication.module';
-import { UsersModule } from './modules/users/users.module';
-import { AuthFirebaseMiddleware } from './modules/auth-firebase/auth-firebase.middleware'
-import { MailModule } from './modules/mailer/mail.module';
-import { AuthFirebaseModule } from './modules/auth-firebase/auth-firebase.module'
+import { ConfigModule } from '@nestjs/config';
+
+import { AuthModule } from './authentication/authentication.module';
+import { UserModule } from './models/users/user.module';
+import { MailModule } from './config/mail/config.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { TripModule } from './models/trips/trip.module';
+import { CommonModule } from './common/common.module';
+import { VehiclesModule } from './models/vehicles/vehicles.module';
+import { RequestModule } from './models/requests/request.module';
+
+
 
 @Module({
   imports: [
-    AuthFirebaseModule,
+    ConfigModule.forRoot({
+      isGlobal : true,
+    }),
+    MongooseModule.forRoot(process.env.MONGO_URL), 
+    MailModule,
     AuthModule, 
-    UsersModule, 
-    MongooseModule.forRoot('mongodb+srv://comvi2022:comviadmin123@cluster0.tplmj.mongodb.net/?retryWrites=true&w=majority'), MailModule, AuthFirebaseModule
+    UserModule,
+    TripModule,
+    CommonModule,
+    VehiclesModule,
+    RequestModule
+
   ],
-  controllers: [],
-  providers: [],
+  controllers: [AppController],
+  providers: [AppService]
 })
 export class AppModule {
 }

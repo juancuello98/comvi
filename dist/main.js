@@ -14,7 +14,7 @@ async function bootstrap() {
         .addTag('users')
         .build();
     const document = swagger_1.SwaggerModule.createDocument(app, config);
-    swagger_1.SwaggerModule.setup('comvi/docs', app, document);
+    swagger_1.SwaggerModule.setup('/', app, document);
     app.useGlobalPipes(new common_1.ValidationPipe());
     await app.listen(process.env.PORT || 3000);
 }
