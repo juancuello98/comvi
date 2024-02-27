@@ -40,8 +40,8 @@ export class VehiclesService {
 
   async update(id: number, updateVehicleDto: UpdateVehicleDto): Promise<VehiclesDocument> {
     const vehicle = new this.vehiclesModel(updateVehicleDto);
-    return vehicle.save(); //habría q validar q exista?
-  }
+    return vehicle.save(); 
+    }
 
   async findById(id: any) : Promise<ResponseDTO> {
     console.log(id);
