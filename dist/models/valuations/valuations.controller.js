@@ -25,7 +25,7 @@ let ValuationsController = class ValuationsController {
     }
     async create(createValuationDto) {
         const userEmail = this.requestHelper.getPayload(express_1.request);
-        const valuationModify = Object.assign(Object.assign({}, createValuationDto), { email: userEmail });
+        const valuationModify = Object.assign({}, createValuationDto);
         await this.valuationsService.create(valuationModify);
     }
 };

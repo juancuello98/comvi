@@ -15,7 +15,7 @@ export class ValuationsController {
   async create(@Body() createValuationDto: CreateValuationDto) {
     
     const userEmail = this.requestHelper.getPayload(request)
-    const valuationModify = {...createValuationDto, email: userEmail }
+    const valuationModify = {...createValuationDto}//, email: userEmail }
     await this.valuationsService.create(valuationModify);
   }
   
