@@ -23,10 +23,10 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document } from 'mongoose';
-export declare type PasswordTokenDocument = PasswordToken & Document;
+export type PasswordTokenDocument = PasswordToken & Document;
 export declare class PasswordToken {
     code: string;
     created: Date;
     expire: Date;
 }
-export declare const PasswordTokenSchema: import("mongoose").Schema<PasswordToken, import("mongoose").Model<PasswordToken, any, any, any, any>, {}, {}, {}, {}, "type", PasswordToken>;
+export declare const PasswordTokenSchema: import("mongoose").Schema<PasswordToken, import("mongoose").Model<PasswordToken, any, any, any, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, PasswordToken>;

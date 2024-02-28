@@ -23,7 +23,7 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document } from 'mongoose';
-export declare type LocationDocument = Location & Document;
+export type LocationDocument = Location & Document;
 export declare class Location {
     country: string;
     province: string;
@@ -34,4 +34,4 @@ export declare class Location {
     longitud: string;
     place_id: string;
 }
-export declare const LocationSchema: import("mongoose").Schema<Location, import("mongoose").Model<Location, any, any, any, any>, {}, {}, {}, {}, "type", Location>;
+export declare const LocationSchema: import("mongoose").Schema<Location, import("mongoose").Model<Location, any, any, any, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Location>;

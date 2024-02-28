@@ -23,11 +23,11 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document } from 'mongoose';
-export declare type TripResumeDocument = TripResume & Document;
+export type TripResumeDocument = TripResume & Document;
 export declare class TripResume {
     passengers: string[];
     valoraciones: string[];
     fechaHoraRealInicio: string;
     fechaHoraRealFin: string;
 }
-export declare const TripResumeSchema: import("mongoose").Schema<TripResume, import("mongoose").Model<TripResume, any, any, any, any>, {}, {}, {}, {}, "type", TripResume>;
+export declare const TripResumeSchema: import("mongoose").Schema<TripResume, import("mongoose").Model<TripResume, any, any, any, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, TripResume>;

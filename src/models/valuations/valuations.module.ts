@@ -13,9 +13,9 @@ import { Valuation, ValuationSchema } from './entities/valuation.schema';
 @Module({
   imports: [MongooseModule.forFeature([
     {name: Request.name, schema: RequestSchema },
-    {name: Trip.name, schema:TripSchema},
-    {name: User.name, schema:UserSchema},
-    {name:Valuation.name, schema:ValuationSchema}
+    {name: Trip.name, schema: TripSchema},
+    {name: User.name, schema: UserSchema},
+    {name:Valuation.name, schema: ValuationSchema}
   ]),
   CommonModule,
   TransactionModule

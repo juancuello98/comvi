@@ -4,7 +4,6 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
 //Services
-import { MailService } from '../config/mail/config.service';
 import { UserService } from '../models/users/user.service';
 
 //DTOs
@@ -19,6 +18,7 @@ import { PasswordTokenDTO } from './dto/token-password.dto';
 import { PasswordToken } from '../models/users/passwordToken.schema';
 import { UserDocument } from 'src/models/users/user.schema';
 import { jwtConstants } from 'src/common/constants/settings';
+import { MailService } from 'src/config/mail/config.service';
 
 @Injectable()
 export class AuthService {

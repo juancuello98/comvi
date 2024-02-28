@@ -2,11 +2,11 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Puntaje } from './puntaje.enums';
 
-export type ValuationDocument = Valuation & Document;
+export type ValuationDocument = Document<Valuation>;
 
-//TODO: Collection de Trips
-//TODO: El schema le brinda propiedades a la clase Trips para interactuar con la base de datos
-@Schema()
+@Schema() // Marca una clase como definición de esquema
+// @Prop : Define una propiedad en el documento
+
 export class Valuation {
 
     @Prop({required : true})
@@ -28,4 +28,4 @@ export class Valuation {
     puntaje : Puntaje;
 }
 
-export const ValuationSchema = SchemaFactory.createForClass(Valuation);
+export const ValuationSchema = SchemaFactory.createForClass(Valuation); // Asigna nuestra Catclase a una colección MongoDB del mismo nombre, pero con una “s” adicional al final, por lo que el nombre final de la colección mongo será cats

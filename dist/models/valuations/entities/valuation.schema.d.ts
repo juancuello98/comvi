@@ -24,7 +24,7 @@
 /// <reference types="mongoose/types/inferschematype" />
 import { Document } from 'mongoose';
 import { Puntaje } from './puntaje.enums';
-export declare type ValuationDocument = Valuation & Document;
+export type ValuationDocument = Document<Valuation>;
 export declare class Valuation {
     email: string;
     tripId: string;
@@ -33,4 +33,4 @@ export declare class Valuation {
     fechaHoraModificado: string;
     puntaje: Puntaje;
 }
-export declare const ValuationSchema: import("mongoose").Schema<Valuation, import("mongoose").Model<Valuation, any, any, any, any>, {}, {}, {}, {}, "type", Valuation>;
+export declare const ValuationSchema: import("mongoose").Schema<Valuation, import("mongoose").Model<Valuation, any, any, any, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Valuation>;

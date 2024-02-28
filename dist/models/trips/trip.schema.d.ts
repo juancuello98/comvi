@@ -26,7 +26,7 @@ import { Document } from 'mongoose';
 import { Vehicle } from '../cars/location.schema';
 import { Location } from '../locations/location.schema';
 import { TripStatus } from './enums/state.enum';
-export declare type TripDocument = Trip & Document;
+export type TripDocument = Trip & Document;
 export declare class Trip {
     origin: Location;
     destination: Location;
@@ -48,4 +48,4 @@ export declare class Trip {
     valuations: string[];
     tripResumeId: string;
 }
-export declare const TripSchema: import("mongoose").Schema<Trip, import("mongoose").Model<Trip, any, any, any, any>, {}, {}, {}, {}, "type", Trip>;
+export declare const TripSchema: import("mongoose").Schema<Trip, import("mongoose").Model<Trip, any, any, any, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Trip>;

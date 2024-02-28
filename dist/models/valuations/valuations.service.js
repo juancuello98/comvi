@@ -30,89 +30,21 @@ let ValuationsService = ValuationsService_1 = class ValuationsService {
         this.logger = new common_1.Logger(ValuationsService_1.name);
     }
     async create(createValuationDto) {
-        const newValuation = new this.valuationModel({
+        const input = {
             email: createValuationDto.email,
             tripId: createValuationDto.tripId,
             detalle: createValuationDto.detalle,
             fechaHoraCreado: Date.now,
             fechaHoraModificado: Date.now,
-            puntaje: createValuationDto.puntaje
-        });
+            puntaje: createValuationDto.puntaje,
+        };
+        const newValuation = new this.valuationModel(input);
         try {
-            const hasTrip = await this.tripModel.findById(createValuationDto.tripId);
-            if (!hasTrip) {
-                this.logger.log(`Not found trip ${createValuationDto.tripId} for user ${createValuationDto.email}`);
-                return this.responseHelper.makeResponse(false, `Not found trip ${createValuationDto.tripId} for user ${createValuationDto.email}`, null, common_1.HttpStatus.NOT_FOUND);
-            }
             const updatedValuation = await newValuation.save();
-            hasTrip.valuations.push(updatedValuation.id);
-            this.logger.log(`A new valuation was added to the trip ${createValuationDto.tripId} for user ${createValuationDto.email}`);
-            return this.responseHelper.makeResponse(false, `A new valuation was added to the trip ${createValuationDto.tripId} for user ${createValuationDto.email}`, updatedValuation, common_1.HttpStatus.CREATED);
+            console.log('Succesfully created: %o', updatedValuation);
         }
         catch (error) {
-            this.logger.log('Error in create: ', error);
-            return this.responseHelper.makeResponse(true, "The valuation was not created", null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    async findAll(email) {
-        let message = 'valuations not found';
-        try {
-            const items = await this.valuationModel.find().sort({ createdTimestamp: 'desc' }).exec();
-            if (items.length == 0)
-                return this.responseHelper.makeResponse(false, message, null, common_1.HttpStatus.NOT_FOUND);
-            message = 'Successfully found valuations';
-            const itemsFiltered = items.filter(x => x.email == email);
-            if (itemsFiltered.length == 0)
-                this.responseHelper.makeResponse(false, message, null, common_1.HttpStatus.NOT_FOUND);
-            return this.responseHelper.makeResponse(false, message, itemsFiltered, common_1.HttpStatus.OK);
-        }
-        catch (error) {
-            this.logger.log('Error in findAll: ', error);
-            return this.responseHelper.makeResponse(true, message, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    async findOne(id) {
-        let message = 'valuation not found';
-        try {
-            const valuation = await this.valuationModel.findById(id).exec();
-            if (!valuation)
-                return this.responseHelper.makeResponse(false, message, null, common_1.HttpStatus.NOT_FOUND);
-            message = 'Valuation Successfully founded ';
-            return this.responseHelper.makeResponse(false, message, valuation, common_1.HttpStatus.OK);
-        }
-        catch (error) {
-            this.logger.log('Error in findById: ', error);
-            return this.responseHelper.makeResponse(true, message, null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    async update(updateValuationDto) {
-        try {
-            const hasValuation = await this.valuationModel.findByIdAndUpdate(updateValuationDto.id, updateValuationDto);
-            if (!hasValuation) {
-                this.logger.log(`Not found valuation ${updateValuationDto.id} for user ${updateValuationDto.email}`);
-                return this.responseHelper.makeResponse(false, `Not found valuation ${updateValuationDto.id} for user ${updateValuationDto.email}`, null, common_1.HttpStatus.NOT_FOUND);
-            }
-            this.logger.log(`The valuation of the trip ${updateValuationDto.tripId} for user ${updateValuationDto.email} was updated`);
-            return this.responseHelper.makeResponse(false, `The valuation of the trip ${updateValuationDto.tripId} for user ${updateValuationDto.email} was updated`, hasValuation, common_1.HttpStatus.CREATED);
-        }
-        catch (error) {
-            this.logger.log('Error in create: ', error);
-            return this.responseHelper.makeResponse(true, "The valuation was not created", null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    async remove(id) {
-        try {
-            const hasValuation = await this.valuationModel.findByIdAndDelete(id);
-            if (!hasValuation) {
-                this.logger.log(`Not found valuation ${id} for user`);
-                return this.responseHelper.makeResponse(false, `Not found valuation ${id} for user`, null, common_1.HttpStatus.NOT_FOUND);
-            }
-            this.logger.log(`The valuation of the trip ${hasValuation.tripId} for user ${hasValuation.email} was deleted`);
-            return this.responseHelper.makeResponse(false, `The valuation of the trip ${hasValuation.tripId} for user ${hasValuation.email} was deleted`, hasValuation, common_1.HttpStatus.CREATED);
-        }
-        catch (error) {
-            this.logger.log('Error in create: ', error);
-            return this.responseHelper.makeResponse(true, "The valuation was not created", null, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+            console.log('Error: %s', error.message);
         }
     }
 };

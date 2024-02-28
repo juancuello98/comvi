@@ -23,11 +23,11 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document } from 'mongoose';
-export declare type VehicleDocument = Vehicle & Document;
+export type VehicleDocument = Vehicle & Document;
 export declare class Vehicle {
     brand: string;
     model: string;
     version: string;
     capacity: number;
 }
-export declare const VehicleSchema: import("mongoose").Schema<Vehicle, import("mongoose").Model<Vehicle, any, any, any, any>, {}, {}, {}, {}, "type", Vehicle>;
+export declare const VehicleSchema: import("mongoose").Schema<Vehicle, import("mongoose").Model<Vehicle, any, any, any, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Vehicle>;

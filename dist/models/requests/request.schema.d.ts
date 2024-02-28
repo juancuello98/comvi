@@ -23,7 +23,7 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document } from 'mongoose';
-export declare type RequestDocument = Request & Document;
+export type RequestDocument = Request & Document;
 export declare class Request {
     email: string;
     tripId: string;
@@ -35,4 +35,4 @@ export declare class Request {
     createdTimestamp: string;
     status: string;
 }
-export declare const RequestSchema: import("mongoose").Schema<Request, import("mongoose").Model<Request, any, any, any, any>, {}, {}, {}, {}, "type", Request>;
+export declare const RequestSchema: import("mongoose").Schema<Request, import("mongoose").Model<Request, any, any, any, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Request>;

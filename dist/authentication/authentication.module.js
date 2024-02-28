@@ -14,8 +14,8 @@ const passport_1 = require("@nestjs/passport");
 const jwt_1 = require("@nestjs/jwt");
 const settings_1 = require("../common/constants/settings");
 const jwt_strategy_1 = require("../common/strategies/jwt.strategy");
-const config_module_1 = require("../config/mail/config.module");
 const user_module_1 = require("../models/users/user.module");
+const config_module_1 = require("../config/mail/config.module");
 let AuthModule = class AuthModule {
 };
 AuthModule = __decorate([

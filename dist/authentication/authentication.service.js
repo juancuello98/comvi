@@ -14,10 +14,10 @@ exports.AuthService = void 0;
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt = require("bcrypt");
-const config_service_1 = require("../config/mail/config.service");
 const user_service_1 = require("../models/users/user.service");
 const authentication_enum_1 = require("./authentication.enum");
 const passwordToken_schema_1 = require("../models/users/passwordToken.schema");
+const config_service_1 = require("../config/mail/config.service");
 let AuthService = AuthService_1 = class AuthService {
     constructor(mailService, jwtService, userService) {
         this.mailService = mailService;

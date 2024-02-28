@@ -23,9 +23,9 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document } from 'mongoose';
-export declare type PackageDocument = Package & Document;
+export type PackageDocument = Package & Document;
 export declare class Package {
     nombre: string;
     coordenadas: string;
 }
-export declare const PackageSchema: import("mongoose").Schema<Package, import("mongoose").Model<Package, any, any, any, any>, {}, {}, {}, {}, "type", Package>;
+export declare const PackageSchema: import("mongoose").Schema<Package, import("mongoose").Model<Package, any, any, any, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Package>;

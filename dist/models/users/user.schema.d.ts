@@ -28,7 +28,7 @@ import { Package } from '../packages/package.schema';
 import { Request } from '../requests/request.schema';
 import { Trip } from '../trips/trip.schema';
 import { PasswordToken } from './passwordToken.schema';
-export declare type UserDocument = User & Document;
+export type UserDocument = User & Document;
 export declare class User {
     lastname: string;
     name: string;
@@ -45,4 +45,4 @@ export declare class User {
     joinRequests: Request[];
     resetPasswordToken: PasswordToken;
 }
-export declare const UserSchema: import("mongoose").Schema<User, import("mongoose").Model<User, any, any, any, any>, {}, {}, {}, {}, "type", User>;
+export declare const UserSchema: import("mongoose").Schema<User, import("mongoose").Model<User, any, any, any, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, User>;

@@ -1,5 +1,4 @@
 import { JwtService } from '@nestjs/jwt';
-import { MailService } from '../config/mail/config.service';
 import { UserService } from '../models/users/user.service';
 import { ExistingtUserDTO } from '../models/users/dto/existing-user.dto';
 import { NewUserDTO } from '../models/users/dto/new-user.dto';
@@ -10,6 +9,7 @@ import { ResetPasswordDTO } from './dto/reset-password-dto';
 import { PasswordTokenDTO } from './dto/token-password.dto';
 import { PasswordToken } from '../models/users/passwordToken.schema';
 import { UserDocument } from 'src/models/users/user.schema';
+import { MailService } from 'src/config/mail/config.service';
 export declare class AuthService {
     private mailService;
     private jwtService;
