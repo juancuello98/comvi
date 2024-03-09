@@ -7,18 +7,17 @@ import * as bcrypt from 'bcrypt';
 import { UserService } from '../models/users/user.service';
 
 //DTOs
-import { ExistingtUserDTO } from '../models/users/dto/existing-user.dto';
+import { LoginDTO } from '../models/users/dto/existing-user.dto';
 import { NewUserDTO } from '../models/users/dto/new-user.dto';
-import { UserDetails } from '../models/users/interfaces/user-details.interface';
+import { UserDTO } from '../models/users/interfaces/user-details.interface';
 import { VERIFICATION_CODE_STATUS } from './authentication.enum';
 import { UserVerificationDTO } from '../models/users/dto/user-verification.dto';
-import { UserValidated } from 'src/models/users/interfaces/user-validated.interface';
+import { UserValidatedDTO } from 'src/models/users/interfaces/user-validated.interface';
 import { ResetPasswordDTO } from './dto/reset-password-dto';
 import { PasswordTokenDTO } from './dto/token-password.dto';
 import { PasswordToken } from '../models/users/passwordToken.schema';
 import { UserDocument } from 'src/models/users/user.schema';
-import { jwtConstants } from 'src/common/constants/settings';
-import { MailService } from 'src/config/mail/config.service';
+import { MailService } from 'src/mail/config.service';
 
 @Injectable()
 export class AuthService {
@@ -26,29 +25,32 @@ export class AuthService {
 
   constructor(
     private mailService: MailService,
-    private jwtService: JwtService,
-    private userService: UserService
+    private jwtTokenService: JwtService,
+    private userService: UserService,
   ) {}
 
-  
   generateRandomString(num) {
-    return Math.random().toString(36).substring(0,num).toUpperCase().replace('.','');
+    return Math.random()
+      .toString(36)
+      .substring(0, num)
+      .toUpperCase()
+      .replace('.', '');
   }
 
-  async GenerateToken() : Promise<PasswordToken> {
+  async GenerateToken(): Promise<PasswordToken> {
     const token = new PasswordToken();
     token.created = new Date();
-    token.expire = new Date(token.created.getTime()+2*60*60000);
+    token.expire = new Date(token.created.getTime() + 2 * 60 * 60000);
     token.code = this.generateRandomString(6);
     return token;
   }
 
-  async IsExpired(token: PasswordToken){
+  async IsExpired(token: PasswordToken) {
     const auxDate = new Date();
     return auxDate < token.expire ? true : false;
   }
 
-  async compareResetPasswordCode (token: string, user : UserDocument) {
+  async compareResetPasswordCode(token: string, user: UserDocument) {
     return token === user.resetPasswordToken.code ? true : false;
   }
 
@@ -56,28 +58,31 @@ export class AuthService {
     return bcrypt.hash(password, 12);
   }
 
-  //TODO: Registro del usuario
-  async register(user: Readonly<NewUserDTO>): Promise<UserDetails | any> {
-    const { lastname, name, password, email } = user;
+  /**
+   * Registrar un usuario.
+   * @param user del tipo NewUserDTO
+   * @returns UserDetailsDTO or any
+   */
 
-    const existingUser = await this.userService.findByEmail(email);
+  async register(registerData: Readonly<NewUserDTO>): Promise<UserDTO | any> {
+    const { lastname, name, password, email } = registerData;
 
-    if (existingUser) {
-      this.logger.log('Ya existe en la base de datos: Email ' + email);
+    const userExists = await this.userService.findByEmail(email);
+
+    if (userExists) {
+      this.logger.log('El usuario existe en la base de datos: Email ' + email);
 
       throw new HttpException(
-        'Una cuenta con este email ya existe!',
+        'Una cuenta con este email ya existe.',
         HttpStatus.CONFLICT,
       );
     }
 
-    this.logger.log('No existe en la base de datos: Email ' + email);
+    const code = await this.createVerififyEmailCode();
 
-    const verificationCode = await this.generateAndSendEmailCodeVerification();
+    await this.mailService.sendCode(email, name, code);
 
-    await this.mailService.sendCodeVerification(email, name, verificationCode);
-
-    this.logger.log('Email de verificacion enviado. A:  ' + email);
+    this.logger.log('Email de verificacion enviado a:  ' + email);
 
     const validated = VERIFICATION_CODE_STATUS.IN_PROGRESS;
 
@@ -89,22 +94,14 @@ export class AuthService {
       hashedPassword,
       lastname,
       validated,
-      verificationCode.toString(),
+      code,
     );
 
-    this.logger.log('Usuario creado: User ' + JSON.stringify(newUser));
-
-    return this.userService._getUserDetails(newUser);
+    return this.userService.getUser(newUser);
   }
 
-  async generateAndSendEmailCodeVerification() {
-    return Math.floor(Math.random() * (9999 - 1000 + 1) + 1000);
-  }
-
-  async emailVerificated(email: string): Promise<boolean> {
-    const user = await this.userService.findByEmail(email);
-    if (user.validated !== VERIFICATION_CODE_STATUS.OK) return false;
-    return true;
+  async createVerififyEmailCode(): Promise<string> {
+    return Math.floor(Math.random() * (9999 - 1000 + 1) + 1000).toString();
   }
 
   async doesPasswordMatch(
@@ -114,15 +111,11 @@ export class AuthService {
     return bcrypt.compare(password, hashedPassword);
   }
 
-  async validateUser(
-    email: string,
-    password: string,
-  ): Promise<UserDetails | null> {
+  async validate(email: string, password: string): Promise<UserDTO | null> {
     const user = await this.userService.findByEmail(email);
-    const doesUserExist = !!user;
 
-    if (!doesUserExist) {
-      this.logger.log('El usuario no existe: ' + email);
+    if (!user || user.validated !== VERIFICATION_CODE_STATUS.VALIDATED) {
+      this.logger.log('User not found or email not validated.');
       return null;
     }
 
@@ -131,129 +124,159 @@ export class AuthService {
       user.password,
     );
 
-    if (!doesPasswordMatch) 
-    {
-      this.logger.log('Contraseña incorrecta. Email: ' + email);
+    if (!doesPasswordMatch) {
+      this.logger.log('Invalid Credentials');
       return null;
     }
 
-    const emailVerificated = await this.emailVerificated(email);
-
-    if (!emailVerificated) 
-    {
-      this.logger.log('Email sin verificar. Email ' + email);
-      return null
-    };
-
-    return this.userService._getUserDetails(user);
+    return this.userService.getUser(user);
   }
 
-  //TODO: Login del usuario
+  /**
+   * @description This method received email and password , verify if match password with user and return JWT token.
+   * @param LoginDTO
+   * @returns JWT Token as { token : string } or HTTP 401 Unauthorized.
+   */
   async login(
-    existingUser: ExistingtUserDTO,
-  ): Promise<{ token: string }> | null {
+    {email, password} : LoginDTO,
+  ): Promise<Record<string, string>> {
 
-    const { email, password } = existingUser;
-    const user = await this.validateUser(email, password);
+    const user = await this.validate(email, password);
+
     if (!user)
-      throw new HttpException('Credenciales invalidas!', HttpStatus.UNAUTHORIZED);
+      throw new HttpException(
+        'Invalid credentials.',
+        HttpStatus.UNAUTHORIZED,
+      );
 
-    const jwt = await this.jwtService.sign({ user });
+    const token = this.loginWithCredentials(user);
 
-    this.logger.log('Login Succesfully. JWT: ' + jwt);
-
-    return { token: jwt };
+    return token;
   }
 
-  async validationCode(verifyUser: UserVerificationDTO) : Promise< UserValidated | any> {
+  async loginWithCredentials(user: UserDTO) {
+    const payload = { user };
 
-    const {email, code} = verifyUser;
+    return {
+        token: this.jwtTokenService.sign(payload),
+    };
+}
+
+  async verifyEmailCode({
+    email,
+    code,
+  }: UserVerificationDTO): Promise<boolean> {
+    try {
+      const user = await this.userService.findByEmail(email);
+
+      if (user.verificationCode !== code)
+        throw new HttpException(
+          'Invalid or expired code.',
+          HttpStatus.CONFLICT,
+        );
+
+      user.validated = VERIFICATION_CODE_STATUS.VALIDATED;
+
+      await this.userService.update(user);
+      return true;
+    } catch (error) {
+      this.logger.error(error.message)
+      return false;
+    }
+  }
+
+  //TODO: Refactor de todo lo que es reestrablecer contraseña
+
+  // async sendEmailPasswordToken(email: string, name: string, token: string) {
+  //   const mail = await this.mailService.sendCodePasswordToken(
+  //     email,
+  //     name,
+  //     token,
+  //   );
+  //   this.logger.log(
+  //     'Se envió el mail de repureracion de contraseña. A:  ' + mail,
+  //   );
+  // }
+
+  // async requestResetPassword(userEmail: string): Promise<boolean | any> {
+  //   const email = userEmail;
+  //   const findUser = await this.userService.findByEmail(email);
+
+  //   if (!findUser) {
+  //     this.logger.log('El usuario no existe: ' + email);
+  //     return new HttpException('USER_NOT_FOUND', 404);
+  //   }
+
+  //   findUser.resetPasswordToken = await this.GenerateToken();
+
+  //   const updated = await this.userService.update(findUser);
+
+  //   this.logger.log(
+  //     'Se le actualizó el código de recuperación de contraseña a ' +
+  //       updated.email +
+  //       ' codigo ' +
+  //       updated.resetPasswordToken.code,
+  //   );
+
+  //   await this.sendEmailPasswordToken(
+  //     findUser.email,
+  //     findUser.name,
+  //     findUser.resetPasswordToken.code,
+  //   );
+
+  //   this.logger.log(
+  //     'Se le envió un mail con el código de recuperación de contraseña a: ' +
+  //       email,
+  //   );
+
+  //   return {
+  //     success: true,
+  //     statusCode: 200,
+  //   };
+  // }
+
+  // async resetPassword(
+  //   resetPasswordDTO: ResetPasswordDTO,
+  // ): Promise<boolean | any> {
+  //   const { email } = resetPasswordDTO;
+  //   const { password } = resetPasswordDTO;
+  //   const findUser = await this.userService.findByEmail(email);
+
+  //   if (!findUser) {
+  //     this.logger.log('El usuario no existe: ' + email);
+  //     return new HttpException('USER_NOT_FOUND', 404);
+  //   }
+
+  //   findUser.resetPasswordToken = null;
+
+  //   findUser.password = await this.hashPassword(password);
+
+  //   const updated = await this.userService.update(findUser);
+
+  //   this.logger.log('Se le actualizó la contraseña a: ' + updated.email); //JSON.stringify(updated) subir json?
+
+  //   return {
+  //     success: true,
+  //     statusCode: 200,
+  //   };
+  // }
+
+  async validatePasswordToken(
+    passwordTokenDTO: PasswordTokenDTO,
+  ): Promise<UserValidatedDTO | any> {
+    const { email, passwordToken } = passwordTokenDTO;
     const user = await this.userService.findByEmail(email);
 
-    if(user.verificationCode.toString() !== code) throw new HttpException('Invalid or expired code.', HttpStatus.CONFLICT);
-
-    user.validated = VERIFICATION_CODE_STATUS.OK;
-    const userValidated = this.userService.update(user);
-
-    this.logger.log('Verificacion de email exitosa. Email: ' + email + '. ESTADO: ' + (await userValidated).validated);
-
-    return this.userService._getUserValidatedOK(user);
-  }
-
-  async sendEmailPasswordToken(email: string, name: string, token: string) {
-    const mail = await this.mailService.sendCodePasswordToken(
-      email,
-      name,
-      token,
-    );
-    this.logger.log('Se envió el mail de repureracion de contraseña. A:  ' + mail);
-  }
-  
-  async requestResetPassword(userEmail :string) : Promise < boolean | any > {
-    const email  = userEmail;
-    const findUser = await this.userService.findByEmail(email ); 
-         
-    if (!findUser) 
-    {
+    if (!user) {
       this.logger.log('El usuario no existe: ' + email);
       return new HttpException('USER_NOT_FOUND', 404);
     }
 
-    findUser.resetPasswordToken = await this.GenerateToken();
+    const {id} = user;
+    const validate = (await this.IsExpired(user.resetPasswordToken)) &&
+    (await this.compareResetPasswordCode(passwordToken, user));
+    const result = { id , email, validate }
     
-    const updated = await this.userService.update(findUser)
-    
-    this.logger.log('Se le actualizó el código de recuperación de contraseña a ' + updated.email + ' codigo ' + updated.resetPasswordToken.code );
-
-    await this.sendEmailPasswordToken(
-      findUser.email,
-      findUser.name,
-      findUser.resetPasswordToken.code,
-    );
-
-    this.logger.log('Se le envió un mail con el código de recuperación de contraseña a: ' + email);
-    
-    return {
-      success: true,
-      statusCode: 200
-    };
-  }
-  
-  async resetPassword(resetPasswordDTO :ResetPasswordDTO) : Promise < boolean | any > {
-    const { email } = resetPasswordDTO;
-    const {password} =  resetPasswordDTO;
-    const findUser = await this.userService.findByEmail(email); 
-         
-    if (!findUser) 
-    {
-      this.logger.log('El usuario no existe: ' + email);
-      return new HttpException('USER_NOT_FOUND', 404);
-    }
-
-    findUser.resetPasswordToken = null;
-
-    findUser.password = await this.hashPassword(password);
-    
-    const updated = await this.userService.update(findUser);
-    
-    this.logger.log('Se le actualizó la contraseña a: ' + updated.email); //JSON.stringify(updated) subir json?
-    
-    return {
-      success: true,
-      statusCode: 200
-    };
-  }
-  
-  async validatePasswordToken(passwordTokenDTO: PasswordTokenDTO ) : Promise < UserValidated | any >{
-    const { email , passwordToken} = passwordTokenDTO;
-    const findUser = await this.userService.findByEmail(email); 
-
-    if (!findUser) 
-    {
-      this.logger.log('El usuario no existe: ' + email);
-      return new HttpException('USER_NOT_FOUND', 404);
-    }
-
-    return await this.IsExpired(findUser.resetPasswordToken) && await this.compareResetPasswordCode(passwordToken, findUser)? this.userService._getUserValidatedOK(findUser) : this.userService._getUserValidatedFAIL(findUser);
+    return result;
   }
 }

@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, UseGuards, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/authentication/jwt/jwt-auth.guard';
 import { RequestHelper } from '../../common/helpers/http/request.helper';
 import { Request } from 'express';
 import { RequestService } from './request.service';

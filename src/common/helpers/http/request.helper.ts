@@ -26,8 +26,8 @@ export class RequestHelper {
 
   getPayload = (request : Request) : string  => {
     try {
-      let auth;
-      let token;
+      let auth: string = '';
+      let token: string = '';
       let email: string = '';
 
       const req : Request = request;

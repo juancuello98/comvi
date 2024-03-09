@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { ExistingtUserDTO } from 'src/models/users/dto/existing-user.dto';
+import { LoginDTO } from 'src/models/users/dto/existing-user.dto';
 
-export class ResetPasswordDTO extends PartialType(ExistingtUserDTO){
+export class ResetPasswordDTO extends PartialType(LoginDTO){
 }

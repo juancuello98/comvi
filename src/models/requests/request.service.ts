@@ -10,7 +10,9 @@ import { Trip, TripDocument } from '../trips/trip.schema';
 import { User, UserDocument } from '../users/user.schema';
 import { ChangeStatusOfRequestDTO } from './dto/change-status-request.dto';
 import { Exception } from 'handlebars';
-import { MailService } from 'src/config/mail/config.service';
+import { MailService } from 'src/mail/config.service';
+import { UserService } from '../users/user.service';
+import { TripService } from '../trips/trip.service';
 
 
 
@@ -21,9 +23,9 @@ export class RequestService {
 
   constructor(
     @InjectModel(Request.name) private readonly requestModel: Model<RequestDocument>,
-    @InjectModel(Trip.name) private readonly tripModel: Model<TripDocument>,
-    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     private mailService: MailService,
+    private userService: UserService,
+    private tripService: TripService,
     private readonly responseHelper : ResponseHelper
   ){}
 
@@ -77,10 +79,6 @@ export class RequestService {
       return this.responseHelper.makeResponse(true,'Error in findById',null,HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
-  //TODO: Enviar notificacion al usuario conductor del viaje de que tiene una nueva solicitud, crear modulo de notifiaciones
-  //TODO: Hacer solo la creacion de la request , lo demas pasarlo a un modulo de transacciones.
-  //TODO: Que los services estos sean para ABM nomas, las transacciones van en otro modulo, abstraer los metodos de moongose.
   
    async acceptRequest(req:ChangeStatusOfRequestDTO, driverEmail:string): Promise<ResponseDTO> {
     
@@ -224,6 +222,8 @@ export class RequestService {
   async getRequestsForTrips(email: string){ //TODO: Ver si se puede hacer como en sql la request al mongodb # en eso jmc
     try {
       const trips = await this.tripModel.find({driverEmail:email,status:'OPEN'});
+       // Obtener las solicitudes abiertas para el trip
+    const openRequests = await Request.find({ trip: tripId});
 
       if(trips.length === 0) 
       {
@@ -295,6 +295,12 @@ export class RequestService {
         lastname: user.lastname
       }
     }
+  }
+
+  async processSendRequest(request: any, userEmail: string){
+    await this.userService.updateUserRequests(userEmail,request.id);
+    await this.tripService.updateTripRequests(request.tripId,request.id)
+    // await this.sendNotificacion(payload) TODO: Notificar al usuario conductor de la nueva solicitud en su viaje
   }
 
 }

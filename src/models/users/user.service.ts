@@ -3,80 +3,83 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ResponseHelper } from 'src/common/helpers/http/response.helper';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
-
-import { User, UserDocument } from '../users/user.schema';
+import { UserDocument } from '../users/user.schema';
 import { GetUserDTO } from './dto/user.dto';
-import { UserDetails } from './interfaces/user-details.interface';
-import { UserValidated } from './interfaces/user-validated.interface';
+import { UserDTO } from './interfaces/user-details.interface';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
- 
   constructor(
-    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,    
-    private readonly responseHelper : ResponseHelper
+    private readonly userRepository: UserRepository,
+    private readonly responseHelper: ResponseHelper,
   ) {}
 
-  _getUserDetails(user: UserDocument){
+  getUser({ id, name, lastname, email }: UserDocument) {
     return {
-      id: user.id,
-      name: user.name,
-      lastname: user.lastname,
-      email: user.email
+      id,
+      name,
+      lastname,
+      email,
     };
   }
 
-  _getUserValidatedOK(user: UserDocument): UserValidated {
-    return {
-      id: user._id,
-      email: user.email,
-      validated: true
-    };
-  }
-
-  _getUserValidatedFAIL(user: UserDocument): UserValidated {
-    return {
-      id: user._id,
-      email: user.email,
-      validated: false
-    };
-  }
-
-
-  async findByEmail(email: string): Promise<UserDocument> {
-    return this.userModel.findOne({ email }).exec();
-  }
-
-  async getUserData(email:string): Promise<ResponseDTO>{
+  async getUserData(email: string): Promise<ResponseDTO> {
     try {
-      const user = await this.findByEmail(email);
+      const user = await this.userRepository.findByEmail(email);
 
-      if(!user){
-        return this.responseHelper.makeResponse(false,'User not found.',null,HttpStatus.NOT_FOUND);
+      if (!user) {
+        return this.responseHelper.makeResponse(
+          false,
+          'User not found.',
+          null,
+          HttpStatus.NOT_FOUND,
+        );
       }
 
-      const userData = {
-        name : user.name,
-        lastname : user.lastname,
-        email : user.email,
-        trips : user.trips,
-        packages : user.packages,
-        tripsFavourites : user.tripsFavourites,
-        subscribedTrips : user.subscribedTrips,
-        tripsCreated : user.tripsCreated,
-        joinRequests : user.joinRequests
-      } as GetUserDTO
-      
-      return this.responseHelper.makeResponse(false,'User data successfully found.',userData,HttpStatus.OK);
+      const {
+        name,
+        lastname,
+        trips,
+        packages,
+        tripsFavourites,
+        subscribedTrips,
+        tripsCreated,
+        joinRequests,
+      } = user;
+
+      const userData: GetUserDTO = {
+        name,
+        lastname,
+        email,
+        trips,
+        packages,
+        tripsFavourites,
+        subscribedTrips,
+        tripsCreated,
+        joinRequests,
+      };
+
+      return this.responseHelper.makeResponse(
+        false,
+        'User data successfully found.',
+        userData,
+        HttpStatus.OK,
+      );
     } catch (error) {
-      return this.responseHelper.makeResponse(true,'Error recovering user data.',null,HttpStatus.INTERNAL_SERVER_ERROR);
+      return this.responseHelper.makeResponse(
+        true,
+        'Error recovering user data.',
+        null,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
-  async findById(id: string): Promise<UserDetails | null> {
-    const user = await this.userModel.findById(id).exec();
+  async findById(id: string): Promise<UserDTO | null> {
+    const user = await this.userRepository.findById(id);
     if (!user) return null;
-    return this._getUserDetails(user);
+    return this.getUser(user);
   }
 
   async create(
@@ -85,23 +88,22 @@ export class UserService {
     hashedPassword: string,
     lastname: string,
     validated: string,
-    verificationCode: string
+    verificationCode: string,
   ): Promise<UserDocument> {
-    const newUser = new this.userModel({
+    const user = {
       name,
       email,
-      password: hashedPassword,
+      hashedPassword,
       lastname,
       validated,
       verificationCode,
+    };
 
-    });
-    return newUser.save();
+    return this.userRepository.create(user);
   }
 
-  async update(
-    user: UserDocument
-  ): Promise<UserDocument> {
-    return user.save();
+  
+  async updateUserRequests(email: string, requestId: string) {
+    await this.userRepository.createRequest(email, requestId);
   }
 }

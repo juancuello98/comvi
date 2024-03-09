@@ -3,27 +3,26 @@ import { Document } from 'mongoose';
 
 export type RequestDocument = Request & Document;
 
-//TODO: Collection de Requests
-//TODO: El schema le brinda propiedades a la clase Requests para interactuar con la base de datos
+
 @Schema()
 export class Request {
 
-    @Prop({required: true}) // para propiedades requeridas
+    @Prop({required: true})
     email : string;
   
-    @Prop({required: true}) // para propiedades requeridas
+    @Prop({required: true})
     tripId : string;
 
-    @Prop({required: true}) // para propiedades requeridas
+    @Prop({required: true})
     description : string;
 
-    @Prop({required: true}) // para propiedades requeridas
+    @Prop({required: true})
     hasEquipment : boolean;    
 
-    @Prop({required: true}) // para propiedades requeridas
+    @Prop({required: true})
     hasPartner : boolean;
 
-    @Prop({required: false}) // para propiedades requeridas
+    @Prop({required: false})
     partnerQuantity : number;
 
     @Prop({required: true})

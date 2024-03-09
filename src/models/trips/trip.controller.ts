@@ -1,11 +1,10 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/authentication/jwt/jwt-auth.guard';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { TripService } from './trip.service';
 import { RequestHelper } from '../../common/helpers/http/request.helper';
-import { Request } from 'express';
 
 
 @ApiTags('trips')
@@ -13,23 +12,26 @@ import { Request } from 'express';
 export class TripController {
 
   constructor(
-    private readonly tripsService: TripService,
-    private readonly requestHelper: RequestHelper
+    private readonly tripsService: TripService
   ) {}
 
+  /**
+   * @description Publish new trip.
+   * @param trip with type NewTripDTO
+   * @param request 
+   * @returns 
+   */
   @UseGuards(JwtAuthGuard)
   @Post('/publish')
-  async create(@Body() trip: NewTripDTO, @Req() request: Request): Promise<ResponseDTO> {
-    const userEmail = this.requestHelper.getPayload(request)
-    const tripModify = {...trip, email: userEmail }
-    const resp = await this.tripsService.create(tripModify);
-    return resp;
+  async create(@Request() req, @Body() trip: NewTripDTO): Promise<ResponseDTO> {
+    const email = req.user.email;
+    return await this.tripsService.create({...trip, email });
   }
 
   @Get('/list')
-  async findAll(@Req() request: Request) : Promise<ResponseDTO >{
-    const userEmail = this.requestHelper.getPayload(request)
-    return this.tripsService.findAll(userEmail);
+  async findAll(@Request() req) : Promise<ResponseDTO >{
+    const email = req.user.email;
+    return this.tripsService.findNonDriverTrips(email);
   }
 
   @Get('/list/:id')
@@ -37,6 +39,7 @@ export class TripController {
     return this.tripsService.findById(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/list/passengers/:id')
   listOfPassengers(@Param('id') id: string) {
     return this.tripsService.listOfPassengers(id);
@@ -44,33 +47,33 @@ export class TripController {
 
 
   @UseGuards(JwtAuthGuard)
-  @Get('myTrips')
-  findMyTrips(@Req() request: Request) {
-    const userEmail = this.requestHelper.getPayload(request)
-    return this.tripsService.findTripsByDriver(userEmail);
+  @Get('/myTrips')
+  findMyTrips(@Request() req) {
+    const email = req.user.email;
+    return this.tripsService.findTripsByDriver(email);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('/cancel/:id')
-  async cancel(@Req() request: Request, @Param('id') id: string): Promise<ResponseDTO> {
-    const userEmail = this.requestHelper.getPayload(request)
+  async cancel(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
+    const userEmail = req.user.email;
     const resp = await this.tripsService.cancel(id,userEmail);
     return resp;
   }
   
   @UseGuards(JwtAuthGuard)
   @Post('/init/:id')
-  async init(@Req() request: Request, @Param('id') id: string): Promise<ResponseDTO> {
-    const userEmail = this.requestHelper.getPayload(request)
+  async init(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
+    const userEmail = req.user.email;
     const resp = await this.tripsService.init(id,userEmail);
     return resp;
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('/finish/:id')
-  async finish(@Req() request: Request, @Param('id') id: string): Promise<ResponseDTO> {
-    const userEmail = this.requestHelper.getPayload(request)
-    const resp = await this.tripsService.finish(id,userEmail);
+  async finish(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
+    const email = req.user.email;
+    const resp = await this.tripsService.finish(id,email);
     return resp;
   }
 }

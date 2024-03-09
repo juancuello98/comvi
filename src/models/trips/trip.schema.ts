@@ -1,74 +1,131 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { Vehicle } from '../cars/location.schema';
-import { Location } from '../locations/location.schema';
-import { User } from '../users/user.schema';
 import { TripStatus } from './enums/state.enum';
 
 export type TripDocument = Trip & Document;
 
-//TODO: Collection de Trips
-//TODO: El schema le brinda propiedades a la clase Trips para interactuar con la base de datos
 @Schema()
-export class Trip {
-
-
-    @Prop({required: true}) // para propiedades requeridas
-    origin : Location;
+/**
+ * Representa un viaje en la base de datos.
+ *
+ * @class
+ */
+ export class Trip {
   
-    @Prop({required: true}) 
-    destination : Location;
-
-    @Prop({required: true}) 
-    description : string;
-
-    @Prop({required: true}) 
-    allowPackage : boolean;
-
-    @Prop({required: true}) 
-    allowPassenger : boolean;
-
-    @Prop({required: true}) 
-    peopleQuantity : number;
-
+    /**
+     * @property {Location} origin - Ubicación de origen del viaje.
+     */
+    @Prop({ required: true })
+    origin: Location;
+  
+    /**
+     * @property {Location} destination - Ubicación de destino del viaje.
+     */
+    @Prop({ required: true })
+    destination: Location;
+  
+    /**
+     * @property {string} description - Descripción del viaje.
+     */
+    @Prop({ required: true })
+    description: string;
+  
+    /**
+     * @property {boolean} allowPackage - Indica si se permiten paquetes en el viaje.
+     */
+    @Prop({ required: true })
+    allowPackage: boolean;
+  
+    /**
+     * @property {boolean} allowPassenger - Indica si se permiten pasajeros en el viaje.
+     */
+    @Prop({ required: true })
+    allowPassenger: boolean;
+  
+    /**
+     * @property {number} peopleQuantity - Cantidad de personas como pasajeros para el viaje.
+     */
+    @Prop({ required: true })
+    peopleQuantity: number;
+  
+    /**
+     * @property {number} placesAvailable - Cantidad de lugares disponibles en el viaje.
+     */
     @Prop()
-    placesAvailable : number;
-
-    @Prop({required: true}) 
-    vehicle: Vehicle;
-
-    @Prop({required: true}) 
-    driverEmail : string;
-    
-    @Prop({required: true}) 
-    startedTimestamp: string
-    
-    @Prop({required: true}) 
-    status: TripStatus
-
+    placesAvailable: number;
+  
+    /**
+     * @property {Vehicle} vehicle - Id del vehículo utilizado en el viaje.
+     */
+    @Prop({ required: true })
+    vehicleId: string;
+  
+    /**
+     * @property {string} driver - ID del conductor del viaje.
+     */
+    @Prop({ required: true })
+    driver: string;
+  
+    /**
+     * @property {string} startedTimestamp - Marca de tiempo de inicio del viaje.
+     */
+    @Prop({ required: true })
+    startedTimestamp: string;
+  
+    /**
+     * @property {TripStatus} status - Estado actual del viaje.
+     */
+    @Prop({ required: true })
+    status: TripStatus;
+  
+    /**
+     * @property {string[]} passengers - IDs de los usuarios que participan como pasajeros en el viaje.
+     */
     @Prop()
-    passengers : string [] //va a ir un array con los ids de los usuarios para no replicar data
-
+    passengers: string[];
+  
+    /**
+     * @property {string[]} paquetes - IDs de los paquetes que van en el viaje.
+     */
     @Prop()
-    paquetes: string [] // id de los paquetes que van a ir en el viaje
-
+    paquetes: string[];
+  
+    /**
+     * @property {number} estimatedCosts - Costos estimados del viaje.
+     */
     @Prop()
-    estimatedCosts: number
-
+    estimatedCosts: number;
+  
+    /**
+     * @property {number} kilometers - Distancia total del viaje en kilómetros.
+     */
     @Prop()
-    kilometers: number
-
+    kilometers: number;
+  
+    /**
+     * @property {string} createdTimestamp - Marca de tiempo de creación del viaje.
+     */
     @Prop()
-    createdTimestamp: string
-
+    createdTimestamp: string;
+  
+    /**
+     * @property {string[]} tripsRequests - IDs de las solicitudes asociadas al viaje.
+     */
     @Prop()
-    tripsRequests : string [] // array con los ids de las solicitudes
-
+    tripsRequests: string[];
+  
+    /**
+     * @property {string[]} valuations - IDs de las valuaciones asociadas al viaje.
+     */
     @Prop()
-    valuations : string [] // id de las valuaciones que van a ser consultadas por otros servicios
-
+    valuations: string[];
+  
+    /**
+     * @property {string} tripResumeId - ID del resumen del viaje.
+     */
     @Prop()
-    tripResumeId : string
-}
+    tripResumeId: string;
+  }
+  
 
 export const TripSchema = SchemaFactory.createForClass(Trip);

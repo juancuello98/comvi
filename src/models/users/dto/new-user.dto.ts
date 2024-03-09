@@ -1,8 +1,8 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { ExistingtUserDTO } from './existing-user.dto';
+import { LoginDTO } from './existing-user.dto';
 import { IsNotEmpty} from 'class-validator'
 
-export class NewUserDTO extends PartialType(ExistingtUserDTO) {
+export class NewUserDTO extends PartialType(LoginDTO) {
 
     @IsNotEmpty()
     lastname: string

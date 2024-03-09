@@ -4,10 +4,10 @@ import { AuthController } from './authentication.controller';
 
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from '../common/constants/settings';
-import { JwtStrategy } from '../common/strategies/jwt.strategy';
+import { jwtConstants } from './jwt/jwt.constant';
+import { JwtStrategy } from './jwt/jwt.strategy';
 import { UserModule } from 'src/models/users/user.module';
-import { MailModule } from 'src/config/mail/config.module';
+import { MailModule } from 'src/mail/config.module';
 
 @Module({
   imports: [
@@ -16,7 +16,7 @@ import { MailModule } from 'src/config/mail/config.module';
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '7d' },
+      signOptions: { expiresIn: process.env.TOKEN_TIMEOUT },
     
     }),  
   ],

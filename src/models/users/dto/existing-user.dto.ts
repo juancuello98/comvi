@@ -1,6 +1,6 @@
 import {IsEmail , IsNotEmpty, MaxLength, MinLength} from 'class-validator'
 
-export class ExistingtUserDTO {
+export class LoginDTO {
 
     @IsEmail()
     email?: string;

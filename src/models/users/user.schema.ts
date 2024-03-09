@@ -7,8 +7,6 @@ import { Trip } from '../trips/trip.schema';
 import { PasswordToken } from './passwordToken.schema';
 export type UserDocument = User & Document;
 
-//TODO: Collection de Users
-//TODO: El schema le brinda propiedades a la clase Users para interactuar con la base de datos
 @Schema()
 export class User {
 
@@ -28,7 +26,7 @@ export class User {
   validated: string;
 
   @Prop({required: true})
-  verificationCode: number;
+  verificationCode: string;
 
   @Prop()
   trips: Trip[];
