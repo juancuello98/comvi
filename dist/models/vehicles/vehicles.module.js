@@ -17,10 +17,15 @@ let VehiclesModule = class VehiclesModule {
 };
 VehiclesModule = __decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([{ name: vehicles_schema_1.Vehicles.name, schema: vehicles_schema_1.VehiclesSchema }]), common_module_1.CommonModule],
+        imports: [
+            mongoose_1.MongooseModule.forFeature([
+                { name: vehicles_schema_1.Vehicles.name, schema: vehicles_schema_1.VehiclesSchema },
+            ]),
+            common_module_1.CommonModule,
+        ],
         controllers: [vehicles_controller_1.VehiclesController],
         providers: [vehicles_service_1.VehiclesService],
-        exports: [vehicles_service_1.VehiclesService]
+        exports: [vehicles_service_1.VehiclesService],
     })
 ], VehiclesModule);
 exports.VehiclesModule = VehiclesModule;

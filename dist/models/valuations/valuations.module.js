@@ -15,20 +15,19 @@ const trip_schema_1 = require("../trips/trip.schema");
 const mongoose_1 = require("@nestjs/mongoose");
 const request_schema_1 = require("../requests/request.schema");
 const common_module_1 = require("../../common/common.module");
-const transactions_module_1 = require("../transactions/transactions.module");
 const valuation_schema_1 = require("./entities/valuation.schema");
 let ValuationsModule = class ValuationsModule {
 };
 ValuationsModule = __decorate([
     (0, common_1.Module)({
-        imports: [mongoose_1.MongooseModule.forFeature([
+        imports: [
+            mongoose_1.MongooseModule.forFeature([
                 { name: Request.name, schema: request_schema_1.RequestSchema },
                 { name: trip_schema_1.Trip.name, schema: trip_schema_1.TripSchema },
                 { name: user_schema_1.User.name, schema: user_schema_1.UserSchema },
-                { name: valuation_schema_1.Valuation.name, schema: valuation_schema_1.ValuationSchema }
+                { name: valuation_schema_1.Valuation.name, schema: valuation_schema_1.ValuationSchema },
             ]),
             common_module_1.CommonModule,
-            transactions_module_1.TransactionModule
         ],
         controllers: [valuations_controller_1.ValuationsController],
         providers: [valuations_service_1.ValuationsService],

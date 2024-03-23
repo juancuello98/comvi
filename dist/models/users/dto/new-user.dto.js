@@ -13,7 +13,7 @@ exports.NewUserDTO = void 0;
 const mapped_types_1 = require("@nestjs/mapped-types");
 const existing_user_dto_1 = require("./existing-user.dto");
 const class_validator_1 = require("class-validator");
-class NewUserDTO extends (0, mapped_types_1.PartialType)(existing_user_dto_1.ExistingtUserDTO) {
+class NewUserDTO extends (0, mapped_types_1.PartialType)(existing_user_dto_1.LoginDTO) {
 }
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),

@@ -8,62 +8,48 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
-const common_1 = require("@nestjs/common");
-const mongoose_1 = require("@nestjs/mongoose");
-const mongoose_2 = require("mongoose");
 const response_helper_1 = require("../../common/helpers/http/response.helper");
-const user_schema_1 = require("../users/user.schema");
+const common_1 = require("@nestjs/common");
+const user_repository_1 = require("./user.repository");
 let UserService = class UserService {
-    constructor(userModel, responseHelper) {
-        this.userModel = userModel;
+    constructor(userRepository, responseHelper) {
+        this.userRepository = userRepository;
         this.responseHelper = responseHelper;
     }
-    _getUserDetails(user) {
-        return {
-            id: user.id,
-            name: user.name,
-            lastname: user.lastname,
-            email: user.email
-        };
-    }
-    _getUserValidatedOK(user) {
-        return {
-            id: user._id,
-            email: user.email,
-            validated: true
-        };
-    }
-    _getUserValidatedFAIL(user) {
-        return {
-            id: user._id,
-            email: user.email,
-            validated: false
-        };
+    async update(user) {
+        return this.userRepository.update(user);
     }
     async findByEmail(email) {
-        return this.userModel.findOne({ email }).exec();
+        const user = await this.userRepository.findByEmail(email);
+        return user;
+    }
+    getUser({ id, name, lastname, email }) {
+        return {
+            id,
+            name,
+            lastname,
+            email,
+        };
     }
     async getUserData(email) {
         try {
-            const user = await this.findByEmail(email);
+            const user = await this.userRepository.findByEmail(email);
             if (!user) {
                 return this.responseHelper.makeResponse(false, 'User not found.', null, common_1.HttpStatus.NOT_FOUND);
             }
+            const { name, lastname, trips, packages, tripsFavourites, subscribedTrips, tripsCreated, joinRequests, } = user;
             const userData = {
-                name: user.name,
-                lastname: user.lastname,
-                email: user.email,
-                trips: user.trips,
-                packages: user.packages,
-                tripsFavourites: user.tripsFavourites,
-                subscribedTrips: user.subscribedTrips,
-                tripsCreated: user.tripsCreated,
-                joinRequests: user.joinRequests
+                name,
+                lastname,
+                email,
+                trips,
+                packages,
+                tripsFavourites,
+                subscribedTrips,
+                tripsCreated,
+                joinRequests,
             };
             return this.responseHelper.makeResponse(false, 'User data successfully found.', userData, common_1.HttpStatus.OK);
         }
@@ -72,30 +58,37 @@ let UserService = class UserService {
         }
     }
     async findById(id) {
-        const user = await this.userModel.findById(id).exec();
+        const user = await this.userRepository.findById(id);
         if (!user)
             return null;
-        return this._getUserDetails(user);
+        return this.getUser(user);
     }
     async create(name, email, hashedPassword, lastname, validated, verificationCode) {
-        const newUser = new this.userModel({
+        const user = {
             name,
             email,
-            password: hashedPassword,
+            hashedPassword,
             lastname,
             validated,
             verificationCode,
-        });
-        return newUser.save();
+        };
+        return this.userRepository.create(user);
     }
-    async update(user) {
-        return user.save();
+    async updateUserRequests(email, requestId) {
+        await this.userRepository.createRequest(email, requestId);
+    }
+    async getUsers(ids) {
+        const users = this.userRepository.findUsersById(ids, [
+            'name',
+            'lastName',
+            'email',
+        ]);
+        return users;
     }
 };
 UserService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model,
+    __metadata("design:paramtypes", [user_repository_1.UserRepository,
         response_helper_1.ResponseHelper])
 ], UserService);
 exports.UserService = UserService;

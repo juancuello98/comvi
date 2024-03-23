@@ -17,7 +17,7 @@ class ActionRequestDTO {
 __decorate([
     (0, decorators_1.ApiProperty)({
         description: 'id del viaje que de la solicitud',
-        name: "tripId"
+        name: 'tripId',
     }),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
@@ -25,7 +25,7 @@ __decorate([
 __decorate([
     (0, decorators_1.ApiProperty)({
         description: 'id de la solicitud a la cual se va a responder',
-        name: "requestId"
+        name: 'requestId',
     }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),

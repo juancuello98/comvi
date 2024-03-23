@@ -17,11 +17,9 @@ import { MailModule } from 'src/mail/config.module';
     JwtModule.register({
       secret: jwtConstants.secret,
       signOptions: { expiresIn: process.env.TOKEN_TIMEOUT },
-    
-    }),  
+    }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy]
+  providers: [AuthService, JwtStrategy],
 })
-
 export class AuthModule {}

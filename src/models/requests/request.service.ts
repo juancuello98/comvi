@@ -1,307 +1,299 @@
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model} from 'mongoose';
-import { ResponseDTO } from 'src/common/interfaces/responses.interface';
-import { Request, RequestDocument } from './request.schema';
-import { ResponseHelper } from '../../common/helpers/http/response.helper';
-import { StatusRequest } from './enums/status.enum';
-import { ExtendedRequestDTO } from './dto/extended-request.dto';
-import { Trip, TripDocument } from '../trips/trip.schema';
-import { User, UserDocument } from '../users/user.schema';
-import { ChangeStatusOfRequestDTO } from './dto/change-status-request.dto';
-import { Exception } from 'handlebars';
-import { MailService } from 'src/mail/config.service';
-import { UserService } from '../users/user.service';
-import { TripService } from '../trips/trip.service';
+// import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+// import { InjectModel } from '@nestjs/mongoose';
+// import { Model} from 'mongoose';
+// import { ResponseDTO } from 'src/common/interfaces/responses.interface';
+// import { Request, RequestDocument } from './request.schema';
+// import { ResponseHelper } from '../../common/helpers/http/response.helper';
+// import { StatusRequest } from './enums/status.enum';
+// import { ExtendedRequestDTO } from './dto/extended-request.dto';
+// import { Trip, TripDocument } from '../trips/trip.schema';
+// import { User, UserDocument } from '../users/user.schema';
+// import { ChangeStatusOfRequestDTO } from './dto/change-status-request.dto';
+// import { Exception } from 'handlebars';
+// import { MailService } from 'src/mail/config.service';
+// import { UserService } from '../users/user.service';
+// import { TripService } from '../trips/trip.service';
 
+// @Injectable()
+// export class RequestService {
 
+//   private readonly logger = new Logger(RequestService.name);
 
-@Injectable()
-export class RequestService {
+//   constructor(
+//     @InjectModel(Request.name) private readonly requestModel: Model<RequestDocument>,
+//     private mailService: MailService,
+//     private userService: UserService,
+//     private tripService: TripService,
+//     private readonly responseHelper : ResponseHelper
+//   ){}
 
-  private readonly logger = new Logger(RequestService.name);
+//   async findByStatus(status: string): Promise<ResponseDTO> {
+//     const requests = this.requestModel.find({status}).exec();
+//     return this.responseHelper.makeResponse(true,'requests by status succesfully.',requests,HttpStatus.OK)
+//   }
 
-  constructor(
-    @InjectModel(Request.name) private readonly requestModel: Model<RequestDocument>,
-    private mailService: MailService,
-    private userService: UserService,
-    private tripService: TripService,
-    private readonly responseHelper : ResponseHelper
-  ){}
+//   async findMyRequests(email: string): Promise<ResponseDTO> {
 
-  async findByStatus(status: string): Promise<ResponseDTO> {
-    const requests = this.requestModel.find({status}).exec();
-    return this.responseHelper.makeResponse(true,'requests by status succesfully.',requests,HttpStatus.OK) 
-  }
+//     let message = 'Requests not found.';
 
-  async findMyRequests(email: string): Promise<ResponseDTO> {
+//     try {
+//       const items = await this.requestModel.find({email: email}).sort({createdTimestamp: 'desc'}).exec();
 
-    let message = 'Requests not found.';
+//       if(items.length == 0) this.responseHelper.makeResponse(false,message,null,HttpStatus.NOT_FOUND);
 
-    try {
-      const items = await this.requestModel.find({email: email}).sort({createdTimestamp: 'desc'}).exec();
+//       message = 'Successfully found requests';
 
-      if(items.length == 0) this.responseHelper.makeResponse(false,message,null,HttpStatus.NOT_FOUND);
+//       const itemsWrapped = await Promise.all(items.map(async x => await this.addTripToRequest(x)));
 
-      message = 'Successfully found requests';
+//       return this.responseHelper.makeResponse(false,message,itemsWrapped,HttpStatus.OK);
 
-      const itemsWrapped = await Promise.all(items.map(async x => await this.addTripToRequest(x)));
-    
-      return this.responseHelper.makeResponse(false,message,itemsWrapped,HttpStatus.OK);
+//     } catch (error) {
+//       this.logger.error('Error in: ',error);
 
-    } catch (error) {
-      this.logger.error('Error in: ',error);
+//       return this.responseHelper.makeResponse(true,error.message,null,HttpStatus.INTERNAL_SERVER_ERROR);
+//     }
+//   }
 
-      return this.responseHelper.makeResponse(true,error.message,null,HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-  
-  async addTripToRequest(x: RequestDocument) {
-    const trip = await this.tripModel.findById(x.tripId).exec();
-    return this._getRequestDetails(x,trip);
-  }
+//   async addTripToRequest(x: RequestDocument) {
+//     const trip = await this.tripModel.findById(x.tripId).exec();
+//     return this._getRequestDetails(x,trip);
+//   }
 
-  async findById(requestId: string): Promise<ResponseDTO> {
-    try {
-      
-      let message = 'Successfully found requests';
-      let status = HttpStatus.OK;
-      let request = await this.requestModel.findById(requestId).exec();
-      if (!request)
-      {
-        request = null;
-        message = 'Not found requests';
-        status = HttpStatus.NOT_FOUND;
-      };
-      return this.responseHelper.makeResponse(false, message,request,status);
-    } catch (error) {
-      this.logger.error('Error: ',error);
-      return this.responseHelper.makeResponse(true,'Error in findById',null,HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-  
-   async acceptRequest(req:ChangeStatusOfRequestDTO, driverEmail:string): Promise<ResponseDTO> {
-    
-    try {
+//   async findById(requestId: string): Promise<ResponseDTO> {
+//     try {
 
-      
-      const request = await this.requestModel.findById(req.requestId).exec();
-      const trip = await this.tripModel.findById(request.tripId).exec();
-      
-      if(request.status == StatusRequest.CANCELLED){
-        throw new Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";        
-      }
+//       let message = 'Successfully found requests';
+//       let status = HttpStatus.OK;
+//       let request = await this.requestModel.findById(requestId).exec();
+//       if (!request)
+//       {
+//         request = null;
+//         message = 'Not found requests';
+//         status = HttpStatus.NOT_FOUND;
+//       };
+//       return this.responseHelper.makeResponse(false, message,request,status);
+//     } catch (error) {
+//       this.logger.error('Error: ',error);
+//       return this.responseHelper.makeResponse(true,'Error in findById',null,HttpStatus.INTERNAL_SERVER_ERROR);
+//     }
+//   }
 
-      if(trip.driverEmail != driverEmail){
-        throw new Exception("You can only response requests from your OWN trip").name = "Unathorized action";        
-      }
-      
-      request.status = req.newStatus;
-      
-      const passengerUser = await this.userModel.findOne({ email: request.email }).exec();
+//    async acceptRequest(req:ChangeStatusOfRequestDTO, driverEmail:string): Promise<ResponseDTO> {
 
-      const driverUser = await this.userModel.findOne({ email: driverEmail }).exec();
+//     try {
 
+//       const request = await this.requestModel.findById(req.requestId).exec();
+//       const trip = await this.tripModel.findById(request.tripId).exec();
 
-      trip.passengers.push(passengerUser.id);
-    
-      await request.save(); // debería esperar?
-      
-      await trip.save(); // debería esperar?
-      
-      await this.mailService.sendAcceptedRequestNotification(passengerUser.email,passengerUser.name,driverUser.name,trip.origin.locality,trip.destination.locality,req.description);
+//       if(request.status == StatusRequest.CANCELLED){
+//         throw new Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";
+//       }
 
+//       if(trip.driverEmail != driverEmail){
+//         throw new Exception("You can only response requests from your OWN trip").name = "Unathorized action";
+//       }
 
-      return this.responseHelper.makeResponse(false,'Request accepted succesfully.',null,HttpStatus.OK);
- 
-    } catch (error) {
-      this.logger.error(error);
-      return this.responseHelper.makeResponse(true,`${RequestService.name}: ${error.name} in send method.\n${error.message}`,null,HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+//       request.status = req.newStatus;
 
-  }
+//       const passengerUser = await this.userModel.findOne({ email: request.email }).exec();
 
-  async rejectRequest(req:ChangeStatusOfRequestDTO, driverEmail:string): Promise<ResponseDTO> {
-    
-    try {
+//       const driverUser = await this.userModel.findOne({ email: driverEmail }).exec();
 
-      const request = await this.requestModel.findById(req.requestId).exec();
-      const trip = await this.tripModel.findById(request.tripId).exec();
-      
-      if(request.status == StatusRequest.CANCELLED){
-        throw new Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";        
-      }
+//       trip.passengers.push(passengerUser.id);
 
-      //validar que sea de su sesión
-      // a traves del viaje?
+//       await request.save(); // debería esperar?
 
-      request.status = req.newStatus;
-    
-      await request.save(); // debería esperar?
-            
-      if(trip.driverEmail != driverEmail){
-        throw new Exception("You can only response requests from your OWN trip").name = "Unathorized action";        
-      }
+//       await trip.save(); // debería esperar?
 
-      const passengerUser = await this.userModel.findOne({ email: request.email }).exec();
-      const driverUser = await this.userModel.findOne({ email: driverEmail }).exec();
+//       await this.mailService.sendAcceptedRequestNotification(passengerUser.email,passengerUser.name,driverUser.name,trip.origin.locality,trip.destination.locality,req.description);
 
-      
-      await this.mailService.sendRejectedRequestNotification(passengerUser.email,passengerUser.name,driverUser.name,trip.origin.locality,trip.destination.locality,req.description);
+//       return this.responseHelper.makeResponse(false,'Request accepted succesfully.',null,HttpStatus.OK);
 
-      return this.responseHelper.makeResponse(false,'Request rejected succesfully.',null,HttpStatus.OK);      
+//     } catch (error) {
+//       this.logger.error(error);
+//       return this.responseHelper.makeResponse(true,`${RequestService.name}: ${error.name} in send method.\n${error.message}`,null,HttpStatus.INTERNAL_SERVER_ERROR);
+//     }
 
-    } catch (error) {
-      this.logger.error(error);
-      return this.responseHelper.makeResponse(true,`${RequestService.name}: ${error.name} in send method. \n ${error.message}`,null,HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+//   }
 
-  }
+//   async rejectRequest(req:ChangeStatusOfRequestDTO, driverEmail:string): Promise<ResponseDTO> {
 
-  async cancelRequest(req:ChangeStatusOfRequestDTO, passengerEmail:string): Promise<ResponseDTO> {
-    
-    try {
+//     try {
 
-      const request = await this.requestModel.findById(req.requestId).exec();
-      
-      if(request.status == StatusRequest.CANCELLED){
-        throw new Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";        
-      }
-    
-      if(request.email != passengerEmail){
-        throw new Exception("You can not cancel a requests that not belongs to you").name = "Unathorized action";        
-      }
+//       const request = await this.requestModel.findById(req.requestId).exec();
+//       const trip = await this.tripModel.findById(request.tripId).exec();
 
-      request.status = req.newStatus;
-    
-      await request.save(); // debería esperar?
-            
-      return this.responseHelper.makeResponse(false,'Request cancelled succesfully.',null,HttpStatus.OK);
- 
-    } catch (error) {
-      this.logger.error(error);
-      return this.responseHelper.makeResponse(true,`${RequestService.name}: ${error.name} in send method.\n ${error.message}`,null,HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+//       if(request.status == StatusRequest.CANCELLED){
+//         throw new Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";
+//       }
 
-  }
-  
-  
-  async send( req: ExtendedRequestDTO ): Promise<ResponseDTO> {
+//       //validar que sea de su sesión
+//       // a traves del viaje?
 
-    try {
-      let partnerQuantity = ! req.partnerQuantity ? 0 : req.partnerQuantity;
-      const newRequest = new this.requestModel(
-      { 
-        email : req.email,
-        tripId : req.tripId,
-        description : req.description,
-        hasEquipment : req.hasEquipment,
-        hasPartner : req.hasPartner,
-        partnerQuantity : partnerQuantity,
-        totalPassenger : 1 + partnerQuantity,
-        createdTimestamp : new Date().toISOString(),
-        status : StatusRequest.ON_HOLD
-      });
+//       request.status = req.newStatus;
 
-      const requestCreated = await newRequest.save();
+//       await request.save(); // debería esperar?
 
-      return this.responseHelper.makeResponse(false,'Request was sended succesfully.',requestCreated,HttpStatus.OK);
- 
-    } catch (error) {
-      this.logger.error(error);
-      return this.responseHelper.makeResponse(false,`${RequestService.name}: error in send method.`,null,HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
+//       if(trip.driverEmail != driverEmail){
+//         throw new Exception("You can only response requests from your OWN trip").name = "Unathorized action";
+//       }
 
-  async update(
-    request: RequestDocument
-  ): Promise<RequestDocument> {
-    return request.save();
-  }
+//       const passengerUser = await this.userModel.findOne({ email: request.email }).exec();
+//       const driverUser = await this.userModel.findOne({ email: driverEmail }).exec();
 
-  async getRequestsForTrips(email: string){ //TODO: Ver si se puede hacer como en sql la request al mongodb # en eso jmc
-    try {
-      const trips = await this.tripModel.find({driverEmail:email,status:'OPEN'});
-       // Obtener las solicitudes abiertas para el trip
-    const openRequests = await Request.find({ trip: tripId});
+//       await this.mailService.sendRejectedRequestNotification(passengerUser.email,passengerUser.name,driverUser.name,trip.origin.locality,trip.destination.locality,req.description);
 
-      if(trips.length === 0) 
-      {
-        this.logger.log('Not found trips with OPEN status.')
-        return this.responseHelper.makeResponse(false,`${RequestService.name}: The user not have trips OPEN.`,null,HttpStatus.NOT_FOUND);
-      }
+//       return this.responseHelper.makeResponse(false,'Request rejected succesfully.',null,HttpStatus.OK);
 
-      this.logger.log('Init process to get requests from trips...');
+//     } catch (error) {
+//       this.logger.error(error);
+//       return this.responseHelper.makeResponse(true,`${RequestService.name}: ${error.name} in send method. \n ${error.message}`,null,HttpStatus.INTERNAL_SERVER_ERROR);
+//     }
 
-      const requests = await Promise.all(trips.map(async x => await this.getRequests(x)));
-      
-      if(requests.length === 0)
-      {
-        this.logger.log('Not found requests in trips with OPEN status.')
-        return this.responseHelper.makeResponse(false,`${RequestService.name}: The user driver not have trips with requests.`,null,HttpStatus.NOT_FOUND);
-      }
+//   }
 
-      this.logger.log(`Process finished. Requests: ${JSON.stringify(requests)}`);
+//   async cancelRequest(req:ChangeStatusOfRequestDTO, passengerEmail:string): Promise<ResponseDTO> {
 
-      const responseRequests = requests.flat();
+//     try {
 
-      responseRequests.sort(this.custom_sort);
+//       const request = await this.requestModel.findById(req.requestId).exec();
 
-      return this.responseHelper.makeResponse(false,`${RequestService.name}: Requests founded.`,responseRequests,HttpStatus.OK);
- 
-    } catch (error) {
-      return this.responseHelper.makeResponse(true,`${RequestService.name}: error ${error.message}.`,null,HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-   
-  }
-  
-  custom_sort(a, b) {
-    return new Date(b.createdTimestamp).getTime() - new Date(a.createdTimestamp).getTime();
-  }
+//       if(request.status == StatusRequest.CANCELLED){
+//         throw new Exception("You can not response to cancelled requests").name = "Wrong flow operation on response";
+//       }
 
-  async getRequests( trip : TripDocument){
-    let requests = [];
+//       if(request.email != passengerEmail){
+//         throw new Exception("You can not cancel a requests that not belongs to you").name = "Unathorized action";
+//       }
 
-    for (const req in trip.tripsRequests) {
+//       request.status = req.newStatus;
 
-      let id = trip.tripsRequests[req];
+//       await request.save(); // debería esperar?
 
-      let requestFounded = await this.requestModel.findById(id);
+//       return this.responseHelper.makeResponse(false,'Request cancelled succesfully.',null,HttpStatus.OK);
 
-      requests.push(await this._getRequestDetails(requestFounded,trip));
+//     } catch (error) {
+//       this.logger.error(error);
+//       return this.responseHelper.makeResponse(true,`${RequestService.name}: ${error.name} in send method.\n ${error.message}`,null,HttpStatus.INTERNAL_SERVER_ERROR);
+//     }
 
-      console.log(`${trip.id}: ${JSON.stringify(requests)}`);
-    }
+//   }
 
-    return requests;
-  }
+//   async send( req: ExtendedRequestDTO ): Promise<ResponseDTO> {
 
-  async _getRequestDetails(request : RequestDocument, trip: TripDocument){
-    const user = await this.userModel.findOne({ email: request.email }).exec();
-    return {
-      id: request.id,
-      email: request.email,
-      description: request.description,
-      hasEquipment: request.hasEquipment,
-      hasPartner: request.hasPartner,
-      partnerQuantity: request.partnerQuantity,
-      totalPassenger: request.totalPassenger,
-      createdTimestamp: request.createdTimestamp,
-      status: request.status,
-      tripId: request.tripId,
-      trip: trip,
-      user: {
-        name : user.name,
-        lastname: user.lastname
-      }
-    }
-  }
+//     try {
+//       let partnerQuantity = ! req.partnerQuantity ? 0 : req.partnerQuantity;
+//       const newRequest = new this.requestModel(
+//       {
+//         email : req.email,
+//         tripId : req.tripId,
+//         description : req.description,
+//         hasEquipment : req.hasEquipment,
+//         hasPartner : req.hasPartner,
+//         partnerQuantity : partnerQuantity,
+//         totalPassenger : 1 + partnerQuantity,
+//         createdTimestamp : new Date().toISOString(),
+//         status : StatusRequest.ON_HOLD
+//       });
 
-  async processSendRequest(request: any, userEmail: string){
-    await this.userService.updateUserRequests(userEmail,request.id);
-    await this.tripService.updateTripRequests(request.tripId,request.id)
-    // await this.sendNotificacion(payload) TODO: Notificar al usuario conductor de la nueva solicitud en su viaje
-  }
+//       const requestCreated = await newRequest.save();
 
-}
+//       return this.responseHelper.makeResponse(false,'Request was sended succesfully.',requestCreated,HttpStatus.OK);
 
+//     } catch (error) {
+//       this.logger.error(error);
+//       return this.responseHelper.makeResponse(false,`${RequestService.name}: error in send method.`,null,HttpStatus.INTERNAL_SERVER_ERROR);
+//     }
+//   }
+
+//   async update(
+//     request: RequestDocument
+//   ): Promise<RequestDocument> {
+//     return request.save();
+//   }
+
+//   async getRequestsForTrips(email: string){ //TODO: Ver si se puede hacer como en sql la request al mongodb # en eso jmc
+//     try {
+//       const trips = await this.tripModel.find({driverEmail:email,status:'OPEN'});
+//        // Obtener las solicitudes abiertas para el trip
+//     const openRequests = await Request.find({ trip: tripId});
+
+//       if(trips.length === 0)
+//       {
+//         this.logger.log('Not found trips with OPEN status.')
+//         return this.responseHelper.makeResponse(false,`${RequestService.name}: The user not have trips OPEN.`,null,HttpStatus.NOT_FOUND);
+//       }
+
+//       this.logger.log('Init process to get requests from trips...');
+
+//       const requests = await Promise.all(trips.map(async x => await this.getRequests(x)));
+
+//       if(requests.length === 0)
+//       {
+//         this.logger.log('Not found requests in trips with OPEN status.')
+//         return this.responseHelper.makeResponse(false,`${RequestService.name}: The user driver not have trips with requests.`,null,HttpStatus.NOT_FOUND);
+//       }
+
+//       this.logger.log(`Process finished. Requests: ${JSON.stringify(requests)}`);
+
+//       const responseRequests = requests.flat();
+
+//       responseRequests.sort(this.custom_sort);
+
+//       return this.responseHelper.makeResponse(false,`${RequestService.name}: Requests founded.`,responseRequests,HttpStatus.OK);
+
+//     } catch (error) {
+//       return this.responseHelper.makeResponse(true,`${RequestService.name}: error ${error.message}.`,null,HttpStatus.INTERNAL_SERVER_ERROR);
+//     }
+
+//   }
+
+//   custom_sort(a, b) {
+//     return new Date(b.createdTimestamp).getTime() - new Date(a.createdTimestamp).getTime();
+//   }
+
+//   async getRequests( trip : TripDocument){
+//     let requests = [];
+
+//     for (const req in trip.tripsRequests) {
+
+//       let id = trip.tripsRequests[req];
+
+//       let requestFounded = await this.requestModel.findById(id);
+
+//       requests.push(await this._getRequestDetails(requestFounded,trip));
+
+//       console.log(`${trip.id}: ${JSON.stringify(requests)}`);
+//     }
+
+//     return requests;
+//   }
+
+//   async _getRequestDetails(request : RequestDocument, trip: TripDocument){
+//     const user = await this.userModel.findOne({ email: request.email }).exec();
+//     return {
+//       id: request.id,
+//       email: request.email,
+//       description: request.description,
+//       hasEquipment: request.hasEquipment,
+//       hasPartner: request.hasPartner,
+//       partnerQuantity: request.partnerQuantity,
+//       totalPassenger: request.totalPassenger,
+//       createdTimestamp: request.createdTimestamp,
+//       status: request.status,
+//       tripId: request.tripId,
+//       trip: trip,
+//       user: {
+//         name : user.name,
+//         lastname: user.lastname
+//       }
+//     }
+//   }
+
+//   async processSendRequest(request: any, userEmail: string){
+//     await this.userService.updateUserRequests(userEmail,request.id);
+//     await this.tripService.updateTripRequests(request.tripId,request.id)
+//     // await this.sendNotificacion(payload) TODO: Notificar al usuario conductor de la nueva solicitud en su viaje
+//   }
+
+// }

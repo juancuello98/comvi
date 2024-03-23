@@ -17,16 +17,20 @@ const bcrypt = require("bcrypt");
 const user_service_1 = require("../models/users/user.service");
 const authentication_enum_1 = require("./authentication.enum");
 const passwordToken_schema_1 = require("../models/users/passwordToken.schema");
-const config_service_1 = require("../config/mail/config.service");
+const config_service_1 = require("../mail/config.service");
 let AuthService = AuthService_1 = class AuthService {
-    constructor(mailService, jwtService, userService) {
+    constructor(mailService, jwtTokenService, userService) {
         this.mailService = mailService;
-        this.jwtService = jwtService;
+        this.jwtTokenService = jwtTokenService;
         this.userService = userService;
         this.logger = new common_1.Logger(AuthService_1.name);
     }
     generateRandomString(num) {
-        return Math.random().toString(36).substring(0, num).toUpperCase().replace('.', '');
+        return Math.random()
+            .toString(36)
+            .substring(0, num)
+            .toUpperCase()
+            .replace('.', '');
     }
     async GenerateToken() {
         const token = new passwordToken_schema_1.PasswordToken();
@@ -45,120 +49,79 @@ let AuthService = AuthService_1 = class AuthService {
     async hashPassword(password) {
         return bcrypt.hash(password, 12);
     }
-    async register(user) {
-        const { lastname, name, password, email } = user;
-        const existingUser = await this.userService.findByEmail(email);
-        if (existingUser) {
-            this.logger.log('Ya existe en la base de datos: Email ' + email);
-            throw new common_1.HttpException('Una cuenta con este email ya existe!', common_1.HttpStatus.CONFLICT);
+    async register(registerData) {
+        const { lastname, name, password, email } = registerData;
+        const userExists = await this.userService.findByEmail(email);
+        if (userExists) {
+            this.logger.log('El usuario existe en la base de datos: Email ' + email);
+            throw new common_1.HttpException('Una cuenta con este email ya existe.', common_1.HttpStatus.CONFLICT);
         }
-        this.logger.log('No existe en la base de datos: Email ' + email);
-        const verificationCode = await this.generateAndSendEmailCodeVerification();
-        await this.mailService.sendCodeVerification(email, name, verificationCode);
-        this.logger.log('Email de verificacion enviado. A:  ' + email);
+        const code = await this.createVerififyEmailCode();
+        await this.mailService.sendCode(email, name, code);
+        this.logger.log('Email de verificacion enviado a:  ' + email);
         const validated = authentication_enum_1.VERIFICATION_CODE_STATUS.IN_PROGRESS;
         const hashedPassword = await this.hashPassword(password);
-        const newUser = await this.userService.create(name, email, hashedPassword, lastname, validated, verificationCode.toString());
-        this.logger.log('Usuario creado: User ' + JSON.stringify(newUser));
-        return this.userService._getUserDetails(newUser);
+        const newUser = await this.userService.create(name, email, hashedPassword, lastname, validated, code);
+        return this.userService.getUser(newUser);
     }
-    async generateAndSendEmailCodeVerification() {
-        return Math.floor(Math.random() * (9999 - 1000 + 1) + 1000);
-    }
-    async emailVerificated(email) {
-        const user = await this.userService.findByEmail(email);
-        if (user.validated !== authentication_enum_1.VERIFICATION_CODE_STATUS.OK)
-            return false;
-        return true;
+    async createVerififyEmailCode() {
+        return Math.floor(Math.random() * (9999 - 1000 + 1) + 1000).toString();
     }
     async doesPasswordMatch(password, hashedPassword) {
         return bcrypt.compare(password, hashedPassword);
     }
-    async validateUser(email, password) {
+    async validate(email, password) {
         const user = await this.userService.findByEmail(email);
-        const doesUserExist = !!user;
-        if (!doesUserExist) {
-            this.logger.log('El usuario no existe: ' + email);
+        if (!user || user.validated !== authentication_enum_1.VERIFICATION_CODE_STATUS.VALIDATED) {
+            this.logger.log('User not found or email not validated.');
             return null;
         }
         const doesPasswordMatch = await this.doesPasswordMatch(password, user.password);
         if (!doesPasswordMatch) {
-            this.logger.log('Contraseña incorrecta. Email: ' + email);
+            this.logger.log('Invalid Credentials');
             return null;
         }
-        const emailVerificated = await this.emailVerificated(email);
-        if (!emailVerificated) {
-            this.logger.log('Email sin verificar. Email ' + email);
-            return null;
-        }
-        ;
-        return this.userService._getUserDetails(user);
+        return this.userService.getUser(user);
     }
-    async login(existingUser) {
-        const { email, password } = existingUser;
-        const user = await this.validateUser(email, password);
+    async login({ email, password }) {
+        const user = await this.validate(email, password);
         if (!user)
-            throw new common_1.HttpException('Credenciales invalidas!', common_1.HttpStatus.UNAUTHORIZED);
-        const jwt = await this.jwtService.sign({ user });
-        this.logger.log('Login Succesfully. JWT: ' + jwt);
-        return { token: jwt };
+            throw new common_1.HttpException('Invalid credentials.', common_1.HttpStatus.UNAUTHORIZED);
+        const token = this.loginWithCredentials(user);
+        return token;
     }
-    async validationCode(verifyUser) {
-        const { email, code } = verifyUser;
-        const user = await this.userService.findByEmail(email);
-        if (user.verificationCode.toString() !== code)
-            throw new common_1.HttpException('Invalid or expired code.', common_1.HttpStatus.CONFLICT);
-        user.validated = authentication_enum_1.VERIFICATION_CODE_STATUS.OK;
-        const userValidated = this.userService.update(user);
-        this.logger.log('Verificacion de email exitosa. Email: ' + email + '. ESTADO: ' + (await userValidated).validated);
-        return this.userService._getUserValidatedOK(user);
-    }
-    async sendEmailPasswordToken(email, name, token) {
-        const mail = await this.mailService.sendCodePasswordToken(email, name, token);
-        this.logger.log('Se envió el mail de repureracion de contraseña. A:  ' + mail);
-    }
-    async requestResetPassword(userEmail) {
-        const email = userEmail;
-        const findUser = await this.userService.findByEmail(email);
-        if (!findUser) {
-            this.logger.log('El usuario no existe: ' + email);
-            return new common_1.HttpException('USER_NOT_FOUND', 404);
-        }
-        findUser.resetPasswordToken = await this.GenerateToken();
-        const updated = await this.userService.update(findUser);
-        this.logger.log('Se le actualizó el código de recuperación de contraseña a ' + updated.email + ' codigo ' + updated.resetPasswordToken.code);
-        await this.sendEmailPasswordToken(findUser.email, findUser.name, findUser.resetPasswordToken.code);
-        this.logger.log('Se le envió un mail con el código de recuperación de contraseña a: ' + email);
+    async loginWithCredentials(user) {
+        const payload = { user };
         return {
-            success: true,
-            statusCode: 200
+            token: this.jwtTokenService.sign(payload),
         };
     }
-    async resetPassword(resetPasswordDTO) {
-        const { email } = resetPasswordDTO;
-        const { password } = resetPasswordDTO;
-        const findUser = await this.userService.findByEmail(email);
-        if (!findUser) {
-            this.logger.log('El usuario no existe: ' + email);
-            return new common_1.HttpException('USER_NOT_FOUND', 404);
+    async verifyEmailCode({ email, code, }) {
+        try {
+            const user = await this.userService.findByEmail(email);
+            if (user.verificationCode !== code)
+                throw new common_1.HttpException('Invalid or expired code.', common_1.HttpStatus.CONFLICT);
+            user.validated = authentication_enum_1.VERIFICATION_CODE_STATUS.VALIDATED;
+            await this.userService.update(user);
+            return true;
         }
-        findUser.resetPasswordToken = null;
-        findUser.password = await this.hashPassword(password);
-        const updated = await this.userService.update(findUser);
-        this.logger.log('Se le actualizó la contraseña a: ' + updated.email);
-        return {
-            success: true,
-            statusCode: 200
-        };
+        catch (error) {
+            this.logger.error(error.message);
+            return false;
+        }
     }
     async validatePasswordToken(passwordTokenDTO) {
         const { email, passwordToken } = passwordTokenDTO;
-        const findUser = await this.userService.findByEmail(email);
-        if (!findUser) {
+        const user = await this.userService.findByEmail(email);
+        if (!user) {
             this.logger.log('El usuario no existe: ' + email);
             return new common_1.HttpException('USER_NOT_FOUND', 404);
         }
-        return await this.IsExpired(findUser.resetPasswordToken) && await this.compareResetPasswordCode(passwordToken, findUser) ? this.userService._getUserValidatedOK(findUser) : this.userService._getUserValidatedFAIL(findUser);
+        const { id } = user;
+        const validate = (await this.IsExpired(user.resetPasswordToken)) &&
+            (await this.compareResetPasswordCode(passwordToken, user));
+        const result = { id, email, validate };
+        return result;
     }
 };
 AuthService = AuthService_1 = __decorate([

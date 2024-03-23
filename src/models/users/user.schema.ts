@@ -1,7 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { Location } from '../locations/location.schema';
-import { Package } from '../packages/package.schema';
 import { Request } from '../requests/request.schema';
 import { Trip } from '../trips/trip.schema';
 import { PasswordToken } from './passwordToken.schema';
@@ -9,23 +7,22 @@ export type UserDocument = User & Document;
 
 @Schema()
 export class User {
-
-  @Prop({required: true}) // para propiedades requeridas
+  @Prop({ required: true }) // para propiedades requeridas
   lastname: string;
 
-  @Prop({required: true}) // para propiedades requeridas
+  @Prop({ required: true }) // para propiedades requeridas
   name: string;
 
-  @Prop({unique:true})
+  @Prop({ unique: true })
   email: string;
 
-  @Prop({required: true})
+  @Prop({ required: true })
   password: string;
 
-  @Prop({required: true})
+  @Prop({ required: true })
   validated: string;
 
-  @Prop({required: true})
+  @Prop({ required: true })
   verificationCode: string;
 
   @Prop()
@@ -35,23 +32,22 @@ export class User {
   locations: Location[];
 
   @Prop()
-  packages: Package[];
+  packages: string[];
 
   @Prop()
-  tripsFavourites:Trip[];
+  tripsFavourites: Trip[];
 
   @Prop()
-  subscribedTrips:Trip[];
+  subscribedTrips: Trip[];
 
   @Prop()
-  tripsCreated:Trip[];
+  tripsCreated: Trip[];
 
   @Prop()
-  joinRequests: Request [];
+  joinRequests: Request[];
 
   @Prop()
   resetPasswordToken: PasswordToken;
-
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

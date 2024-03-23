@@ -1,5 +1,5 @@
 import { Controller, Post, Body, UseGuards, HttpCode } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger'
+import { ApiTags } from '@nestjs/swagger';
 
 import { AuthService } from './authentication.service';
 
@@ -19,33 +19,34 @@ import { PasswordTokenDTO } from './dto/token-password.dto';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-
   constructor(private readonly authService: AuthService) {}
 
   @Post('register') // LISTO
-  registerUser(@Body() user: NewUserDTO): Promise< UserDTO | null> {
+  registerUser(@Body() user: NewUserDTO): Promise<UserDTO | null> {
     return this.authService.register(user);
   }
 
   @Post('validate/token') //LISTO
   @HttpCode(200)
-  validateTokenEmail(@Body() user: UserVerificationDTO) :  Promise< UserValidatedDTO | any > {
+  validateTokenEmail(
+    @Body() user: UserVerificationDTO,
+  ): Promise<UserValidatedDTO | any> {
     return this.authService.verifyEmailCode(user);
   }
-  
+
   @Post('login') // LISTO
   @HttpCode(200)
   loginUser(@Body() user: LoginDTO): Promise<Record<string, string> | null> {
     return this.authService.login(user);
   }
-  
+
   // TODO: Refactor todo lo que es recuperar contraseña
   // @Post('/passwordtoken/validate')
   // @HttpCode(200)
   // validatePasswordToken(@Body() token: PasswordTokenDTO) :  Promise< UserValidated | any > {
   //   return this.authService.validatePasswordToken(token);
   // }
-  
+
   // @Post('/requestresetpassword')
   // @HttpCode(200)
   // requestResetPassword(@Body() req: RequestResetPasswordDTO) :  Promise< boolean | any > {
@@ -58,5 +59,4 @@ export class AuthController {
   // resetPassword(@Body() resetData: ResetPasswordDTO) :  Promise< boolean | any > {
   //   return this.authService.resetPassword(resetData);
   // }
-
 }

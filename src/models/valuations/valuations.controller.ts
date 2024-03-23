@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ValuationsService } from './valuations.service';
 import { CreateValuationDto } from './dto/create-valuation.dto';
 import { UpdateValuationDto } from './dto/update-valuation.dto';
@@ -6,19 +14,19 @@ import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { request } from 'express';
 import { RequestHelper } from 'src/common/helpers/http/request.helper';
 
-
 @Controller('valuations')
 export class ValuationsController {
-  constructor(private readonly valuationsService: ValuationsService,  private readonly requestHelper: RequestHelper) {}
+  constructor(
+    private readonly valuationsService: ValuationsService,
+    private readonly requestHelper: RequestHelper,
+  ) {}
 
   @Post()
   async create(@Body() createValuationDto: CreateValuationDto) {
-    
-    const userEmail = this.requestHelper.getPayload(request)
-    const valuationModify = {...createValuationDto}//, email: userEmail }
+    const userEmail = this.requestHelper.getPayload(request);
+    const valuationModify = { ...createValuationDto }; //, email: userEmail }
     await this.valuationsService.create(valuationModify);
   }
-  
 
   // @Get()
   // findAll() {

@@ -1,24 +1,13 @@
 import { AuthService } from './authentication.service';
-import { ExistingtUserDTO } from '../models/users/dto/existing-user.dto';
+import { LoginDTO } from '../models/users/dto/existing-user.dto';
 import { NewUserDTO } from '../models/users/dto/new-user.dto';
 import { UserVerificationDTO } from 'src/models/users/dto/user-verification.dto';
-import { UserDetails } from 'src/models/users/interfaces/user-details.interface';
-import { UserValidated } from 'src/models/users/interfaces/user-validated.interface';
-import { RequestResetPasswordDTO } from './dto/request-reset-password-dto';
-import { ResetPasswordDTO } from './dto/reset-password-dto';
-import { PasswordTokenDTO } from './dto/token-password.dto';
+import { UserDTO } from 'src/models/users/interfaces/user-details.interface';
+import { UserValidatedDTO } from 'src/models/users/interfaces/user-validated.interface';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
-    registerUser(user: NewUserDTO): Promise<UserDetails | null>;
-    validateTokenEmail(user: UserVerificationDTO): Promise<UserValidated | any>;
-    loginUser(user: ExistingtUserDTO): Promise<{
-        token: string;
-    } | null>;
-    validatePasswordToken(token: PasswordTokenDTO): Promise<UserValidated | any>;
-    requestResetPassword(req: RequestResetPasswordDTO): Promise<boolean | any>;
-    resetPassword(resetData: ResetPasswordDTO): Promise<boolean | any>;
-    testUser(user: ExistingtUserDTO): {
-        email: string;
-    };
+    registerUser(user: NewUserDTO): Promise<UserDTO | null>;
+    validateTokenEmail(user: UserVerificationDTO): Promise<UserValidatedDTO | any>;
+    loginUser(user: LoginDTO): Promise<Record<string, string> | null>;
 }

@@ -36,7 +36,7 @@ __decorate([
 ], User.prototype, "validated", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", Number)
+    __metadata("design:type", String)
 ], User.prototype, "verificationCode", void 0);
 __decorate([
     (0, mongoose_1.Prop)(),

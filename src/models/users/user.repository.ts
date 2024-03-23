@@ -24,6 +24,17 @@ export class UserRepository {
     return await user.save();
   }
 
+  async findUsersById(
+    usersId: string[],
+    fieldsToSelect: string[],
+  ): Promise<UserDocument[]> {
+    const users = await this.userModel
+      .find({ _id: { $in: usersId } })
+      .select(fieldsToSelect.join(' '));
+
+    return users;
+  }
+
   async createRequest(email: string, id: string) {
     const update = { $push: { joinRequests: id } };
     const user = await this.userModel.findOneAndUpdate(

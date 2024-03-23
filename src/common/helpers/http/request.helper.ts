@@ -4,39 +4,38 @@ import { IncomingHttpHeaders } from 'http';
 import jwtDecode from 'jwt-decode';
 
 interface ComviHeader extends IncomingHttpHeaders {
-  authorization ?: string;
+  authorization?: string;
 }
 
 interface UserPayload {
-    id?: string;
-    name?: string,
-    email?: string;
+  id?: string;
+  name?: string;
+  email?: string;
 }
 
 interface Payload {
-    user?: UserPayload
-    iat?: number,
-    exp?: number
+  user?: UserPayload;
+  iat?: number;
+  exp?: number;
 }
 
 @Injectable()
 export class RequestHelper {
-
   constructor() {}
 
-  getPayload = (request : Request) : string  => {
+  getPayload = (request: Request): string => {
     try {
       let auth: string = '';
       let token: string = '';
       let email: string = '';
 
-      const req : Request = request;
-      const head : ComviHeader = req.headers;
+      const req: Request = request;
+      const head: ComviHeader = req.headers;
 
-      if(head.authorization){
+      if (head.authorization) {
         auth = head.authorization;
         token = auth.split(' ')[1];
-        const payload : Payload = jwtDecode(token);
+        const payload: Payload = jwtDecode(token);
         email = payload.user.email;
       }
 
@@ -44,6 +43,5 @@ export class RequestHelper {
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 }
-

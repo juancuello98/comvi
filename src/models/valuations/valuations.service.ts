@@ -38,7 +38,6 @@ export class ValuationsService {
     } catch (error) {
       console.log('Error: %s', error.message);
     }
-    
 
     // try {
     //   const hasTrip = await this.tripModel.findById(createValuationDto.tripId);

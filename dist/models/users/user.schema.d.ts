@@ -23,8 +23,6 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document } from 'mongoose';
-import { Location } from '../locations/location.schema';
-import { Package } from '../packages/package.schema';
 import { Request } from '../requests/request.schema';
 import { Trip } from '../trips/trip.schema';
 import { PasswordToken } from './passwordToken.schema';
@@ -35,10 +33,10 @@ export declare class User {
     email: string;
     password: string;
     validated: string;
-    verificationCode: number;
+    verificationCode: string;
     trips: Trip[];
     locations: Location[];
-    packages: Package[];
+    packages: string[];
     tripsFavourites: Trip[];
     subscribedTrips: Trip[];
     tripsCreated: Trip[];

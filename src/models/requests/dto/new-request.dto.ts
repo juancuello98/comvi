@@ -1,23 +1,22 @@
-import { IsNotEmpty, IsNumber, IsBoolean, IsString} from 'class-validator';
+import { IsNotEmpty, IsNumber, IsBoolean, IsString } from 'class-validator';
 
 export class NewRequestDTO {
- 
-    @IsString()
-    @IsNotEmpty()
-    tripId : string;
+  @IsString()
+  @IsNotEmpty()
+  tripId: string;
 
-    @IsString()
-    @IsNotEmpty()
-    description : string;
+  @IsString()
+  @IsNotEmpty()
+  description: string;
 
-    @IsBoolean()
-    @IsNotEmpty()
-    hasEquipment : boolean;    
+  @IsBoolean()
+  @IsNotEmpty()
+  hasEquipment: boolean;
 
-    @IsBoolean()
-    @IsNotEmpty()
-    hasPartner : boolean;
+  @IsBoolean()
+  @IsNotEmpty()
+  hasPartner: boolean;
 
-    @IsNumber()
-    partnerQuantity : number;
+  @IsNumber()
+  partnerQuantity: number;
 }

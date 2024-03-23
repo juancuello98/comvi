@@ -5,25 +5,23 @@ import { StatusRequest } from '../enums/status.enum';
 import { ActionRequestDTO } from './action-request.dto';
 import { NewRequestDTO } from './new-request.dto';
 
-export class CancelRequestDTO extends PartialType(ActionRequestDTO){
- 
-    @ApiProperty({
-        description: 'nuevo estado de la solicitud respondida',
-        name:"newStatus",
-        enum:StatusRequest
-        })
-        @IsString()
-    @IsEnum(StatusRequest)
-    @IsNotEmpty()
-    newStatus : string;
-    
-    @ApiProperty({
-        description: 'nuevo estado de la solicitud respondida',
-        name:"newStatus",
-        enum:StatusRequest
-        })
-    @IsString()
-    @IsNotEmpty()
-    description: string; 
-    
+export class CancelRequestDTO extends PartialType(ActionRequestDTO) {
+  @ApiProperty({
+    description: 'nuevo estado de la solicitud respondida',
+    name: 'newStatus',
+    enum: StatusRequest,
+  })
+  @IsString()
+  @IsEnum(StatusRequest)
+  @IsNotEmpty()
+  newStatus: string;
+
+  @ApiProperty({
+    description: 'nuevo estado de la solicitud respondida',
+    name: 'newStatus',
+    enum: StatusRequest,
+  })
+  @IsString()
+  @IsNotEmpty()
+  description: string;
 }

@@ -137,17 +137,11 @@ export class AuthService {
    * @param LoginDTO
    * @returns JWT Token as { token : string } or HTTP 401 Unauthorized.
    */
-  async login(
-    {email, password} : LoginDTO,
-  ): Promise<Record<string, string>> {
-
+  async login({ email, password }: LoginDTO): Promise<Record<string, string>> {
     const user = await this.validate(email, password);
 
     if (!user)
-      throw new HttpException(
-        'Invalid credentials.',
-        HttpStatus.UNAUTHORIZED,
-      );
+      throw new HttpException('Invalid credentials.', HttpStatus.UNAUTHORIZED);
 
     const token = this.loginWithCredentials(user);
 
@@ -158,9 +152,9 @@ export class AuthService {
     const payload = { user };
 
     return {
-        token: this.jwtTokenService.sign(payload),
+      token: this.jwtTokenService.sign(payload),
     };
-}
+  }
 
   async verifyEmailCode({
     email,
@@ -180,7 +174,7 @@ export class AuthService {
       await this.userService.update(user);
       return true;
     } catch (error) {
-      this.logger.error(error.message)
+      this.logger.error(error.message);
       return false;
     }
   }
@@ -272,11 +266,12 @@ export class AuthService {
       return new HttpException('USER_NOT_FOUND', 404);
     }
 
-    const {id} = user;
-    const validate = (await this.IsExpired(user.resetPasswordToken)) &&
-    (await this.compareResetPasswordCode(passwordToken, user));
-    const result = { id , email, validate }
-    
+    const { id } = user;
+    const validate =
+      (await this.IsExpired(user.resetPasswordToken)) &&
+      (await this.compareResetPasswordCode(passwordToken, user));
+    const result = { id, email, validate };
+
     return result;
   }
 }

@@ -1,5 +1,5 @@
 {
-    "compilerOptions": {
+  "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
@@ -9,6 +9,17 @@
     "target": "es2017",
     "sourceMap": true,
     "outDir": "./dist",
+    "paths": {
+      "@/trips/*": ["src/models/trips/*"],
+      "@/users/*": ["src/models/users/*"],
+      "@/vehicles/*": ["src/models/vehicles/*"],
+      "@/helpers/*":["src/common/helpers/*"],
+      "@/valuations/*":["src/models/valuations/*"],
+      "@/requests/*":["src/models/requests/*"],
+      "@/mail/*":["src/models/mail/*"],
+      "@/common/*":["src/common/*"],
+      "@/auth/*":["src/authentication/*"]
+    },
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,

@@ -15,14 +15,14 @@ const common_1 = require("@nestjs/common");
 let ResponseHelper = ResponseHelper_1 = class ResponseHelper {
     constructor() {
         this.logger = new common_1.Logger(ResponseHelper_1.name);
-        this.makeResponse = (hasError, message, data, status) => {
-            this.logger.log(message);
-            return {
-                hasError: hasError,
-                message: message,
-                data: data,
-                status: status
-            };
+    }
+    makeResponse(hasError, message, data, status) {
+        this.logger.log(message);
+        return {
+            hasError: hasError,
+            message: message,
+            data: data,
+            status: status,
         };
     }
 };

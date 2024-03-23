@@ -5,9 +5,9 @@ var TripStatus;
 (function (TripStatus) {
     TripStatus["OPEN"] = "OPEN";
     TripStatus["CANCELED"] = "CANCELED";
-    TripStatus["IN_PROGRESS"] = "IN PROGRESS";
+    TripStatus["IN_PROGRESS"] = "IN_PROGRESS";
     TripStatus["FINISHED"] = "FINISHED";
-    TripStatus["PENDING_VALORATION"] = "PENDING VALORATION";
-    TripStatus["READY_FOR_START"] = "READY FOR START";
+    TripStatus["PENDING_VALORATION"] = "PENDING_VALORATION";
+    TripStatus["READY_FOR_START"] = "READY_FOR_START";
 })(TripStatus = exports.TripStatus || (exports.TripStatus = {}));
 //# sourceMappingURL=state.enum.js.map

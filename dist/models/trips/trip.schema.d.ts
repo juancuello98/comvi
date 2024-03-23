@@ -23,20 +23,18 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document } from 'mongoose';
-import { Vehicle } from '../cars/location.schema';
-import { Location } from '../locations/location.schema';
 import { TripStatus } from './enums/state.enum';
 export type TripDocument = Trip & Document;
 export declare class Trip {
-    origin: Location;
-    destination: Location;
+    origin: unknown;
+    destination: unknown;
     description: string;
     allowPackage: boolean;
     allowPassenger: boolean;
     peopleQuantity: number;
     placesAvailable: number;
-    vehicle: Vehicle;
-    driverEmail: string;
+    vehicleId: string;
+    driver: string;
     startedTimestamp: string;
     status: TripStatus;
     passengers: string[];

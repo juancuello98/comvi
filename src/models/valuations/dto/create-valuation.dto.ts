@@ -1,17 +1,16 @@
-import { IsNotEmpty, IsOptional } from "class-validator";
-import { Puntaje } from "../entities/puntaje.enums";
+import { IsNotEmpty, IsOptional } from 'class-validator';
+import { Puntaje } from '../entities/puntaje.enums';
 
 export class CreateValuationDto {
+  @IsOptional()
+  email: string;
 
-    @IsOptional()
-    email:string;
+  @IsNotEmpty()
+  tripId: string;
 
-    @IsNotEmpty()
-    tripId: string;
+  @IsOptional()
+  detalle: string;
 
-    @IsOptional()
-    detalle : string ;
-
-    @IsNotEmpty()
-    puntaje : Puntaje;
+  @IsNotEmpty()
+  puntaje: Puntaje;
 }

@@ -20,8 +20,8 @@ class ChangeStatusOfRequestDTO extends (0, mapped_types_1.PartialType)(action_re
 __decorate([
     (0, swagger_1.ApiProperty)({
         description: 'nuevo estado de la solicitud respondida',
-        name: "newStatus",
-        enum: status_enum_1.StatusRequest
+        name: 'newStatus',
+        enum: status_enum_1.StatusRequest,
     }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsEnum)(status_enum_1.StatusRequest),
@@ -31,8 +31,8 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)({
         description: 'nuevo estado de la solicitud respondida',
-        name: "newStatus",
-        enum: status_enum_1.StatusRequest
+        name: 'newStatus',
+        enum: status_enum_1.StatusRequest,
     }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsOptional)(),

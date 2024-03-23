@@ -38,7 +38,8 @@ __decorate([
 ], ValuationsController.prototype, "create", null);
 ValuationsController = __decorate([
     (0, common_1.Controller)('valuations'),
-    __metadata("design:paramtypes", [valuations_service_1.ValuationsService, request_helper_1.RequestHelper])
+    __metadata("design:paramtypes", [valuations_service_1.ValuationsService,
+        request_helper_1.RequestHelper])
 ], ValuationsController);
 exports.ValuationsController = ValuationsController;
 //# sourceMappingURL=valuations.controller.js.map

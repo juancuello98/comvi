@@ -11,18 +11,16 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TripSchema = exports.Trip = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
-const location_schema_1 = require("../cars/location.schema");
-const location_schema_2 = require("../locations/location.schema");
 const state_enum_1 = require("./enums/state.enum");
 let Trip = class Trip {
 };
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", location_schema_2.Location)
+    __metadata("design:type", Object)
 ], Trip.prototype, "origin", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", location_schema_2.Location)
+    __metadata("design:type", Object)
 ], Trip.prototype, "destination", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
@@ -46,12 +44,12 @@ __decorate([
 ], Trip.prototype, "placesAvailable", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", location_schema_1.Vehicle)
-], Trip.prototype, "vehicle", void 0);
+    __metadata("design:type", String)
+], Trip.prototype, "vehicleId", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)
-], Trip.prototype, "driverEmail", void 0);
+], Trip.prototype, "driver", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),
     __metadata("design:type", String)

@@ -1,12 +1,10 @@
+import { ResponseDTO } from '@/common/interfaces/responses.interface';
+import { ResponseHelper } from '@/helpers/http/response.helper';
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { ResponseHelper } from 'src/common/helpers/http/response.helper';
-import { ResponseDTO } from 'src/common/interfaces/responses.interface';
-import { UserDocument } from '../users/user.schema';
 import { GetUserDTO } from './dto/user.dto';
 import { UserDTO } from './interfaces/user-details.interface';
 import { UserRepository } from './user.repository';
+import { UserDocument } from './user.schema';
 
 @Injectable()
 export class UserService {
@@ -15,6 +13,15 @@ export class UserService {
     private readonly responseHelper: ResponseHelper,
   ) {}
 
+  async update(user: UserDocument) {
+    return this.userRepository.update(user)
+  }
+  
+  async findByEmail(email: string) {
+    const user = await this.userRepository.findByEmail(email);
+    return user;
+  }
+  
   getUser({ id, name, lastname, email }: UserDocument) {
     return {
       id,
@@ -102,8 +109,16 @@ export class UserService {
     return this.userRepository.create(user);
   }
 
-  
   async updateUserRequests(email: string, requestId: string) {
     await this.userRepository.createRequest(email, requestId);
+  }
+
+  async getUsers(ids: string[]) {
+    const users = this.userRepository.findUsersById(ids, [
+      'name',
+      'lastName',
+      'email',
+    ]);
+    return users;
   }
 }

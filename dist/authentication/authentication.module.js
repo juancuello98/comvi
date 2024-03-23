@@ -12,10 +12,10 @@ const authentication_service_1 = require("./authentication.service");
 const authentication_controller_1 = require("./authentication.controller");
 const passport_1 = require("@nestjs/passport");
 const jwt_1 = require("@nestjs/jwt");
-const settings_1 = require("../common/constants/settings");
-const jwt_strategy_1 = require("../common/strategies/jwt.strategy");
+const jwt_constant_1 = require("./jwt/jwt.constant");
+const jwt_strategy_1 = require("./jwt/jwt.strategy");
 const user_module_1 = require("../models/users/user.module");
-const config_module_1 = require("../config/mail/config.module");
+const config_module_1 = require("../mail/config.module");
 let AuthModule = class AuthModule {
 };
 AuthModule = __decorate([
@@ -25,12 +25,12 @@ AuthModule = __decorate([
             config_module_1.MailModule,
             passport_1.PassportModule,
             jwt_1.JwtModule.register({
-                secret: settings_1.jwtConstants.secret,
-                signOptions: { expiresIn: '7d' },
+                secret: jwt_constant_1.jwtConstants.secret,
+                signOptions: { expiresIn: process.env.TOKEN_TIMEOUT },
             }),
         ],
         controllers: [authentication_controller_1.AuthController],
-        providers: [authentication_service_1.AuthService, jwt_strategy_1.JwtStrategy]
+        providers: [authentication_service_1.AuthService, jwt_strategy_1.JwtStrategy],
     })
 ], AuthModule);
 exports.AuthModule = AuthModule;

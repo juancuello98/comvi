@@ -1,4 +1,4 @@
-export declare class ExistingtUserDTO {
+export declare class LoginDTO {
     email?: string;
     password?: string;
 }

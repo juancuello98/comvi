@@ -1,8 +1,8 @@
 import { NestMiddleware } from '@nestjs/common';
 import { Request, Response } from 'express';
 export declare const firebaseParams: {
-    private_key: string;
-    client_email: string;
+    private_key: any;
+    client_email: any;
     apiKey: string;
     authDomain: string;
     projectId: string;

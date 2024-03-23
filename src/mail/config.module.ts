@@ -7,29 +7,28 @@ import { join } from 'path';
 @Global()
 @Module({
   imports: [
-    MailerModule.forRoot(
-        {
-          transport: {
-            host: 'smtp.gmail.com',
-            secure: true,
-            auth:{
-              user:'comviapp@gmail.com',
-              pass:'upmbggzbdkuadnne'
-            },
-          },
-          defaults: {
-            from: '"COMVI" <noreply@example.com>',
-          },
-          template: {
-            dir: join(__dirname, 'templates'),
-            adapter: new HandlebarsAdapter(),
-            options: {
-              strict: true,
-            },
-          },
-        }),
+    MailerModule.forRoot({
+      transport: {
+        host: 'smtp.gmail.com',
+        secure: true,
+        auth: {
+          user: 'comviapp@gmail.com',
+          pass: 'upmbggzbdkuadnne',
+        },
+      },
+      defaults: {
+        from: '"COMVI" <noreply@example.com>',
+      },
+      template: {
+        dir: join(__dirname, 'templates'),
+        adapter: new HandlebarsAdapter(),
+        options: {
+          strict: true,
+        },
+      },
+    }),
   ],
   providers: [MailService],
-  exports:[MailService]
+  exports: [MailService],
 })
 export class MailModule {}

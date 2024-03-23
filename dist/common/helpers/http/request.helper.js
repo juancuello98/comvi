@@ -16,8 +16,8 @@ let RequestHelper = class RequestHelper {
     constructor() {
         this.getPayload = (request) => {
             try {
-                let auth;
-                let token;
+                let auth = '';
+                let token = '';
                 let email = '';
                 const req = request;
                 const head = req.headers;

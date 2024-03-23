@@ -18,13 +18,13 @@ const common_2 = require("@nestjs/common");
 exports.firebaseParams = {
     private_key: serviceAccountJson.private_key,
     client_email: serviceAccountJson.client_email,
-    apiKey: "AIzaSyAyixPNxfsSzuzRsxjlfstldQF4oggTXCc",
-    authDomain: "comvi-f7c64.firebaseapp.com",
-    projectId: "comvi-f7c64",
-    storageBucket: "comvi-f7c64.appspot.com",
-    messagingSenderId: "912821513076",
-    appId: "1:912821513076:web:a9ae28dc73db9b48c6da21",
-    measurementId: "G-3HT7L8SV8D"
+    apiKey: 'AIzaSyAyixPNxfsSzuzRsxjlfstldQF4oggTXCc',
+    authDomain: 'comvi-f7c64.firebaseapp.com',
+    projectId: 'comvi-f7c64',
+    storageBucket: 'comvi-f7c64.appspot.com',
+    messagingSenderId: '912821513076',
+    appId: '1:912821513076:web:a9ae28dc73db9b48c6da21',
+    measurementId: 'G-3HT7L8SV8D',
 };
 let AuthFirebaseMiddleware = AuthFirebaseMiddleware_1 = class AuthFirebaseMiddleware {
     constructor() {
@@ -59,7 +59,7 @@ let AuthFirebaseMiddleware = AuthFirebaseMiddleware_1 = class AuthFirebaseMiddle
             statusCode: 403,
             timestamp: new Date().toISOString(),
             path: url,
-            message: 'Access Denied: Firebase Authentication'
+            message: 'Access Denied: Firebase Authentication',
         });
     }
 };

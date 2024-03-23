@@ -1,10 +1,10 @@
-import { IsEmail, IsNotEmpty} from 'class-validator';
+import { IsEmail, IsNotEmpty } from 'class-validator';
 
 export class UserVerificationDTO {
-    @IsNotEmpty()
-    code: string
+  @IsNotEmpty()
+  code: string;
 
-    @IsNotEmpty()
-    @IsEmail()
-    email: string
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
 }

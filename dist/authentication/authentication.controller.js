@@ -19,10 +19,6 @@ const authentication_service_1 = require("./authentication.service");
 const existing_user_dto_1 = require("../models/users/dto/existing-user.dto");
 const new_user_dto_1 = require("../models/users/dto/new-user.dto");
 const user_verification_dto_1 = require("../models/users/dto/user-verification.dto");
-const jwt_auth_guard_1 = require("../common/guards/jwt-auth.guard");
-const request_reset_password_dto_1 = require("./dto/request-reset-password-dto");
-const reset_password_dto_1 = require("./dto/reset-password-dto");
-const token_password_dto_1 = require("./dto/token-password.dto");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
@@ -31,23 +27,10 @@ let AuthController = class AuthController {
         return this.authService.register(user);
     }
     validateTokenEmail(user) {
-        return this.authService.validationCode(user);
+        return this.authService.verifyEmailCode(user);
     }
     loginUser(user) {
         return this.authService.login(user);
-    }
-    validatePasswordToken(token) {
-        return this.authService.validatePasswordToken(token);
-    }
-    requestResetPassword(req) {
-        const { email } = req;
-        return this.authService.requestResetPassword(email);
-    }
-    resetPassword(resetData) {
-        return this.authService.resetPassword(resetData);
-    }
-    testUser(user) {
-        return { email: user.email };
     }
 };
 __decorate([
@@ -70,42 +53,9 @@ __decorate([
     (0, common_1.HttpCode)(200),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [existing_user_dto_1.ExistingtUserDTO]),
+    __metadata("design:paramtypes", [existing_user_dto_1.LoginDTO]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "loginUser", null);
-__decorate([
-    (0, common_1.Post)('/passwordtoken/validate'),
-    (0, common_1.HttpCode)(200),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [token_password_dto_1.PasswordTokenDTO]),
-    __metadata("design:returntype", Promise)
-], AuthController.prototype, "validatePasswordToken", null);
-__decorate([
-    (0, common_1.Post)('/requestresetpassword'),
-    (0, common_1.HttpCode)(200),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [request_reset_password_dto_1.RequestResetPasswordDTO]),
-    __metadata("design:returntype", Promise)
-], AuthController.prototype, "requestResetPassword", null);
-__decorate([
-    (0, common_1.Post)('/resetpassword'),
-    (0, common_1.HttpCode)(200),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [reset_password_dto_1.ResetPasswordDTO]),
-    __metadata("design:returntype", Promise)
-], AuthController.prototype, "resetPassword", null);
-__decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Post)('test'),
-    (0, common_1.HttpCode)(200),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [existing_user_dto_1.ExistingtUserDTO]),
-    __metadata("design:returntype", void 0)
-], AuthController.prototype, "testUser", null);
 AuthController = __decorate([
     (0, swagger_1.ApiTags)('auth'),
     (0, common_1.Controller)('auth'),

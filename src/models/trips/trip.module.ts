@@ -3,7 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CommonModule } from '../../common/common.module';
 import { User, UserSchema } from '../users/user.schema';
 import { TripController } from './trip.controller';
-import { TripResume, TripResumeSchema } from './trip.resume.schema';
+import { TripResume, TripResumeSchema } from './resumes/trip.resume.schema';
 import { Trip, TripSchema } from './trip.schema';
 import { TripService } from './trip.service';
 

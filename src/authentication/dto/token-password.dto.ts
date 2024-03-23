@@ -1,10 +1,10 @@
-import {IsNotEmpty, IsEmail} from 'class-validator'
+import { IsNotEmpty, IsEmail } from 'class-validator';
 
 export class PasswordTokenDTO {
+  @IsNotEmpty()
+  passwordToken: string;
 
-    @IsNotEmpty()
-    passwordToken : string;
-
-    @IsEmail() @IsNotEmpty()
-    email: string;
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
 }

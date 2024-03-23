@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+} from '@nestjs/common';
 import { VehiclesService } from './vehicles.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
@@ -7,19 +16,22 @@ import { Request } from 'express';
 
 @Controller('vehicles')
 export class VehiclesController {
- 
-  constructor(private readonly vehiclesService: VehiclesService,
-  private readonly requestHelper : RequestHelper       
+  constructor(
+    private readonly vehiclesService: VehiclesService,
+    private readonly requestHelper: RequestHelper,
   ) {}
 
   @Post('/create')
   create(@Body() createVehicleDto: CreateVehicleDto, @Req() request: Request) {
-    const userEmail = this.requestHelper.getPayload(request)
-    return this.vehiclesService.create({...createVehicleDto, email: userEmail});
+    const userEmail = this.requestHelper.getPayload(request);
+    return this.vehiclesService.create({
+      ...createVehicleDto,
+      email: userEmail,
+    });
   }
 
   @Get('/myvehicles')
-  findMyVehicles (@Req() request: Request) {
+  findMyVehicles(@Req() request: Request) {
     const userEmail = this.requestHelper.getPayload(request);
     const resp = this.vehiclesService.findByUser(userEmail);
     console.log(`@Get('/myvehicles'): ${JSON.stringify(resp)}`);

@@ -31,7 +31,7 @@ let VehiclesService = VehiclesService_1 = class VehiclesService {
                 hasError: false,
                 message: 'Vehicle created successfully',
                 data: data,
-                status: common_1.HttpStatus.CREATED
+                status: common_1.HttpStatus.CREATED,
             };
             return resp;
         }
@@ -41,7 +41,7 @@ let VehiclesService = VehiclesService_1 = class VehiclesService {
                 hasError: true,
                 message: 'Vehicles created failed.',
                 data: error,
-                status: common_1.HttpStatus.INTERNAL_SERVER_ERROR
+                status: common_1.HttpStatus.INTERNAL_SERVER_ERROR,
             };
             return resp;
         }
@@ -57,7 +57,7 @@ let VehiclesService = VehiclesService_1 = class VehiclesService {
             hasError: false,
             message: 'User vehicles found.',
             data: vehicles,
-            status: common_1.HttpStatus.OK
+            status: common_1.HttpStatus.OK,
         };
     }
     async findByUser(email) {
@@ -67,7 +67,7 @@ let VehiclesService = VehiclesService_1 = class VehiclesService {
             hasError: false,
             message: 'User vehicles found.',
             data: vehicles,
-            status: common_1.HttpStatus.OK
+            status: common_1.HttpStatus.OK,
         };
     }
 };
