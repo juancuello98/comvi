@@ -6,17 +6,18 @@
 Para correr localmente la app es necesario que tengamos un archivo .env con las siguientes variables.
 
 ```env
-MONGO_URL='mongodb+srv://comvi2022:comviadmin123@cluster0.tplmj.mongodb.net/?retryWrites=true&w=majority'
-PORT=3000
+MONGO_URL=
+PORT=
 
 # Mailer - transport
 
-TRANSPORT_HOST=smtp.gmail.com
-AUTH_USER=comviapp@gmail.com
-AUTH_PASS=upmbggzbdkuadnne
-DEFAULT_ASUNTO='"COMVI" <noreply@example.com>'
-URL_BUTTON=www.google.com.ar
-SUBJECT='Bienvenido a COMVI! Estas a un paso de empezar a disfrutar! '
+TRANSPORT_HOST=
+AUTH_USER=
+AUTH_PASS=
+DEFAULT_ASUNTO=
+URL_BUTTON=
+SUBJECT=
+
 ```
 ## Description
 
