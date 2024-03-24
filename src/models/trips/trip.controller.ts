@@ -21,12 +21,6 @@ export class TripController {
     private readonly requestHelper: RequestHelper,
     private readonly tripsService: TripService) {}
 
-  /**
-   * @description Publish new trip.
-   * @param trip with type NewTripDTO
-   * @param request
-   * @returns
-   */
   @UseGuards(JwtAuthGuard)
   @Post('/publish')
   async create(@Request() req, @Body() trip: NewTripDTO): Promise<ResponseDTO> {
@@ -62,7 +56,7 @@ export class TripController {
   @Post('/cancel/:id')
   async cancel(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req);
-    const resp = await this.tripsService.cancel(id, driver);
+    const resp = await this.tripsService.cancel(id);
     return resp;
   }
 
