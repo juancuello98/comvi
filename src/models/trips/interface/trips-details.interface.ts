@@ -5,5 +5,5 @@ export interface TripDetails {
   checkIn: string;
   kilometros: number;
   peopleCapacity: number;
-  status: string;
+ status: string;
 }

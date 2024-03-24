@@ -18,7 +18,7 @@ export class TripDTO {
   peopleQuantity: number;
   placesAvailable: number;
   startedTimestamp: string;
-  status: string;
+ status: string;
   tripsRequests: string[];
   valuations: string[];
   vehicleId: string;
