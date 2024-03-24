@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 import { Request } from '../requests/request.schema';
 import { Trip } from '../trips/trip.schema';
 import { PasswordToken } from './passwordToken.schema';
