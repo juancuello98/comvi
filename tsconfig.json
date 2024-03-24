@@ -11,6 +11,7 @@
     "outDir": "./dist",
     "paths": {
       "@/trips/*": ["src/models/trips/*"],
+      "@/locations/*": ["src/models/locations/*"],
       "@/users/*": ["src/models/users/*"],
       "@/vehicles/*": ["src/models/vehicles/*"],
       "@/helpers/*":["src/common/helpers/*"],

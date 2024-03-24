@@ -16,7 +16,7 @@ import { MailModule } from 'src/mail/config.module';
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: process.env.TOKEN_TIMEOUT },
+      signOptions: { expiresIn: '7d' }, //TODO: Cambiar esto que sea configurable
     }),
   ],
   controllers: [AuthController],

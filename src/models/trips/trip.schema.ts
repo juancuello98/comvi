@@ -1,5 +1,7 @@
+import { Location } from '@/locations/location-schema';
+import { UserDocument } from '@/users/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document , Schema as MongooseSchema} from 'mongoose';
 import { TripStatus } from './enums/state.enum';
 
 export type TripDocument = Trip & Document;
@@ -15,13 +17,13 @@ export class Trip {
    * @property {Location} origin - Ubicación de origen del viaje.
    */
   @Prop({ required: true })
-  origin: unknown;
+  origin: Location;
 
   /**
    * @property {Location} destination - Ubicación de destino del viaje.
    */
   @Prop({ required: true })
-  destination: unknown;
+  destination: Location;
 
   /**
    * @property {string} description - Descripción del viaje.
@@ -62,8 +64,8 @@ export class Trip {
   /**
    * @property {string} driver - ID del conductor del viaje.
    */
-  @Prop({ required: true })
-  driver: string;
+   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
+  driver: MongooseSchema.Types.ObjectId | UserDocument;
 
   /**
    * @property {string} startedTimestamp - Marca de tiempo de inicio del viaje.

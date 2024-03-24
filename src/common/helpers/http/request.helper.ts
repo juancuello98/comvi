@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import { IncomingHttpHeaders } from 'http';
 import jwtDecode from 'jwt-decode';
+import { Document } from 'mongoose';
 
 interface ComviHeader extends IncomingHttpHeaders {
   authorization?: string;

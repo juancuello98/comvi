@@ -11,8 +11,8 @@ export class TripDTO {
   allowPassenger: boolean;
   createdTimestamp: string;
   description: string;
-  destination: unknown;
-  origin: unknown;
+  destination: any;
+  origin: any;
   paquetes: string[];
   passengers: string[];
   peopleQuantity: number;

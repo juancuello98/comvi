@@ -6,6 +6,10 @@ import { TripController } from './trip.controller';
 import { TripResume, TripResumeSchema } from './resumes/trip.resume.schema';
 import { Trip, TripSchema } from './trip.schema';
 import { TripService } from './trip.service';
+import { TripResumeRepository } from './resumes/trip.resume.repository';
+import { TripRepository } from './trip.repository';
+import { UserService } from '@/users/user.service';
+import { UserModule } from '@/users/user.module';
 
 @Module({
   imports: [
@@ -15,9 +19,10 @@ import { TripService } from './trip.service';
       { name: TripResume.name, schema: TripResumeSchema },
     ]),
     CommonModule,
+    UserModule
   ],
   controllers: [TripController],
-  providers: [TripService],
+  providers: [TripService, TripResumeRepository, TripRepository],
   exports: [TripService],
 })
 export class TripModule {}

@@ -20,11 +20,10 @@ export class TripService {
   private readonly logger = new Logger(TripService.name);
 
   constructor(
-    @Inject(TripRepository) private readonly tripRepository: TripRepository,
-    @Inject(TripResumeRepository)
+    private readonly tripRepository: TripRepository,
     private readonly tripResumeRepository: TripResumeRepository,
-    @Inject(UserService) readonly userService: UserService,
-    @Inject(ResponseHelper) readonly responseHelper: ResponseHelper,
+    private readonly userService: UserService,
+    private readonly responseHelper: ResponseHelper,
   ) {}
 
   async findByDriver(driver: string): Promise<TripDocument[]> {
@@ -76,13 +75,7 @@ export class TripService {
         return this.responseHelper.makeResponse(false, message, {}, status);
       }
 
-      const driver = (await this.userService.getUserData(trip.driver)).data;
-      const tripData: TripDTO = {
-        ...trip,
-        driver,
-      };
-
-      return this.responseHelper.makeResponse(false, message, tripData, status);
+      return this.responseHelper.makeResponse(false, message, trip, status);
     } catch (error) {
       console.error('Error: ', error);
       return this.responseHelper.makeResponse(

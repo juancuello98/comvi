@@ -8,4 +8,10 @@ export class NewUserDTO extends PartialType(LoginDTO) {
 
   @IsNotEmpty()
   name: string;
+
+  @IsNotEmpty()
+  email: string;
+
+  @IsNotEmpty()
+  password: string;
 }

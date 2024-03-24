@@ -1,7 +1,0 @@
-export declare enum Filters {
-    BY_CREATEDTIMESTAMP = "BY_CREATEDTIMESTAMP",
-    BY_DRIVER = "BY_DRIVER",
-    BY_ORIGIN = "BY_ORIGIN",
-    BY_DESTINATION = "BY_DESTINATION",
-    ALL = "ALL"
-}

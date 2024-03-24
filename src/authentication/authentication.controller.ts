@@ -10,12 +10,6 @@ import { UserVerificationDTO } from 'src/models/users/dto/user-verification.dto'
 import { UserDTO } from 'src/models/users/interfaces/user-details.interface';
 import { UserValidatedDTO } from 'src/models/users/interfaces/user-validated.interface';
 
-import { JwtAuthGuard } from './jwt/jwt-auth.guard';
-
-import { RequestResetPasswordDTO } from './dto/request-reset-password-dto';
-import { ResetPasswordDTO } from './dto/reset-password-dto';
-import { PasswordTokenDTO } from './dto/token-password.dto';
-
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {

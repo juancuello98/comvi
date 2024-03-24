@@ -13,7 +13,7 @@ import { join } from 'path';
         secure: true,
         auth: {
           user: 'comviapp@gmail.com',
-          pass: 'upmbggzbdkuadnne',
+          pass: 'upmbggzbdkuadnne', //TODO: llevar a variable de entorno datos sensibles
         },
       },
       defaults: {

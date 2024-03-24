@@ -1,8 +1,10 @@
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { NewResumeDTO } from './dto/trip.resume.dto';
 import { TripResume, TripResumeDocument } from './trip.resume.schema';
 
+@Injectable()
 export class TripResumeRepository {
   constructor(
     @InjectModel(TripResume.name)

@@ -1,9 +1,11 @@
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core/nest-factory';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  const logger = new Logger();
+
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
@@ -21,6 +23,9 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
 
   await app.listen(process.env.PORT || 3000);
+  const appAddress = await app.getUrl();
+
+  logger.log(`La aplicación NestJS está corriendo en: ${appAddress}`);
 }
 
 bootstrap();

@@ -13,10 +13,10 @@ export class NewTripDTO extends PartialType(ExistingtTripDTO) {
   driver: string;
 
   @IsNotEmpty()
-  origin: unknown;
+  origin: any;
 
   @IsNotEmpty()
-  destination: unknown;
+  destination: any;
 
   @IsString()
   @IsNotEmpty()

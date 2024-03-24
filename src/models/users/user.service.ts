@@ -92,7 +92,7 @@ export class UserService {
   async create(
     name: string,
     email: string,
-    hashedPassword: string,
+    password: string,
     lastname: string,
     validated: string,
     verificationCode: string,
@@ -100,7 +100,7 @@ export class UserService {
     const user = {
       name,
       email,
-      hashedPassword,
+      password,
       lastname,
       validated,
       verificationCode,

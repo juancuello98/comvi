@@ -12,6 +12,7 @@ export class TripRepository {
   ) {}
 
   async findByDriver(driver: string): Promise<TripDocument[]> {
+
     const trips = await this.tripModel
       .find({ driver })
       .sort({ createdTimestamp: 'desc' })
@@ -23,8 +24,9 @@ export class TripRepository {
     return await this.tripModel.find(field).exec();
   }
 
-  async findById(id: any): Promise<TripDocument> {
-    return await this.tripModel.findById(id).exec();
+  async findById(id: any): Promise<TripDocument | any> {
+    const trip = this.tripModel.findById(id).select('-__v').populate('driver').exec();
+    return trip;
   }
 
   async findNonDriverTrips(email: string) {
