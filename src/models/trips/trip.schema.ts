@@ -64,8 +64,8 @@ export class Trip {
   /**
    * @property {string} driver - ID del conductor del viaje.
    */
-   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
-  driver: MongooseSchema.Types.ObjectId | UserDocument;
+   @Prop({required: true })
+  driver: string;
 
   /**
    * @property {string} startedTimestamp - Marca de tiempo de inicio del viaje.
@@ -77,13 +77,13 @@ export class Trip {
    * @property {TripStatus} status - Estado actual del viaje.
    */
   @Prop({ required: true })
-  status: TripStatus;
+ status: TripStatus;
 
   /**
    * @property {string[]} passengers - IDs de los usuarios que participan como pasajeros en el viaje.
    */
-  @Prop()
-  passengers: string[];
+  @Prop({type: MongooseSchema.Types.ObjectId,ref: 'User'})
+  passengers: MongooseSchema.Types.ObjectId[];
 
   /**
    * @property {string[]} paquetes - IDs de los paquetes que van en el viaje.
