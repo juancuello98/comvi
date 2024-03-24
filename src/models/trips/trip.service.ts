@@ -14,6 +14,7 @@ import { TripRepository } from './trip.repository';
 import { TripResumeRepository } from './resumes/trip.resume.repository';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { TripDTO } from './dto/existing-trip.dto';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class TripService {
@@ -26,14 +27,41 @@ export class TripService {
     private readonly responseHelper: ResponseHelper,
   ) {}
 
-  async findByDriver(driver: string): Promise<TripDocument[]> {
-    const trips = this.tripRepository.findByDriver(driver);
-    this.logger.log(`Trips of user ${driver} founded. STATUS: SUCCESS`);
-    return trips;
+  async findByDriver(driver: string): Promise<ResponseDTO> {
+    const trips = await this.tripRepository.findByDriver(driver);
+    this.logger.log(`Trips of user ${driver} founded.statusCode: SUCCESS`);
+    if (!trips.length)
+      return this.responseHelper.makeResponse(
+        false,
+        'Not found trips.',
+        null,
+        HttpStatus.NOT_FOUND,
+      );
+
+      return this.responseHelper.makeResponse(
+        false,
+        'Trip founded.',
+        trips,
+        HttpStatus.OK,
+      );
   }
 
-  async findByStatus(status: string): Promise<TripDocument[]> {
-    return this.tripRepository.find({ status });
+  async findByStatus(status: string): Promise<ResponseDTO> {
+    const trips =  await this.tripRepository.find({ status });
+    if (!trips.length)
+      return this.responseHelper.makeResponse(
+        false,
+        'Not found trips.',
+        null,
+        HttpStatus.NOT_FOUND,
+      );
+
+      return this.responseHelper.makeResponse(
+        false,
+        'Trip founded.',
+        trips,
+        HttpStatus.OK,
+      );
   }
 
   async findNonDriverTrips(email: string): Promise<ResponseDTO> {
@@ -42,7 +70,7 @@ export class TripService {
     if (!email) {
       items = await this.tripRepository.findNonDriverTrips(email);
     } else {
-      items = await this.tripRepository.find({ status: TripStatus.OPEN });
+      items = await this.tripRepository.find({status: TripStatus.OPEN });
     }
 
     if (!items.length)
@@ -66,7 +94,7 @@ export class TripService {
       let message = 'Successfully found trips';
       let status = HttpStatus.OK;
 
-      let trip = await this.tripRepository.findById(tripId);
+      let trip = await this.tripRepository.findByIdWithDriver(tripId);
 
       if (!trip) {
         trip = null;
@@ -102,41 +130,17 @@ export class TripService {
     return this.tripRepository.update(trip);
   }
 
-  async cancel(id: string, driver: string): Promise<ResponseDTO> {
-    const trip = await this.tripRepository.findByIdAndDriver(driver, id);
+  async cancel(id: string): Promise<ResponseDTO> {
+    const trip = await this.tripRepository.updateStatus(id, TripStatus.CANCELED);
 
-    if (!trip)
+    if (!trip || trip.status !== TripStatus.CANCELED)
       return this.responseHelper.makeResponse(
         false,
-        `Not found trip ${id} for user ${driver}`,
+        `Not found trip or update failed.`,
         null,
         HttpStatus.NOT_FOUND,
       );
-
-    if (trip.status !== TripStatus.OPEN) {
-      return this.responseHelper.makeResponse(
-        false,
-        `Incorrect trip status: ${trip.status}`,
-        null,
-        HttpStatus.OK,
-      );
-    }
-
-    try {
-      trip.status = TripStatus.CANCELED;
-      const tripUpdated = await this.tripRepository.update(trip);
-
-      this.logger.log(`Updated trip status to ${tripUpdated.status}.`);
-
-      return this.responseHelper.makeResponse(
-        false,
-        `Trip successfully cancelled : ${id}.`,
-        tripUpdated,
-        HttpStatus.OK,
-      );
-    } catch (error) {
-      throw error;
-    }
+    
   }
 
   async init(id: string, driver: string): Promise<ResponseDTO> {
@@ -152,10 +156,10 @@ export class TripService {
       );
     }
 
+    console.log(trip)
+
     if (
-      trip.status !== TripStatus.OPEN ||
-      trip.passengers.length ||
-      trip.paquetes.length
+      trip.status !== TripStatus.OPEN || trip.passengers
     ) {
       return this.responseHelper.makeResponse(
         false,
@@ -191,15 +195,15 @@ export class TripService {
     );
   }
 
-  async finish(id: string, userEmail: string): Promise<ResponseDTO> {
+  async finish(id: string, driver: string): Promise<ResponseDTO> {
     this.logger.log('Initialize process to finish trip...');
 
-    const trip = await this.tripRepository.findById(id);
+    const trip = await this.tripRepository.findByIdAndDriver(driver, id);
 
     if (!trip || trip.status !== TripStatus.IN_PROGRESS)
       return this.responseHelper.makeResponse(
         false,
-        `Not found trip ${id} for user ${userEmail} or status ${trip.status} not is IN PROGRESS.`,
+        `Not found trip or status not is IN PROGRESS.`,
         null,
         HttpStatus.NOT_FOUND,
       );
@@ -230,24 +234,19 @@ export class TripService {
     try {
       let message = 'Passengers inside the trip.';
       let status = HttpStatus.OK;
-
-      const trip = await this.tripRepository.findById(tripId);
-
+      const trip = await this.tripRepository.passengersByTrip(
+        tripId
+      );
       if (!trip) {
         message = 'Not found trips';
         status = HttpStatus.NOT_FOUND;
         return this.responseHelper.makeResponse(false, message, null, status);
       }
 
-      const passengers = await this.tripRepository.findPassengers(
-        trip.passengers,
-        ['name', 'lastName', 'email'],
-      );
-
       return this.responseHelper.makeResponse(
         false,
         message,
-        passengers,
+        trip.passengers,
         status,
       );
     } catch (error) {
