@@ -27,7 +27,7 @@ export class ResponseHelper {
       hasError: hasError,
       message: message,
       data: data,
-      status: status,
+      status,
     };
   }
 }
