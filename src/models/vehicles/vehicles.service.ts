@@ -22,7 +22,7 @@ export class VehiclesService {
         hasError: false,
         message: 'Vehicle created successfully',
         data: data,
-        status: HttpStatus.CREATED,
+       status: HttpStatus.CREATED,
       };
 
       return resp;
@@ -32,7 +32,7 @@ export class VehiclesService {
         hasError: true,
         message: 'Vehicles created failed.',
         data: error,
-        status: HttpStatus.INTERNAL_SERVER_ERROR,
+       status: HttpStatus.INTERNAL_SERVER_ERROR,
       };
 
       return resp;
@@ -54,7 +54,7 @@ export class VehiclesService {
       hasError: false,
       message: 'User vehicles found.',
       data: vehicles,
-      status: HttpStatus.OK,
+     status: HttpStatus.OK,
     };
   }
 
@@ -65,7 +65,7 @@ export class VehiclesService {
       hasError: false,
       message: 'User vehicles found.',
       data: vehicles,
-      status: HttpStatus.OK,
+     status: HttpStatus.OK,
     };
   }
 
