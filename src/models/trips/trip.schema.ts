@@ -62,7 +62,7 @@ export class Trip {
   vehicleId: string;
 
   /**
-   * @property {string} driver - ID del conductor del viaje.
+   * @property {string} driver - Email del conductor del viaje.
    */
    @Prop({required: true })
   driver: string;

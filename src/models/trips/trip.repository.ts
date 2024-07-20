@@ -27,8 +27,8 @@ export class TripRepository {
 
   async findByIdWithDriver(id: any): Promise<any> {
     const trip = await this.tripModel.findById(id).select('-__v').lean().exec();
-    const driverFields = ['email','name','lastname'];
-    const driver = await this.userModel.findOne({email: trip.driver}).select(driverFields.join(' ')).exec();
+    const fields = ['email','name','lastname'];
+    const driver = await this.userModel.findOne({email: trip.driver}).select(fields.join(' ')).exec();
     return {...trip,driver};
   }
 

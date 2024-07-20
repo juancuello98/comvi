@@ -34,6 +34,7 @@ export class TripController {
     return this.tripsService.findNonDriverTrips(driver);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/list/:id')
   findOne(@Param('id') id: string) {
     return this.tripsService.findById(id);
