@@ -47,7 +47,7 @@ export class TripController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('/myTrips')
+  @Get('/mytrips')
   findMyTrips(@Request() req) {
     const driver = this.requestHelper.getPayload(req);
     return this.tripsService.findByDriver(driver);

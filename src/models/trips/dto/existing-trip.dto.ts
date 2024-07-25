@@ -1,4 +1,5 @@
 import { IsNotEmpty } from 'class-validator';
+import { TripStatus } from '../enums/state.enum';
 
 export class ExistingtTripDTO {
   @IsNotEmpty()
@@ -18,7 +19,7 @@ export class TripDTO {
   peopleQuantity: number;
   placesAvailable: number;
   startedTimestamp: string;
- status: string;
+  status: TripStatus;
   tripsRequests: string[];
   valuations: string[];
   vehicleId: string;

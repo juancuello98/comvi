@@ -159,7 +159,7 @@ export class TripService {
     console.log(trip)
 
     if (
-      trip.status !== TripStatus.OPEN || trip.passengers
+      trip.status !== TripStatus.OPEN || trip.passengers.length
     ) {
       return this.responseHelper.makeResponse(
         false,
@@ -182,8 +182,9 @@ export class TripService {
     trip.status = TripStatus.IN_PROGRESS;
     trip.startedTimestamp = date;
 
-    const status = (await this.tripRepository.update(trip)).status;
-    this.logger.log(`Trip updated with status ${status}`);
+    const updated = await this.tripRepository.update(trip);
+
+    this.logger.log(`Trip updated with status ${updated.status}`);
 
     //await this.transactions.notifyUpdateTripStatus(hasUserTrip.passengers);
 

@@ -9,7 +9,7 @@ import {
 import { ExistingtTripDTO } from './existing-trip.dto';
 
 export class NewTripDTO extends PartialType(ExistingtTripDTO) {
-  @IsOptional()
+  @IsNotEmpty()
   driver: string;
 
   @IsNotEmpty()

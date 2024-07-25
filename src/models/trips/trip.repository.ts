@@ -55,8 +55,8 @@ export class TripRepository {
     return newTrip;
   }
 
-  async update(trip: TripDocument) {
-    const tripUpdated = await trip.save();
+  async update(trip: TripDocument) : Promise<TripDocument> {
+    const tripUpdated = await trip.updateOne();
     return tripUpdated;
   }
 

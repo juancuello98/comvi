@@ -1,7 +1,7 @@
 import { Location } from '@/locations/location-schema';
 import { UserDocument } from '@/users/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document , Schema as MongooseSchema} from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 import { TripStatus } from './enums/state.enum';
 
 export type TripDocument = Trip & Document;
@@ -64,7 +64,7 @@ export class Trip {
   /**
    * @property {string} driver - Email del conductor del viaje.
    */
-   @Prop({required: true })
+  @Prop({ required: true })
   driver: string;
 
   /**
@@ -76,13 +76,13 @@ export class Trip {
   /**
    * @property {TripStatus} status - Estado actual del viaje.
    */
-  @Prop({ required: true })
- status: TripStatus;
+  @Prop({ required: true, type: String })
+  status: TripStatus;
 
   /**
    * @property {string[]} passengers - IDs de los usuarios que participan como pasajeros en el viaje.
    */
-  @Prop({type: MongooseSchema.Types.ObjectId,ref: 'User'})
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
   passengers: MongooseSchema.Types.ObjectId[];
 
   /**
