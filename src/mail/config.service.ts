@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class MailService {
@@ -8,11 +10,22 @@ export class MailService {
   constructor(private mailerService: MailerService) {}
 
   async sendCode(email: string, name: string, token: string) {
+    // Ruta al archivo .hbs
+    const templatePath = path.join(
+      __dirname,
+      'mail',
+      'templates',
+      'configuration.hbs',
+    );
+
+    // Lee el contenido del archivo .hbs como texto
+    const templateContent = fs.readFileSync(templatePath, 'utf8');
+
     const url = process.env.URL_BUTTON;
     const mailBody = {
       to: email,
       subject: process.env.SUBJECT,
-      template: './configuration.hbs',
+      html: templateContent,
       context: {
         name: name,
         url,
@@ -31,11 +44,21 @@ export class MailService {
     destiny: string,
     description: string,
   ) {
+    // Ruta al archivo .hbs
+    const templatePath = path.join(
+      __dirname,
+      'mail',
+      'templates',
+      'accepted_request.hbs',
+    );
+
+    // Lee el contenido del archivo .hbs como texto
+    const templateContent = fs.readFileSync(templatePath, 'utf8');
     const url = process.env.URL_BUTTON;
     const mailBody = {
       to: email,
       subject: 'FELICIDADES! Tu solicitud ha sido aceptada.',
-      template: './accepted_request.hbs',
+      html: templateContent,
       context: {
         passengerName: passengerName,
         url,
@@ -59,10 +82,20 @@ export class MailService {
     description: string,
   ) {
     const url = process.env.URL_BUTTON;
+        // Ruta al archivo .hbs
+    const templatePath = path.join(
+      __dirname,
+      'mail',
+      'templates',
+      'rejected_request.hbs',
+    );
+
+    // Lee el contenido del archivo .hbs como texto
+    const templateContent = fs.readFileSync(templatePath, 'utf8');
     const mailBody = {
       to: email,
       subject: 'Tu solicitud ha sido rechazada.',
-      template: './accepted_request.hbs',
+      html: templateContent,
       context: {
         passengerName: passengerName,
         url,
@@ -79,11 +112,20 @@ export class MailService {
 
   async sendCodePasswordToken(email: string, name: string, token: string) {
     const url = process.env.URL_BUTTON;
+    const templatePath = path.join(
+      __dirname,
+      'mail',
+      'templates',
+      'resetPassword.hbs',
+    );
+
+    // Lee el contenido del archivo .hbs como texto
+    const templateContent = fs.readFileSync(templatePath, 'utf8');
     const mailBody = {
       to: email,
       subject:
         'Hola ' + name + ' aquí está tu código para cambiar tu contraseña.',
-      template: './configuration.hbs',
+      html:templateContent,
       context: {
         name,
         url,
