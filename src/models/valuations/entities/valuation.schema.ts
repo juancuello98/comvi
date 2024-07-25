@@ -22,7 +22,7 @@ export class Valuation {
   @Prop({ required: true })
   fechaHoraModificado: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, type: Number})
   puntaje: Puntaje;
 }
 

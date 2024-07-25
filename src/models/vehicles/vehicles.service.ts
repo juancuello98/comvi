@@ -27,7 +27,7 @@ export class VehiclesService {
 
       return resp;
     } catch (error) {
-      console.error(error);
+      this.logger.error(error);
       const resp = {
         hasError: true,
         message: 'Vehicles created failed.',
@@ -48,7 +48,7 @@ export class VehiclesService {
   }
 
   async findById(id: any): Promise<ResponseDTO> {
-    console.log(id);
+    this.logger.log(id);
     const vehicles = await this.vehiclesModel.findById(id).exec();
     return {
       hasError: false,
@@ -59,7 +59,7 @@ export class VehiclesService {
   }
 
   async findByUser(email: string): Promise<ResponseDTO> {
-    console.log(email);
+    this.logger.log(email);
     const vehicles = await this.vehiclesModel.find({ email }).exec();
     return {
       hasError: false,
