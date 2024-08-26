@@ -26,8 +26,8 @@ jobs:
     - name: Upload artifact for deployment job
       uses: actions/upload-artifact@v3
       with:
-        name: node-app
-        path: .
+        name: comvi-backend
+        path: ./dist
 
   deploy:
     permissions:
@@ -42,7 +42,7 @@ jobs:
     - name: Download artifact from build job
       uses: actions/download-artifact@v3
       with:
-        name: node-app
+        name: comvi-backend
 
     - name: 'Deploy to Azure WebApp'
       id: deploy-to-webapp
