@@ -32,8 +32,9 @@ export class VehiclesController {
 
   @Get('/myvehicles')
   findMyVehicles(@Req() request: Request) {
-    const userEmail = this.requestHelper.getPayload(request);
-    const resp = this.vehiclesService.findByUser(userEmail);
+    const email = this.requestHelper.getPayload(request);
+    const resp = this.vehiclesService.findByUser(email);
+    console.log(`Email conductor: ${JSON.stringify(email)}`);
     console.log(`@Get('/myvehicles'): ${JSON.stringify(resp)}`);
     return resp;
   }
