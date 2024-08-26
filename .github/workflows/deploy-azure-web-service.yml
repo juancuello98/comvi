@@ -1,6 +1,6 @@
 on:
   push:
-    branches: [ "refactor/v2" ]
+    branches: [ "refactor/v2", "master" ]
   workflow_dispatch:
 
 permissions:
