@@ -19,16 +19,21 @@ jobs:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
 
-    - name: npm install, build, and test
+    - name: Build
       run: |
         npm install
         npm run build
+
+    - name: View Files
+      run: |
+        ls -l
+        ls -l ./dist
 
     - name: Upload artifact for deployment job
       uses: actions/upload-artifact@v3
       with:
         name: comvi-backend
-        path: .
+        path: ./dist
 
   deploy:
     permissions:
