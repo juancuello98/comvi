@@ -1,7 +1,7 @@
 name: deploy-to-webapp-azure
 on:
   push:
-    branches: [ "refactor/v2", "master" ]
+    branches: [ "master" ]
   workflow_dispatch:
 
 permissions:
