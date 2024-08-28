@@ -18,6 +18,9 @@ lerna-debug.log*
 /.nyc_output
 /dist
 
+#Docker
+Dockerfile
+
 # IDEs and editors
 /.idea
 .project
