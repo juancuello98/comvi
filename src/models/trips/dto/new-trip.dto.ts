@@ -3,20 +3,24 @@ import {
   IsNotEmpty,
   IsNumber,
   IsBoolean,
-  IsOptional,
   IsString,
+  IsOptional,
+  IsInt,
+  IsDate,
 } from 'class-validator';
 import { ExistingtTripDTO } from './existing-trip.dto';
+import { Location } from '@/locations/location-schema';
+import { TripStatus } from '../enums/state.enum';
 
 export class NewTripDTO extends PartialType(ExistingtTripDTO) {
-  @IsNotEmpty()
+  @IsOptional()
   driver: string;
 
   @IsNotEmpty()
-  origin: any;
+  origin: Location | string;
 
   @IsNotEmpty()
-  destination: any;
+  destination: Location | string;
 
   @IsString()
   @IsNotEmpty()

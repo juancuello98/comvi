@@ -1,11 +1,9 @@
-import { Location } from '@/locations/location-schema';
-import { UserDocument } from '@/users/user.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { TripStatus } from './enums/state.enum';
 
 export type TripDocument = Trip & Document;
-
+//TODO: Ver si es necesario un public_id para cuando queres ver un viaje y compartir esa url con ese viaje 
 @Schema()
 /**
  * Representa un viaje en la base de datos.
@@ -14,16 +12,22 @@ export type TripDocument = Trip & Document;
  */
 export class Trip {
   /**
-   * @property {Location} origin - Ubicación de origen del viaje.
+   * @property {string} id - UUID de viaje.
    */
   @Prop({ required: true })
-  origin: Location;
+  id: string;
+
+  /**
+   * @property {Location} origin - Ubicación de origen del viaje.
+   */
+  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Location' })
+  origin: MongooseSchema.Types.ObjectId;
 
   /**
    * @property {Location} destination - Ubicación de destino del viaje.
    */
-  @Prop({ required: true })
-  destination: Location;
+  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Location' })
+  destination: MongooseSchema.Types.ObjectId;
 
   /**
    * @property {string} description - Descripción del viaje.
@@ -58,8 +62,8 @@ export class Trip {
   /**
    * @property {Vehicle} vehicle - Id del vehículo utilizado en el viaje.
    */
-  @Prop({ required: true })
-  vehicleId: string;
+  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Vehicle' })
+  vehicle: MongooseSchema.Types.ObjectId;
 
   /**
    * @property {string} driver - Email del conductor del viaje.
@@ -82,14 +86,14 @@ export class Trip {
   /**
    * @property {string[]} passengers - IDs de los usuarios que participan como pasajeros en el viaje.
    */
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Users' })
   passengers: MongooseSchema.Types.ObjectId[];
 
   /**
-   * @property {string[]} paquetes - IDs de los paquetes que van en el viaje.
+   * @property {string[]} packages - IDs de los packages que van en el viaje.
    */
   @Prop()
-  paquetes: string[];
+  packages: string[];
 
   /**
    * @property {number} estimatedCosts - Costos estimados del viaje.
@@ -112,20 +116,20 @@ export class Trip {
   /**
    * @property {string[]} tripsRequests - IDs de las solicitudes asociadas al viaje.
    */
-  @Prop()
-  tripsRequests: string[];
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Requests' })
+  tripsRequests: MongooseSchema.Types.ObjectId[];
 
   /**
    * @property {string[]} valuations - IDs de las valuaciones asociadas al viaje.
    */
-  @Prop()
-  valuations: string[];
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Valuations' })
+  valuations: MongooseSchema.Types.ObjectId[];
 
   /**
    * @property {string} tripResumeId - ID del resumen del viaje.
    */
-  @Prop()
-  tripResumeId: string;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'TripResumes' })
+  tripResumeId: MongooseSchema.Types.ObjectId;
 }
 
 export const TripSchema = SchemaFactory.createForClass(Trip);

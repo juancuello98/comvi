@@ -1,61 +1,77 @@
-import { User, UserDocument } from '@/users/user.schema';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, ObjectId } from 'mongoose';
-import { NewTripDTO } from './dto/new-trip.dto';
-import { TripStatus } from './enums/state.enum';
-import { Trip, TripDocument } from './trip.schema';
 
-export class TripRepository {
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { NewTripDTO } from '../dto/new-trip.dto';
+import { TripStatus } from '../enums/state.enum';
+import { Trip, TripDocument } from '../trip.schema';
+import { ITripRepository } from '../interface/trip.repository.interface';
+import { User, UserDocument } from '@/users/user.schema';
+
+export class TripMongodbRepository implements ITripRepository {
   constructor(
     @InjectModel(Trip.name) private readonly tripModel: Model<TripDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
-  async findByDriver(driver: string): Promise<TripDocument[]> {
+  async findByDriver(driver: string): Promise<Trip[]> {
 
     const trips = await this.tripModel
       .find({ driver })
       .sort({ createdTimestamp: 'desc' })
-      .select('-__v')
+      .select('-__v -_id')
+      .populate('vehicle')
+      .populate('origin')
+      .populate('destination')
+      .select('-__v -_id')
       .exec();
     return trips;
   }
 
-  async find(field: any): Promise<TripDocument[]> {
-    return await this.tripModel.find(field).exec();
+  async find(field: any): Promise<Trip[]> {
+    return await this.tripModel.find(field).select('-__v -_id').exec();
   }
 
   async findByIdWithDriver(id: any): Promise<any> {
-    const trip = await this.tripModel.findById(id).select('-__v').lean().exec();
+    const trip = await this.tripModel.findOne({id})
+    .select('-__v -_id')
+    .populate('vehicle')
+    .populate('origin')
+    .populate('destination')
+    .select('-__v -_id')
+    .lean().exec();
     const fields = ['email','name','lastname'];
     const driver = await this.userModel.findOne({email: trip.driver}).select(fields.join(' ')).exec();
     return {...trip,driver};
   }
 
   async findById(id: string): Promise<any> {
-    const trip = await this.tripModel.findById(id).select('-__v').exec();
+    const trip = await this.tripModel.findOne({id})
+    .select('-__v -_id')
+    .populate('vehicle')
+    .populate('origin')
+    .populate('destination')
+    .select('-__v -_id')
+    .exec();
     return trip;
   }
 
   async findNonDriverTrips(email: string) {
-    return await this.tripModel.find({ driver: { $ne: email } }).select('-__v').exec();
+    return await this.tripModel
+    .find({ driver: { $ne: email } })
+    .select('-__v -_id')
+    .populate('vehicle')
+    .populate('origin')
+    .populate('destination')
+    .select('-__v -_id')
+    .exec();
   }
 
   async create(trip: NewTripDTO) {
-    const status = TripStatus.OPEN;
-    const placesAvailable = trip.peopleQuantity;
-    const createdTimestamp = new Date().toISOString();
-    const newTrip = await this.tripModel.create({
-      ...trip,
-      status,
-      placesAvailable,
-      createdTimestamp,
-    });
-
-    return newTrip;
+    return await this.tripModel
+    .create(trip);
   }
 
-  async update(trip: TripDocument) : Promise<TripDocument> {
+  async update(trip: TripDocument) : Promise<Trip> {
     const tripUpdated = await trip.updateOne();
     return tripUpdated;
   }

@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 export type TripResumeDocument = TripResume & Document;
 /**
@@ -10,7 +10,7 @@ export class TripResume {
   /**
    * Lista de IDs de los pasajeros del viaje.
    */
-  @Prop({ required: true })
+  @Prop({ required:true, type: MongooseSchema.Types.ObjectId, ref: 'Users' })
   passengers: string[];
 
   /**

@@ -12,9 +12,9 @@ export class TripDTO {
   allowPassenger: boolean;
   createdTimestamp: string;
   description: string;
-  destination: any;
-  origin: any;
-  paquetes: string[];
+  destination: string;
+  origin: string;
+  packages: string[];
   passengers: string[];
   peopleQuantity: number;
   placesAvailable: number;
@@ -22,6 +22,6 @@ export class TripDTO {
   status: TripStatus;
   tripsRequests: string[];
   valuations: string[];
-  vehicleId: string;
+  vehicle: string;
   driver: string;
 }

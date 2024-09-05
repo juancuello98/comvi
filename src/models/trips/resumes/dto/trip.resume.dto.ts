@@ -2,7 +2,7 @@ export class NewResumeDTO {
   /**
    * Lista de IDs de los pasajeros del viaje.
    */
-  passengers: string[];
+  passengers: any[];
 
   /**
    * Lista de IDs de las valuaciones asociadas al viaje.

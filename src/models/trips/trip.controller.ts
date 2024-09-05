@@ -7,12 +7,12 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { JwtAuthGuard } from 'src/authentication/jwt/jwt-auth.guard';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { TripService } from './trip.service';
-import { RequestHelper } from '@/helpers/http/request.helper';
+import { RequestHelper } from '@/common/helpers/http/request.helper';
 
 @ApiTags('trips')
 @Controller('trips')
@@ -22,31 +22,36 @@ export class TripController {
     private readonly tripsService: TripService) {}
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Post('/publish')
   async create(@Request() req, @Body() trip: NewTripDTO): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req)
     return await this.tripsService.create({ ...trip, driver });
   }
 
+  
   @Get('/list')
   async findAll(@Request() req): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req);
     return this.tripsService.findNonDriverTrips(driver);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
+  // @ApiBearerAuth()
   @Get('/list/:id')
   findOne(@Param('id') id: string) {
     return this.tripsService.findById(id);
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Get('/list/passengers/:id')
   listOfPassengers(@Param('id') id: string) {
     return this.tripsService.listOfPassengers(id);
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Get('/mytrips')
   findMyTrips(@Request() req) {
     const driver = this.requestHelper.getPayload(req);
@@ -54,6 +59,7 @@ export class TripController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Post('/cancel/:id')
   async cancel(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req);
@@ -62,6 +68,7 @@ export class TripController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Post('/init/:id')
   async init(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req);
@@ -70,6 +77,7 @@ export class TripController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Post('/finish/:id')
   async finish(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req);

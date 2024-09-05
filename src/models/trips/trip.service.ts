@@ -1,53 +1,58 @@
 import {
-  HttpCode,
   HttpStatus,
   Inject,
   Injectable,
   Logger,
 } from '@nestjs/common';
-import { UserService } from '@/users/user.service';
-import { ResponseHelper } from '@/helpers/http/response.helper';
 import { ResponseDTO } from '@/common/interfaces/responses.interface';
-import { TripDocument } from './trip.schema';
+import { Trip } from './trip.schema';
 import { TripStatus } from './enums/state.enum';
-import { TripRepository } from './trip.repository';
 import { TripResumeRepository } from './resumes/trip.resume.repository';
 import { NewTripDTO } from './dto/new-trip.dto';
-import { TripDTO } from './dto/existing-trip.dto';
-import { Types } from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
+import { ITripRepository } from './interface/trip.repository.interface';
+import { ITRIP_REPOSITORY } from './repository/constants/trip.repository.constant';
+import { ResponseHelper } from '@/common/helpers/http/response.helper';
+import { LocationService } from '../locations/location.service';
+import { Location } from '@/locations/location-schema';
 
 @Injectable()
 export class TripService {
   private readonly logger = new Logger(TripService.name);
 
   constructor(
-    private readonly tripRepository: TripRepository,
+    @Inject(ITRIP_REPOSITORY)
+    private readonly tripRepository: ITripRepository,
     private readonly tripResumeRepository: TripResumeRepository,
-    private readonly userService: UserService,
     private readonly responseHelper: ResponseHelper,
-  ) {}
+    private readonly locationService: LocationService,
+  ) { }
 
   async findByDriver(driver: string): Promise<ResponseDTO> {
     const trips = await this.tripRepository.findByDriver(driver);
-    this.logger.log(`Trips of user ${driver} founded.statusCode: SUCCESS`);
-    if (!trips.length)
+
+    if (!trips.length) {
+      this.logger.log(`Trips of user ${driver} not founded.`);
       return this.responseHelper.makeResponse(
         false,
         'Not found trips.',
         null,
         HttpStatus.NOT_FOUND,
       );
+    }
 
-      return this.responseHelper.makeResponse(
-        false,
-        'Trip founded.',
-        trips,
-        HttpStatus.OK,
-      );
+    this.logger.log(`Trips of user ${driver} founded.`);
+
+    return this.responseHelper.makeResponse(
+      false,
+      'Trip founded.',
+      trips,
+      HttpStatus.OK,
+    );
   }
 
   async findByStatus(status: string): Promise<ResponseDTO> {
-    const trips =  await this.tripRepository.find({ status });
+    const trips = await this.tripRepository.find({ status });
     if (!trips.length)
       return this.responseHelper.makeResponse(
         false,
@@ -56,23 +61,16 @@ export class TripService {
         HttpStatus.NOT_FOUND,
       );
 
-      return this.responseHelper.makeResponse(
-        false,
-        'Trip founded.',
-        trips,
-        HttpStatus.OK,
-      );
+    return this.responseHelper.makeResponse(
+      false,
+      'Trip founded.',
+      trips,
+      HttpStatus.OK,
+    );
   }
 
   async findNonDriverTrips(email: string): Promise<ResponseDTO> {
-    let items = [];
-
-    if (!email) {
-      items = await this.tripRepository.findNonDriverTrips(email);
-    } else {
-      items = await this.tripRepository.find({status: TripStatus.OPEN });
-    }
-
+    const items = await this.tripRepository.findNonDriverTrips(email);
     if (!items.length)
       return this.responseHelper.makeResponse(
         false,
@@ -94,7 +92,7 @@ export class TripService {
       let message = 'Successfully found trips';
       let status = HttpStatus.OK;
 
-      let trip = await this.tripRepository.findByIdWithDriver(tripId);
+      let trip = await this.tripRepository.findById(tripId);
 
       if (!trip) {
         trip = null;
@@ -103,7 +101,7 @@ export class TripService {
         return this.responseHelper.makeResponse(false, message, {}, status);
       }
 
-      return this.responseHelper.makeResponse(false, message, trip, status);
+      return this.responseHelper.makeResponse(false, message,trip, status);
     } catch (error) {
       console.error('Error: ', error);
       return this.responseHelper.makeResponse(
@@ -116,17 +114,34 @@ export class TripService {
   }
 
   async create(trip: NewTripDTO): Promise<ResponseDTO> {
-    const newTrip = await this.tripRepository.create(trip);
-    const message = 'Trip was created succesfully.';
-    return this.responseHelper.makeResponse(
-      false,
-      message,
-      newTrip,
-      HttpStatus.CREATED,
-    );
+    try {
+      const origin = (await this.locationService.create((trip.origin as Location))).id;
+      const destination = (await this.locationService.create(trip.destination as Location)).id;
+      const id = uuidv4();
+      const status = TripStatus.OPEN;
+      const placesAvailable = trip.peopleQuantity;
+      const createdTimestamp = new Date().toISOString();
+      const input = Object.assign(trip, { id, origin, destination, status, placesAvailable, createdTimestamp });
+
+      const newTrip = await this.tripRepository.create(input);
+      const message = 'Trip was created succesfully.';
+      return this.responseHelper.makeResponse(
+        false,
+        message,
+        newTrip,
+        HttpStatus.CREATED,
+      );
+    } catch (error) {
+      return this.responseHelper.makeResponse(
+        false,
+        error.message,
+        error.message,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  async update(trip: TripDocument): Promise<TripDocument> {
+  async update(trip: Trip): Promise<Trip> {
     return this.tripRepository.update(trip);
   }
 
@@ -140,7 +155,6 @@ export class TripService {
         null,
         HttpStatus.NOT_FOUND,
       );
-    
   }
 
   async init(id: string, driver: string): Promise<ResponseDTO> {
@@ -186,8 +200,6 @@ export class TripService {
 
     this.logger.log(`Trip updated with status ${updated.status}`);
 
-    //await this.transactions.notifyUpdateTripStatus(hasUserTrip.passengers);
-
     return this.responseHelper.makeResponse(
       false,
       `Trip successfully initialize : ${id}`,
@@ -220,8 +232,6 @@ export class TripService {
     const resumeId = (await this.tripResumeRepository.update(resume)).id;
 
     this.logger.log(`Trip resume ${resumeId} updated.`);
-
-    //await this.transactions.notifyUpdateTripStatus(hasUserTrip.passengers);
 
     return this.responseHelper.makeResponse(
       false,

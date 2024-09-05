@@ -7,9 +7,11 @@ import { TripResume, TripResumeSchema } from './resumes/trip.resume.schema';
 import { Trip, TripSchema } from './trip.schema';
 import { TripService } from './trip.service';
 import { TripResumeRepository } from './resumes/trip.resume.repository';
-import { TripRepository } from './trip.repository';
-import { UserService } from '@/users/user.service';
-import { UserModule } from '@/users/user.module';
+import { TripMongodbRepository } from './repository/trip.mongodb.repository';
+import { ITRIP_REPOSITORY } from './repository/constants/trip.repository.constant';
+import { UserModule } from '../users/user.module';
+import { LocationModule } from '../locations/location.module';
+
 
 @Module({
   imports: [
@@ -19,10 +21,14 @@ import { UserModule } from '@/users/user.module';
       { name: TripResume.name, schema: TripResumeSchema },
     ]),
     CommonModule,
-    UserModule
+    UserModule,
+    LocationModule
   ],
   controllers: [TripController],
-  providers: [TripService, TripResumeRepository, TripRepository],
+  providers: [TripService, TripResumeRepository, {
+    provide: ITRIP_REPOSITORY,
+    useClass: TripMongodbRepository,
+  }],
   exports: [TripService],
 })
 export class TripModule {}
