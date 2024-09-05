@@ -5,6 +5,7 @@ import { GetUserDTO } from './dto/user.dto';
 import { UserDTO } from './interfaces/user-details.interface';
 import { UserRepository } from './user.repository';
 import { UserDocument } from './user.schema';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UserService {
@@ -46,25 +47,13 @@ export class UserService {
 
       const {
         name,
-        lastname,
-        trips,
-        packages,
-        tripsFavourites,
-        subscribedTrips,
-        tripsCreated,
-        joinRequests,
+        lastname
       } = user;
 
       const userData: GetUserDTO = {
         name,
         lastname,
         email,
-        trips,
-        packages,
-        tripsFavourites,
-        subscribedTrips,
-        tripsCreated,
-        joinRequests,
       };
 
       return this.responseHelper.makeResponse(
@@ -90,22 +79,8 @@ export class UserService {
   }
 
   async create(
-    name: string,
-    email: string,
-    password: string,
-    lastname: string,
-    validated: string,
-    verificationCode: string,
+ user : CreateUserDto,
   ): Promise<UserDocument> {
-    const user = {
-      name,
-      email,
-      password,
-      lastname,
-      validated,
-      verificationCode,
-    };
-
     return this.userRepository.create(user);
   }
 
