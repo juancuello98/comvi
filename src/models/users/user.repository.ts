@@ -8,7 +8,8 @@ export class UserRepository {
   ) {}
 
   async findByEmail(email: string): Promise<UserDocument> {
-    return this.userModel.findOne({ email }).exec();
+    const user = await this.userModel.findOne({ email }).exec();
+    return user
   }
 
   async findById(id: string) {

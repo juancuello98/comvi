@@ -38,55 +38,13 @@ export class User {
    * Indica si el usuario ha sido validado.
    */
   @Prop({ required: true })
-  validated: string;
+  status: string;
 
   /**
    * Código de verificación del usuario.
    */
   @Prop({ required: true })
   verificationCode: string;
-
-  /**
-   * Viajes asociados al usuario.
-   */
-  @Prop()
-  trips: Trip[];
-
-  /**
-   * Localizaciones asociadas al usuario.
-   */
-  @Prop()
-  locations: Location[];
-
-  /**
-   * Paquetes asociados al usuario.
-   */
-  @Prop()
-  packages: string[];
-
-  /**
-   * Viajes favoritos del usuario.
-   */
-  @Prop()
-  tripsFavourites: Trip[];
-
-  /**
-   * Viajes en los que el usuario está suscrito.
-   */
-  @Prop()
-  subscribedTrips: Trip[];
-
-  /**
-   * Viajes creados por el usuario.
-   */
-  @Prop()
-  tripsCreated: Trip[];
-
-  /**
-   * Solicitudes de unión asociadas al usuario.
-   */
-  @Prop()
-  joinRequests: Request[];
 
   /**
    * Token para restablecer la contraseña del usuario.

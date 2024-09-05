@@ -1,20 +1,15 @@
 import {
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
   Req,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserService } from '../users/user.service';
-import { CreateUserDto } from '../../models/users/dto/create-user.dto';
-import { UpdateUserDto } from '../../models/users/dto/update-user.dto';
 import { Request } from 'express';
 import { RequestHelper } from 'src/common/helpers/http/request.helper';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
+import { JwtAuthGuard } from '@/auth/jwt/jwt-auth.guard';
 
 @ApiTags('users')
 @Controller('users')
@@ -24,29 +19,13 @@ export class UserController {
     private readonly requestHelper: RequestHelper,
   ) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    //return this.usersService.create(createUserDto);
-  }
-
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Get('myData')
-  findOne(@Req() request: Request): Promise<ResponseDTO> {
-    const userEmail = this.requestHelper.getPayload(request);
-    return this.usersService.getUserData(userEmail);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    //return this.usersService.update(+id, updateUserDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    //return this.usersService.remove(+id);
-  }
-
-  @Post('firebase')
-  getFirebase(@Req() request: Request): string {
-    return 'Hello ' + request['user'] + ' !';
+  async findOne(@Req() request: Request): Promise<ResponseDTO> {
+    console.log(request.headers.authorization)
+    const email = this.requestHelper.getPayload(request);
+    const user = await this.usersService.getUserData(email);
+    return user;
   }
 }
