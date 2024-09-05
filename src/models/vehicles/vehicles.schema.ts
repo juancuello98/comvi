@@ -1,11 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type VehiclesDocument = Vehicles & Document;
+export type VehicleDocument = Vehicle & Document;
 
 @Schema()
-export class Vehicles {
-  @Prop({ required: true })
+export class Vehicle {
+  @Prop({ required: true, unique: true })
   patentPlate: string;
 
   @Prop({ required: true })
@@ -27,4 +27,4 @@ export class Vehicles {
   color: string;
 }
 
-export const VehiclesSchema = SchemaFactory.createForClass(Vehicles);
+export const VehicleSchema = SchemaFactory.createForClass(Vehicle);

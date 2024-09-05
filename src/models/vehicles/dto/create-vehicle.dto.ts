@@ -24,14 +24,10 @@ export class CreateVehicleDto {
   color: string;
 
   @IsOptional()
-  @IsString()
-  email: string;
-
-  @IsOptional()
   @IsNumber()
   age: number;
 
   @IsOptional()
   @IsArray()
-  pics: string[]; //urls de imagenes
+  pics: string[]; //TODO: urls de imagenes
 }

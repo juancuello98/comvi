@@ -1,27 +1,25 @@
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
-import { Model } from 'mongoose';
-import { Vehicles, VehiclesDocument } from './vehicles.schema';
-import { InjectModel } from '@nestjs/mongoose';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
+import { IVehicleRepository } from './interfaces/vehicle.repository.interface';
+import { IVEHICLE_REPOSITORY } from './repository/constants/vehicle.repository.constant';
 
 @Injectable()
 export class VehiclesService {
   private readonly logger = new Logger(VehiclesService.name);
   constructor(
-    @InjectModel(Vehicles.name)
-    private readonly vehiclesModel: Model<VehiclesDocument>,
+    @Inject(IVEHICLE_REPOSITORY)
+    private readonly vehicleRepository: IVehicleRepository,
   ) {}
 
-  async create(createVehicleDto: CreateVehicleDto): Promise<ResponseDTO> {
+  async create(email:string, createVehicleDto: CreateVehicleDto): Promise<ResponseDTO> {
     try {
-      const newVehicle = new this.vehiclesModel(createVehicleDto);
-      const data = newVehicle.save();
+      const newVehicle = await this.vehicleRepository.create(createVehicleDto, email);
       const resp = {
         hasError: false,
-        message: 'Vehicle created successfully',
-        data: data,
+        message: 'Vehicle created successfully.',
+        data: newVehicle,
        status: HttpStatus.CREATED,
       };
 
@@ -30,7 +28,7 @@ export class VehiclesService {
       this.logger.error(error);
       const resp = {
         hasError: true,
-        message: 'Vehicles created failed.',
+        message: 'Create vehicle was failed.',
         data: error,
        status: HttpStatus.INTERNAL_SERVER_ERROR,
       };
@@ -40,27 +38,30 @@ export class VehiclesService {
   }
 
   async update(
-    id: number,
+    patent: any,
     updateVehicleDto: UpdateVehicleDto,
-  ): Promise<VehiclesDocument> {
-    const vehicle = new this.vehiclesModel(updateVehicleDto);
-    return vehicle.save();
-  }
-
-  async findById(id: any): Promise<ResponseDTO> {
-    this.logger.log(id);
-    const vehicles = await this.vehiclesModel.findById(id).exec();
+  ): Promise<ResponseDTO> {
+    const vehicle = await this.vehicleRepository.update(patent,updateVehicleDto);
     return {
       hasError: false,
-      message: 'User vehicles found.',
-      data: vehicles,
+      message: 'Vehicle updated.',
+      data: vehicle,
+     status: HttpStatus.OK,
+    };
+  }
+
+  async findByPatent(patent: any): Promise<ResponseDTO> {
+    const vehicle = await this.vehicleRepository.findByPatent(patent)
+    return {
+      hasError: false,
+      message: 'Vehicle founded.',
+      data: vehicle,
      status: HttpStatus.OK,
     };
   }
 
   async findByUser(email: string): Promise<ResponseDTO> {
-    this.logger.log(email);
-    const vehicles = await this.vehiclesModel.find({ email }).exec();
+    const vehicles = await this.vehicleRepository.findByUser(email);
     return {
       hasError: false,
       message: 'User vehicles found.',
@@ -69,11 +70,13 @@ export class VehiclesService {
     };
   }
 
-  // async update(id: number, updateVehicleDto: UpdateVehicleDto) {
-  //   return `This action updates a #${id} vehicle`;
-  // }
-
-  // remove(id: number) {
-  //   return `This action removes a #${id} vehicle`;
-  // }
+  async delete(patent: any): Promise<ResponseDTO> {
+    const vehicle = await this.vehicleRepository.delete(patent)
+    return {
+      hasError: false,
+      message: 'Vehicle deleted.',
+      data: vehicle,
+     status: HttpStatus.OK,
+    };
+  }
 }

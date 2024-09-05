@@ -9,11 +9,12 @@ import {
 } from '@nestjs/common';
 import { ValuationsService } from './valuations.service';
 import { CreateValuationDto } from './dto/create-valuation.dto';
-import { UpdateValuationDto } from './dto/update-valuation.dto';
-import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { request } from 'express';
 import { RequestHelper } from 'src/common/helpers/http/request.helper';
+import { ApiTags } from '@nestjs/swagger';
 
+
+@ApiTags('valuations')
 @Controller('valuations')
 export class ValuationsController {
   constructor(
