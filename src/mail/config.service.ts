@@ -13,7 +13,6 @@ export class MailService {
     // Ruta al archivo .hbs
     const templatePath = path.join(
       __dirname,
-      'mail',
       'templates',
       'configuration.hbs',
     );
@@ -27,7 +26,7 @@ export class MailService {
       subject: process.env.SUBJECT,
       html: templateContent,
       context: {
-        name: name,
+        name,
         url,
         token,
       },
@@ -47,7 +46,6 @@ export class MailService {
     // Ruta al archivo .hbs
     const templatePath = path.join(
       __dirname,
-      'mail',
       'templates',
       'accepted_request.hbs',
     );
@@ -85,7 +83,6 @@ export class MailService {
         // Ruta al archivo .hbs
     const templatePath = path.join(
       __dirname,
-      'mail',
       'templates',
       'rejected_request.hbs',
     );
@@ -114,7 +111,6 @@ export class MailService {
     const url = process.env.URL_BUTTON;
     const templatePath = path.join(
       __dirname,
-      'mail',
       'templates',
       'resetPassword.hbs',
     );
