@@ -6,9 +6,21 @@ export class CreateUserDto {
   name: string;
 
   @IsNotEmpty()
-  @IsInt()
-  age: number;
-
   @IsString()
-  description: string;
+  email: string;
+
+  @IsNotEmpty()
+  password: string;
+
+  @IsNotEmpty()
+  @IsString()
+  lastname: string;
+
+  @IsNotEmpty()
+  @IsString()
+  status: string;
+
+  @IsNotEmpty()
+  @IsString()
+  verificationCode: string;
 }
