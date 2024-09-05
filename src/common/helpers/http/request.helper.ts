@@ -22,24 +22,22 @@ interface Payload {
 
 @Injectable()
 export class RequestHelper {
-  constructor() {}
+  constructor() { }
 
   getPayload = (request: Request): string => {
     try {
-      let auth: string = '';
-      let token: string = '';
       let email: string = '';
-
       const req: Request = request;
       const head: ComviHeader = req.headers;
-
-      if (head.authorization) {
-        auth = head.authorization;
-        token = auth.split(' ')[1];
+      const auth = head?.authorization;
+      if (head?.authorization) {
+        const token = auth?.match(/^Bearer\s+(\S+)$/)[1];
+        if (!token) {
+          throw new Error('Authentication token is missing. Please provide a valid token to access this resource.');
+        }
         const payload: Payload = jwtDecode(token);
         email = payload.user.email;
       }
-
       return email;
     } catch (error) {
       console.error(error);
