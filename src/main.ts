@@ -6,19 +6,22 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const logger = new Logger();
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule,{
+    logger:['log','error']
+  });
 
   const config = new DocumentBuilder()
     .setTitle('COMVI - API')
     .setDescription('Proyecto Final ISI UTN')
     .setVersion('2.0')
+    .addBearerAuth()
     .addTag('auth')
     .addTag('users')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
 
-  SwaggerModule.setup('/api/document', app, document);
+  SwaggerModule.setup('/', app, document);
 
   app.useGlobalPipes(new ValidationPipe());
 
