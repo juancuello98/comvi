@@ -18,6 +18,8 @@ import { PasswordTokenDTO } from './dto/token-password.dto';
 import { PasswordToken } from '../models/users/passwordToken.schema';
 import { UserDocument } from 'src/models/users/user.schema';
 import { MailService } from 'src/mail/config.service';
+import { CreateUserDto } from '@/users/dto/create-user.dto';
+import { ResponseDTO } from '@/common/interfaces/responses.interface';
 
 @Injectable()
 export class AuthService {
@@ -58,44 +60,39 @@ export class AuthService {
     return bcrypt.hash(password, 12);
   }
 
-  /**
-   * Registrar un usuario.
-   * @param user del tipo NewUserDTO
-   * @returns UserDetailsDTO or any
-   */
-
   async register(registerData: Readonly<NewUserDTO>): Promise<UserDTO | any> {
-    const { lastname, name, password, email } = registerData;
-
-    console.log(password);
+    const { lastname, name, password: plainPassword, email } = registerData;
     const userExists = await this.userService.findByEmail(email);
 
     if (userExists) {
-      this.logger.log('El usuario existe en la base de datos: Email ' + email);
+      const message = `User already exists with this email ${email}.`;
+      this.logger.log(message);
 
       throw new HttpException(
-        'Una cuenta con este email ya existe.',
+        message,
         HttpStatus.CONFLICT,
       );
     }
 
-    const code = await this.createVerififyEmailCode();
+    const verificationCode = await this.createVerififyEmailCode();
 
-    await this.mailService.sendCode(email, name, code);
+    await this.mailService.sendCode(email, name, verificationCode);
 
-    this.logger.log('Email de verificacion enviado a:  ' + email);
+    this.logger.log(`Verification email sent to ${email}.`);
 
-    const validated = VERIFICATION_CODE_STATUS.IN_PROGRESS;
+    const status = VERIFICATION_CODE_STATUS.IN_PROGRESS;
 
-    const hashedPassword = await this.hashPassword(password);
-
-    const newUser = await this.userService.create(
+    const password = await this.hashPassword(plainPassword);
+    const user : CreateUserDto = {
       name,
       email,
-      hashedPassword,
+      password,
       lastname,
-      validated,
-      code
+      status,
+      verificationCode
+    }
+    const newUser = await this.userService.create(
+      user
     );
 
     return this.userService.getUser(newUser);
@@ -115,7 +112,7 @@ export class AuthService {
   async validate(email: string, password: string): Promise<UserDTO | null> {
     const user = await this.userService.findByEmail(email);
 
-    if (!user || user.validated !== VERIFICATION_CODE_STATUS.VALIDATED) {
+    if (!user || user.status !== VERIFICATION_CODE_STATUS.VALIDATED) {
       this.logger.log('User not found or email not validated.');
       return null;
     }
@@ -133,11 +130,6 @@ export class AuthService {
     return this.userService.getUser(user);
   }
 
-  /**
-   * @description This method received email and password , verify if match password with user and return JWT token.
-   * @param LoginDTO
-   * @returns JWT Token as { token : string } or HTTP 401 Unauthorized.
-   */
   async login({ email, password }: LoginDTO): Promise<Record<string, string>> {
     const user = await this.validate(email, password);
 
@@ -160,7 +152,7 @@ export class AuthService {
   async verifyEmailCode({
     email,
     code,
-  }: UserVerificationDTO): Promise<boolean> {
+  }: UserVerificationDTO): Promise<ResponseDTO> {
     try {
       const user = await this.userService.findByEmail(email);
 
@@ -170,13 +162,26 @@ export class AuthService {
           HttpStatus.CONFLICT,
         );
 
-      user.validated = VERIFICATION_CODE_STATUS.VALIDATED;
+      user.status = VERIFICATION_CODE_STATUS.VALIDATED;
 
       await this.userService.update(user);
-      return true;
+
+      const response : ResponseDTO = {
+        hasError: false,
+        message: 'Validation was succesfully.',
+        data: true,
+        status: HttpStatus.OK
+      }
+      return response;
     } catch (error) {
       this.logger.error(error.message);
-      return false;
+      const response : ResponseDTO = {
+        hasError: true,
+        message: `Validation Error: ${error.message}.`,
+        data: false,
+        status: HttpStatus.INTERNAL_SERVER_ERROR
+      }
+      return response;
     }
   }
 
