@@ -54,3 +54,34 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+## Flowchart
+### Usuario Conductor
+::: mermaid
+graph TD;
+   LOGIN --> USER_DRIVER 
+   USER_DRIVER --> CREATE_TRIP
+   USER_DRIVER --> GET_TRIP
+   GET_TRIP --> UPDATE_TRIP
+   GET_TRIP --> CANCEL_TRIP
+   GET_TRIP --> INIT_TRIP
+
+   CANCEL_TRIP --> NOTIFY
+   UPDATE_TRIP --> NOTIFY
+   INIT_TRIP --> NOTIFY
+   GET_TRIP --> GET_REQUESTS
+   GET_REQUESTS --> ACCEPT_REQUEST
+   GET_REQUESTS --> DENIED_REQUEST
+   ACCEPT_REQUEST --> CREATE_BOOKING
+   CREATE_BOOKING --> NOTIFY
+   DENIED_REQUEST --> NOTIFY
+   GET_TRIP --> GET_BOOKING
+   GET_BOOKING --> CANCEL_BOOKING
+   CANCEL_BOOKING --> NOTIFY
+:::
+
+### Usuario Pasajero
+::: mermaid
+graph TD;
+   LOGIN --> USER_PASSENGER
+:::
