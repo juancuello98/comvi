@@ -86,8 +86,8 @@ export class Trip {
   /**
    * @property {string[]} passengers - IDs de los usuarios que participan como pasajeros en el viaje.
    */
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Users' })
-  passengers: MongooseSchema.Types.ObjectId[];
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Booking' })
+  bookings: MongooseSchema.Types.ObjectId[];
 
   /**
    * @property {string[]} packages - IDs de los packages que van en el viaje.

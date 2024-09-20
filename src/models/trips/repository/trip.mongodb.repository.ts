@@ -44,9 +44,10 @@ export class TripMongodbRepository implements ITripRepository {
     return {...trip,driver};
   }
 
-  async findById(id: string): Promise<any> {
+  async findById(id: string): Promise<Trip> {
     const trip = await this.tripModel.findOne({id})
     .select('-__v -_id')
+    .populate('passengers')
     .populate('vehicle')
     .populate('origin')
     .populate('destination')
@@ -76,10 +77,10 @@ export class TripMongodbRepository implements ITripRepository {
     return tripUpdated;
   }
 
-  async updateStatus(tripId: string, newStatus: TripStatus) {
+  async updateStatus(id: string, newStatus: TripStatus) {
     try {
       // Buscar el viaje por su ID
-      const trip = await this.tripModel.findById(tripId);
+      const trip = await this.tripModel.findOne({id});
 
       if (!trip) {
         throw new Error('Trip not found');
@@ -97,10 +98,10 @@ export class TripMongodbRepository implements ITripRepository {
     }
   }
 
-  async findByIdAndDriver(driver: string, _id: string): Promise<any> {
+  async findByIdAndDriver(driver: string, id: string): Promise<any> {
     const filter = {
       driver,
-      _id,
+      id,
     };
 
     const hasUserTrip = await this.tripModel.findOne(filter).lean().exec();
@@ -112,17 +113,13 @@ export class TripMongodbRepository implements ITripRepository {
     id: string,
   ): Promise<any> {
     try {
-      const trip = this.tripModel
-      .findOne({id})
-      .populate({
-        path: 'passengers',
-        select: 'name lastname email -_id'}
-      )
-      .exec();
-
-      return trip;
+      const trip = await this.tripModel.findOne({ id })
+      .populate({path:'passengers', select: '+name +lastname +email'})
+      .exec()
+    
+      console.log(trip.passengers);
     } catch (error) {
-      throw new Error('Error al buscar pasajeros: ' + error.message);
+      throw new Error('Error finding passengers: ' + error.message);
     }
   }
 }

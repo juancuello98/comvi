@@ -12,5 +12,5 @@ export interface ITripRepository {
   update(trip: Trip) : Promise<Trip>;
   updateStatus(tripId: string, newStatus: TripStatus): Promise<Trip>;
   findByIdAndDriver(driver: string, id: string): Promise<Trip>;
-  passengersByTrip( id: string): Promise<Trip> 
+  passengersByTrip( id: string): Promise<any> 
   }

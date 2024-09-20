@@ -155,9 +155,11 @@ export class TripService {
         null,
         HttpStatus.NOT_FOUND,
       );
+    
+      return this.responseHelper.makeResponse(false,'Trip was cancelled.',null,HttpStatus.OK)
   }
 
-  async init(id: string, driver: string): Promise<ResponseDTO> {
+  async init(id: string, driver: string): Promise<ResponseDTO> { //TODO: Refactorizar esto
     const date = new Date().toISOString();
     const trip = await this.tripRepository.findByIdAndDriver(driver, id);
 
@@ -169,23 +171,20 @@ export class TripService {
         HttpStatus.NOT_FOUND,
       );
     }
-
-    console.log(trip)
-
+    
     if (
-      trip.status !== TripStatus.OPEN || trip.passengers.length
+      trip.status !== TripStatus.OPEN || trip.bookings.length
     ) {
       return this.responseHelper.makeResponse(
         false,
-        `Incorrect trip status ${trip.status} or not contain passengers and packages.`,
+        `Incorrect trip status ${trip.status} or not contain bookings or packages.`,
         null,
         HttpStatus.OK,
       );
     }
 
     const resume = await this.tripResumeRepository.create({
-      passengers: trip.passengers,
-      startedTimestamp: new Date().toISOString(),
+      passengers: trip.bookings
     });
 
     const resumeId = resume.id;
@@ -241,24 +240,20 @@ export class TripService {
     );
   }
 
-  async listOfPassengers(tripId: string): Promise<ResponseDTO> {
+  async listOfPassengers(id: string): Promise<ResponseDTO> {
     try {
-      let message = 'Passengers inside the trip.';
-      let status = HttpStatus.OK;
-      const trip = await this.tripRepository.passengersByTrip(
-        tripId
+      const passengers = await this.tripRepository.passengersByTrip(id);
+      if(!passengers) return this.responseHelper.makeResponse(
+        false,
+        'Not found passengers in the trip.',
+        passengers,
+        HttpStatus.NOT_FOUND,
       );
-      if (!trip) {
-        message = 'Not found trips';
-        status = HttpStatus.NOT_FOUND;
-        return this.responseHelper.makeResponse(false, message, null, status);
-      }
-
       return this.responseHelper.makeResponse(
         false,
-        message,
-        trip.passengers,
-        status,
+        'Passengers founded by trip.',
+        passengers,
+        HttpStatus.OK,
       );
     } catch (error) {
       console.error('Error: ', error);
