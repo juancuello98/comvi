@@ -3,8 +3,7 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
-    "builder": "swc",
-    "assets": ["*.hbs"],
-    "typeCheck": true
+    "assets": ["**/*.hbs"],
+    "builder":"tsc"
   }
 }
