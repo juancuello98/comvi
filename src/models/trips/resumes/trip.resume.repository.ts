@@ -24,7 +24,7 @@ export class TripResumeRepository {
     const createdTimestamp = new Date().toISOString();
     const newResume = await this.tripResumeModel.create({
       ...resume,
-      createdTimestamp,
+      createdTimestamp
     });
     return newResume;
   }
