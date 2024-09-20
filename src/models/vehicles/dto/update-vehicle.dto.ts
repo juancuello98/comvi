@@ -1,4 +1,23 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateVehicleDto } from './create-vehicle.dto';
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class UpdateVehicleDto extends PartialType(CreateVehicleDto) {}
+export class UpdateVehicleDto {
+    @IsNotEmpty()
+    @IsString()
+    model: string;
+  
+    @IsNotEmpty()
+    @IsString()
+    brand: string;
+  
+    @IsOptional()
+    @IsString()
+    color: string;
+  
+    @IsOptional()
+    @IsNumber()
+    age: number;
+  
+    @IsOptional()
+    @IsArray()
+    pics: string[];
+}

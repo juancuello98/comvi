@@ -4,6 +4,7 @@ import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { IVehicleRepository } from './interfaces/vehicle.repository.interface';
 import { IVEHICLE_REPOSITORY } from './repository/constants/vehicle.repository.constant';
+import { MongoDuplicateKeyError } from '@/common/error/mongodb.errors';
 
 @Injectable()
 export class VehiclesService {
@@ -25,11 +26,10 @@ export class VehiclesService {
 
       return resp;
     } catch (error) {
-      this.logger.error(error);
       const resp = {
         hasError: true,
         message: 'Create vehicle was failed.',
-        data: error,
+        data: error instanceof MongoDuplicateKeyError ? error.message : null,
        status: HttpStatus.INTERNAL_SERVER_ERROR,
       };
 
@@ -51,13 +51,22 @@ export class VehiclesService {
   }
 
   async findByPatent(patent: any): Promise<ResponseDTO> {
-    const vehicle = await this.vehicleRepository.findByPatent(patent)
+    try {
+      const vehicle = await this.vehicleRepository.findByPatent(patent)
     return {
       hasError: false,
-      message: 'Vehicle founded.',
+      message: vehicle ? 'Vehicle founded.' : 'Vehicle not founded.',
       data: vehicle,
      status: HttpStatus.OK,
     };
+    } catch (error) {
+      return {
+        hasError: true,
+        message: 'Find vehicle was failed.',
+        data: error instanceof MongoDuplicateKeyError ? error.message : null,
+       status: HttpStatus.INTERNAL_SERVER_ERROR,
+      };
+    }
   }
 
   async findByUser(email: string): Promise<ResponseDTO> {

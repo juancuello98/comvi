@@ -4,6 +4,7 @@ import { Model } from "mongoose";
 import { CreateVehicleDto } from "../dto/create-vehicle.dto";
 import { UpdateVehicleDto } from "../dto/update-vehicle.dto";
 import { IVehicleRepository } from "../interfaces/vehicle.repository.interface";
+import { MongoDuplicateKeyError } from "@/common/error/mongodb.errors";
 
 export class VehicleMongodbRepository implements IVehicleRepository {
     constructor(
@@ -11,14 +12,20 @@ export class VehicleMongodbRepository implements IVehicleRepository {
     ) { }
 
     async create(createVehicleDto: CreateVehicleDto, email: string): Promise<Vehicle> {
-        const newVehicle = new this.vehiclesModel({...createVehicleDto, email});
-        newVehicle.save();
-        return newVehicle;
+        try {
+            return await this.vehiclesModel.create({...createVehicleDto, email});
+        } catch (error) {
+            throw MongoDuplicateKeyError.isMongodbError(error)
+        }
     }
 
     async update(patent: string, updateVehicleDto: UpdateVehicleDto): Promise<Vehicle> {
-        const vehicle = await this.vehiclesModel.findOneAndUpdate({patentPlate: patent}, updateVehicleDto)
-        vehicle.save();
+        const vehicle = await this.vehiclesModel
+        .findOneAndUpdate(
+            {patentPlate: patent},
+            {$set: {...updateVehicleDto} },
+            {new: true}
+        ).exec();
         return vehicle;
     }
 
