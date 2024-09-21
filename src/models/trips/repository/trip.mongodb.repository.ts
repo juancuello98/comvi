@@ -117,7 +117,6 @@ export class TripMongodbRepository implements ITripRepository {
       .populate({path:'passengers', select: '+name +lastname +email'})
       .exec()
     
-      console.log(trip.passengers);
     } catch (error) {
       throw new Error('Error finding passengers: ' + error.message);
     }
