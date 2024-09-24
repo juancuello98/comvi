@@ -25,7 +25,7 @@ export class CreateVehicleDto {
 
   @IsOptional()
   @IsNumber()
-  age: number;
+  year: number;
 
   @IsOptional()
   @IsArray()

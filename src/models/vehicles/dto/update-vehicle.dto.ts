@@ -15,7 +15,7 @@ export class UpdateVehicleDto {
   
     @IsOptional()
     @IsNumber()
-    age: number;
+    year: number;
   
     @IsOptional()
     @IsArray()

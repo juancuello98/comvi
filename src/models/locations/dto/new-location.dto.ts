@@ -11,7 +11,7 @@ export class NewLocationDTO {
 
   @IsString()
   @IsNotEmpty()
-  departament: string;
+  department: string;
 
   @IsString()
   @IsNotEmpty()
@@ -23,11 +23,11 @@ export class NewLocationDTO {
 
   @IsString()
   @IsNotEmpty()
-  latitud: string;
+  latitude: string;
 
   @IsString()
   @IsNotEmpty()
-  longitud: string;
+  longitude: string;
 
   @IsString()
   @IsNotEmpty()

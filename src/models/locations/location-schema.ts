@@ -13,7 +13,7 @@ export class Location {
     province: string;
 
     @Prop({ required: true })
-    departament: string;
+    department: string;
 
     @Prop({ required: true })
     locality: string;
@@ -22,10 +22,10 @@ export class Location {
     format_address: string;
 
     @Prop({ required: true })
-    latitud: string;
+    latitude: string;
 
     @Prop({ required: true })
-    longitud: string;
+    longitude: string;
 
     @Prop({ required: true})
     place_id: string;

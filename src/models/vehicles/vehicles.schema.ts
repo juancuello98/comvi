@@ -15,7 +15,7 @@ export class Vehicle {
   brand: string;
 
   @Prop({ required: true })
-  age: number;
+  year: number;
 
   @Prop()
   pics: string[];
