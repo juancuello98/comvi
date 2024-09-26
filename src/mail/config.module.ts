@@ -17,7 +17,7 @@ import { join } from 'path';
         },
       },
       defaults: {
-        from: '"COMVI" <noreply@example.com>',
+        from: '"COMVI" <noreply@comvi.com>',
       },
       template: {
         dir: join(__dirname, 'templates'),
