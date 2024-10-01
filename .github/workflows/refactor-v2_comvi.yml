@@ -66,5 +66,5 @@ jobs:
         with:
           app-name: 'comvi'
           slot-name: 'Production'
-          package: .
+          package: './dist'  # Ruta de tu aplicación compilada
           
