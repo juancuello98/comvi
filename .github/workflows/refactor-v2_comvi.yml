@@ -27,7 +27,7 @@ jobs:
           npm run build --if-present
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./dist/* -r
+        run: zip release.zip ./* -r
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -66,5 +66,5 @@ jobs:
         with:
           app-name: 'comvi'
           slot-name: 'Production'
-          package: './dist'  # Ruta de tu aplicación compilada
+          package: '.'  # Ruta de tu aplicación compilada
           
