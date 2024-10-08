@@ -3,8 +3,6 @@ import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
-//Services
-import { UserService } from '../models/users/user.service';
 
 //DTOs
 import { LoginDTO } from '../models/users/dto/existing-user.dto';
@@ -16,10 +14,16 @@ import { UserValidatedDTO } from 'src/models/users/interfaces/user-validated.int
 import { ResetPasswordDTO } from './dto/reset-password-dto';
 import { PasswordTokenDTO } from './dto/token-password.dto';
 import { PasswordToken } from '../models/users/passwordToken.schema';
-import { UserDocument } from 'src/models/users/user.schema';
+import { User, UserDocument } from 'src/models/users/user.schema';
 import { MailService } from 'src/mail/config.service';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { ResponseDTO } from '@/common/interfaces/responses.interface';
+import { UserRepository } from '@/users/user.repository';
+import { ResponseHelper } from '@/helpers/http/response.helper';
+import { ValidateResult } from './Enum/enum';
+import { TripDTO } from '@/trips/dto/existing-trip.dto';
+import { get } from 'http';
+import { GetUserDTO } from '@/users/dto/user.dto';
 
 @Injectable()
 export class AuthService {
@@ -28,7 +32,8 @@ export class AuthService {
   constructor(
     private mailService: MailService,
     private jwtTokenService: JwtService,
-    private userService: UserService,
+    private userRepository: UserRepository,
+    private responseHelper: ResponseHelper
   ) {}
 
   generateRandomString(num) {
@@ -60,16 +65,18 @@ export class AuthService {
     return bcrypt.hash(password, 12);
   }
 
-  async register(registerData: Readonly<NewUserDTO>): Promise<UserDTO | any> {
+  async register(registerData: Readonly<NewUserDTO>): Promise<ResponseDTO> {
+    try{
     const { lastname, name, password: plainPassword, email } = registerData;
-    const userExists = await this.userService.findByEmail(email);
+    const userExists = await this.userRepository.findByEmail(email);
 
     if (userExists) {
-      const message = `User already exists with this email ${email}.`;
+      const message = `El ${email} ya esta en uso.`;
       this.logger.log(message);
-
-      throw new HttpException(
+      return this.responseHelper.makeResponse(
+        true,
         message,
+        null,
         HttpStatus.CONFLICT,
       );
     }
@@ -78,7 +85,7 @@ export class AuthService {
 
     await this.mailService.sendCode(email, name, verificationCode);
 
-    this.logger.log(`Verification email sent to ${email}.`);
+    this.logger.log(`Se envio la verificacion de email a ${email}.`);
 
     const status = VERIFICATION_CODE_STATUS.IN_PROGRESS;
 
@@ -91,13 +98,32 @@ export class AuthService {
       status,
       verificationCode
     }
-    const newUser = await this.userService.create(
+    const newUser = await this.userRepository.create(
       user
     );
 
-    return this.userService.getUser(newUser);
+    const userData = this.userRepository.getUser(newUser);
+
+    return this.responseHelper.makeResponse(
+      false,
+      'User created.',
+      userData,
+      HttpStatus.CREATED,
+    );
+
   }
 
+    catch (error) {
+      this.logger.error(error.message);
+      return this.responseHelper.makeResponse(
+        true,
+        error.message,
+        null,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+  
+  } 
+}
   async createVerififyEmailCode(): Promise<string> {
     return Math.floor(Math.random() * (9999 - 1000 + 1) + 1000).toString();
   }
@@ -109,12 +135,18 @@ export class AuthService {
     return bcrypt.compare(password, hashedPassword);
   }
 
-  async validate(email: string, password: string): Promise<UserDTO | null> {
-    const user = await this.userService.findByEmail(email);
+  async validate(email: string, password: string): Promise<UserDocument> {
 
-    if (!user || user.status !== VERIFICATION_CODE_STATUS.VALIDATED) {
-      this.logger.log('User not found or email not validated.');
-      return null;
+    const user = await this.userRepository.findByEmail(email);
+
+    if (!user ) {
+      this.logger.log('User not found.');
+      throw ValidateResult.USER_NOT_FOUND;
+    }
+
+    if (user.status !== VERIFICATION_CODE_STATUS.VALIDATED) {
+      this.logger.log('User not validated.');
+      throw ValidateResult.INVALID_STATUS;
     }
 
     const doesPasswordMatch = await this.doesPasswordMatch(
@@ -124,21 +156,60 @@ export class AuthService {
 
     if (!doesPasswordMatch) {
       this.logger.log('Invalid Credentials');
-      return null;
+      throw ValidateResult.INVALID_CREDENTIALS;
     }
+    return user;
+ 
+}
 
-    return this.userService.getUser(user);
-  }
+  async login({ email, password }: LoginDTO): Promise<ResponseDTO> {
+    try{
+      const user = await this.validate(email, password);
 
-  async login({ email, password }: LoginDTO): Promise<Record<string, string>> {
-    const user = await this.validate(email, password);
+      const userData = this.userRepository.getUser(user);
 
-    if (!user)
-      throw new HttpException('Invalid credentials.', HttpStatus.UNAUTHORIZED);
+      const token = this.loginWithCredentials(userData);
 
-    const token = this.loginWithCredentials(user);
-
-    return token;
+      return this.responseHelper.makeResponse(
+        false,
+        'User found.',
+        token,
+        HttpStatus.OK,
+      );
+    } 
+    catch (error) {
+      switch (error.message) {
+        case ValidateResult.USER_NOT_FOUND:
+          return this.responseHelper.makeResponse(
+            true,
+            'El usuario no existe o la contraseña es erronea.',
+            null,
+            HttpStatus.NO_CONTENT,
+          );
+          case ValidateResult.INVALID_CREDENTIALS:
+            return this.responseHelper.makeResponse(
+              true,
+              'El usuario no existe o la contraseña es erronea.',
+              null,
+              HttpStatus.NO_CONTENT,
+            );
+        case ValidateResult.INVALID_STATUS:
+          return this.responseHelper.makeResponse(
+            true,
+            'El usuario no ha sido validado.',
+            null,
+            HttpStatus.UNAUTHORIZED,
+          );
+        default:
+          this.logger.error(error.message);
+          return this.responseHelper.makeResponse(
+            true,
+            error.message,
+            null,
+            HttpStatus.INTERNAL_SERVER_ERROR
+          )
+      }
+    }
   }
 
   async loginWithCredentials(user: UserDTO) {
@@ -154,7 +225,7 @@ export class AuthService {
     code,
   }: UserVerificationDTO): Promise<ResponseDTO> {
     try {
-      const user = await this.userService.findByEmail(email);
+      const user = await this.userRepository.findByEmail(email);
 
       if (user.verificationCode !== code)
         throw new HttpException(
@@ -164,7 +235,7 @@ export class AuthService {
 
       user.status = VERIFICATION_CODE_STATUS.VALIDATED;
 
-      await this.userService.update(user);
+      await this.userRepository.update(user);
 
       const response : ResponseDTO = {
         hasError: false,
@@ -187,97 +258,176 @@ export class AuthService {
 
   //TODO: Refactor de todo lo que es reestrablecer contraseña
 
-  // async sendEmailPasswordToken(email: string, name: string, token: string) {
-  //   const mail = await this.mailService.sendCodePasswordToken(
-  //     email,
-  //     name,
-  //     token,
-  //   );
-  //   this.logger.log(
-  //     'Se envió el mail de repureracion de contraseña. A:  ' + mail,
-  //   );
-  // }
+  async sendEmailPasswordToken(email: string, name: string, token: string) {
+    const mail = await this.mailService.sendCodePasswordToken(
+      email,
+      name,
+      token,
+    );
+    this.logger.log(
+      'Se envió el mail de repureracion de contraseña. A:  ' + mail,
+    );
+  }
 
-  // async requestResetPassword(userEmail: string): Promise<boolean | any> {
-  //   const email = userEmail;
-  //   const findUser = await this.userService.findByEmail(email);
+  async requestResetPassword(userEmail: string): Promise<ResponseDTO> {
+    const email = userEmail;
+    const findUser = await this.userRepository.findByEmail(email);
 
-  //   if (!findUser) {
-  //     this.logger.log('El usuario no existe: ' + email);
-  //     return new HttpException('USER_NOT_FOUND', 404);
-  //   }
+    if (!findUser) {
+      this.logger.log('El usuario no existe: ' + email);
+      return this.responseHelper.makeResponse(
+          true,
+          'User not found.',
+          null,
+          HttpStatus.NOT_FOUND,
+        );
+    }
 
-  //   findUser.resetPasswordToken = await this.GenerateToken();
+    findUser.resetPasswordToken = await this.GenerateToken();
 
-  //   const updated = await this.userService.update(findUser);
+    const updated = await this.userRepository.update(findUser);
 
-  //   this.logger.log(
-  //     'Se le actualizó el código de recuperación de contraseña a ' +
-  //       updated.email +
-  //       ' codigo ' +
-  //       updated.resetPasswordToken.code,
-  //   );
+    this.logger.log(
+      'Se le actualizó el código de recuperación de contraseña a ' +
+        updated.email +
+        ' codigo ' +
+        updated.resetPasswordToken.code,
+    );
 
-  //   await this.sendEmailPasswordToken(
-  //     findUser.email,
-  //     findUser.name,
-  //     findUser.resetPasswordToken.code,
-  //   );
+    await this.sendEmailPasswordToken(
+      findUser.email,
+      findUser.name,
+      findUser.resetPasswordToken.code,
+    );
 
-  //   this.logger.log(
-  //     'Se le envió un mail con el código de recuperación de contraseña a: ' +
-  //       email,
-  //   );
+    this.logger.log(
+      'Se le envió un mail con el código de recuperación de contraseña a: ' +
+        email,
+    );
 
-  //   return {
-  //     success: true,
-  //     statusCode: 200,
-  //   };
-  // }
+    return this.responseHelper.makeResponse(
+      false,
+      'PasswordToken generated.',
+      {email:updated.email},
+      HttpStatus.OK,
+    );
+  }
 
-  // async resetPassword(
-  //   resetPasswordDTO: ResetPasswordDTO,
-  // ): Promise<boolean | any> {
-  //   const { email } = resetPasswordDTO;
-  //   const { password } = resetPasswordDTO;
-  //   const findUser = await this.userService.findByEmail(email);
+  async resetPassword(
+    resetPasswordDTO: ResetPasswordDTO,
+  ): Promise<ResponseDTO> {
+    try {
+    const { email } = resetPasswordDTO;
+    const { password } = resetPasswordDTO;
+    const { passwordToken } = resetPasswordDTO;
 
-  //   if (!findUser) {
-  //     this.logger.log('El usuario no existe: ' + email);
-  //     return new HttpException('USER_NOT_FOUND', 404);
-  //   }
+    const findUser = await this.userRepository.findByEmail(email);
 
-  //   findUser.resetPasswordToken = null;
+    if (!findUser) {
+      this.logger.log('El usuario no existe: ' + email);
+      return this.responseHelper.makeResponse( 
+        false,
+        'User not found.',
+        {email},
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    
+    if (!passwordToken) {
+      this.logger.log('El usuario no tiene un token de recuperación: ' + email);
+      return this.responseHelper.makeResponse(
+        false,
+        'User has no reset token.',
+        {email},
+        HttpStatus.NOT_ACCEPTABLE,
+      );
+    }    
 
-  //   findUser.password = await this.hashPassword(password);
+    if (findUser.resetPasswordToken.code !== passwordToken) {
+      this.logger.log('El token de recuperación no coincide: ' + email);
+      return this.responseHelper.makeResponse(
+        false,
+        'The token does not match.',
+        {email},
+        HttpStatus.NOT_ACCEPTABLE,
+      );
+    }
+    
+    if (!findUser.resetPasswordToken.validated){
+      this.logger.log('El token de recuperación no ha sido validado: ' + email);
+      return this.responseHelper.makeResponse(
+        false,
+        'The token has not been validated yet.',
+        {email},
+        HttpStatus.METHOD_NOT_ALLOWED,
+      );
+    }
 
-  //   const updated = await this.userService.update(findUser);
 
-  //   this.logger.log('Se le actualizó la contraseña a: ' + updated.email); //JSON.stringify(updated) subir json?
+    findUser.password = await this.hashPassword(password);
+      
+    const updated = await this.userRepository.update(findUser);
+      
+    this.logger.log('Se le actualizó la contraseña a: ' + updated.email); //JSON.stringify(updated) subir json?
+      
+    findUser.resetPasswordToken= null;
+      
+    return this.responseHelper.makeResponse(
+        false,
+        'Password reseted.',
+        {email:updated.email},
+        HttpStatus.OK,
+    );
 
-  //   return {
-  //     success: true,
-  //     statusCode: 200,
-  //   };
-  // }
+
+  } catch (error) {
+    this.logger.error(error.message);
+    return this.responseHelper.makeResponse(
+      true,
+      error.message,
+      null,
+      HttpStatus.INTERNAL_SERVER_ERROR,);
+    }
+  }
 
   async validatePasswordToken(
     passwordTokenDTO: PasswordTokenDTO,
-  ): Promise<UserValidatedDTO | any> {
+  ): Promise<ResponseDTO> {
+    try{
     const { email, passwordToken } = passwordTokenDTO;
-    const user = await this.userService.findByEmail(email);
+    const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
       this.logger.log('El usuario no existe: ' + email);
-      return new HttpException('USER_NOT_FOUND', 404);
+      return this.responseHelper.makeResponse(
+        false,
+        'User not found.',
+        email,
+        HttpStatus.OK,
+      );
     }
 
     const { id } = user;
-    const validate =
+    const validated =
       (await this.IsExpired(user.resetPasswordToken)) &&
       (await this.compareResetPasswordCode(passwordToken, user));
-    const result = { id, email, validate };
+    const result = { id, email, validated };
 
-    return result;
+    return this.responseHelper.makeResponse(
+      false,
+      'Token validated reseted.',
+      result,
+      HttpStatus.OK,
+    );
+  }
+  catch (error) {
+    this.logger.error(error.message);
+    return this.responseHelper.makeResponse(
+      true,
+      error.message,
+      null,
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
   }
 }

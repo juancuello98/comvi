@@ -12,6 +12,9 @@ export class PasswordToken {
 
   @Prop({ required: true })
   expire: Date;
+
+  @Prop({ required: true, default: false })
+  validated: boolean;
 }
 
 export const PasswordTokenSchema = SchemaFactory.createForClass(PasswordToken);

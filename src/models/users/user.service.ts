@@ -23,15 +23,6 @@ export class UserService {
     return user;
   }
   
-  getUser({ id, name, lastname, email }: UserDocument) {
-    return {
-      id,
-      name,
-      lastname,
-      email,
-    };
-  }
-
   async getUserData(email: string): Promise<ResponseDTO> {
     try {
       const user = await this.userRepository.findByEmail(email);
@@ -75,7 +66,7 @@ export class UserService {
   async findById(id: string): Promise<UserDTO | null> {
     const user = await this.userRepository.findById(id);
     if (!user) return null;
-    return this.getUser(user);
+    return this.userRepository.getUser(user);
   }
 
   async create(

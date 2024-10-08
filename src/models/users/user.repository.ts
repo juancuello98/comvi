@@ -44,4 +44,7 @@ export class UserRepository {
     );
     await this.update(user);
   }
+  getUser({id, email, name, lastname }:UserDocument) {
+    return {id, email, name, lastname}
+  }
 }

@@ -1,3 +1,25 @@
+export const  exPasswordToken = {
+  passwordToken: "Gonzales",
+  email: "admin@gmail.com",
+}
+
+
+
+export const exRequestResetPassword = {
+  email: "admin@gmail.com",
+}
+
+
+export const exResetPassword = {
+  password: "admin@1234",
+  email: "admin@gmail.com",
+}
+
+export const UserValidatedDTO = {
+  id: "66d67cbdd6d5aa8b1baa2fcd",	
+  validated: true,
+  email: "admin@gmail.com"
+}
 
 export const exRegisterUser = {
     lastname: "Gonzales",
@@ -12,33 +34,73 @@ export const exValidateToken = {
 }
 
 export const exRegisterUserResponse = {
-    "id": "66d67e6160770470da9afe84",
-    "name": "Maria",
-    "lastname": "Gonzales",
-    "email": "admin123@gmail.com"
+  hasError: false,
+  message: "PasswordToken generated.",
+  status: 200,
+  data: {
+    id: "66d67e6160770470da9afe84",
+    name: "Maria",
+    lastname: "Gonzales",
+    email: "admin123@gmail.com"
   }
+}
 
-  export const exValidateTokenResponde = {
-    data: true
-  }
+export const exValidate = {
+  hasError: false,
+  message: "PasswordToken generated.",
+  data: {email:"admin@gmail.com"},
+  status: 200
+}
 
-  export const exLogin = {
+export const exValidatePasswordToken = {
+  hasError: false,
+  message: "PasswordToken validated.",
+  data: {email:"admin@gmail.com"},
+  status: 200
+}
+
+export const exValidateTokenResponse = {
+    hasError: false,
+    message: 'Validation was succesfully.',
+    data: true,
+    status: 200
+}
+
+export const exRequestResetPasswordResponse = {
+  hasError: false,
+  message: 'PasswordToken generated.',
+  data: { email: "admin@gmail.com"},
+  status: 200
+}
+
+export const exValidatePasswordTokenResponse = {
+  hasError: false,
+  message: 'Token validated reseted.',
+  data: {
+    email: "admin@gmail.com",
+    id: "66d67cbdd6d5aa8b1baa2fcd",
+    validated: true
+  },
+  status: 200
+}
+
+export const exLogin = {
     email: 'maria@gmail.com',
     password: 'admin123'
   }
 
-  export const exLoginResponse = {
+export const exLoginResponse = {
     token : "example"
   }
 
-  export const exUserData = {
+export const exUserData = {
     name : 'nameOfUser',
     lastname: 'lastnameOfUser',
     email: 'emailofUser@gmail.com'
   }
 
-  export const exNewTrip = {
-    
+export const exNewTrip = 
+{
       origin: {
         country: "Argentina",
         province: "Buenos Aires",
@@ -67,7 +129,13 @@ export const exRegisterUserResponse = {
       startedTimestamp: "2024-09-02T14:00:00Z"
   }
 
-  export const exNewTripResponse = {
+export const exNewTripResponse = {
+  
+    hasError: false,
+    message: "PasswordToken generated.",
+    status: 200,
+    data: 
+{
       id: "1e43e5eb-9d18-486c-96f7-a36997063110",
       origin: "66d672d288105491d615eea1",
       destination: "66d672d288105491d615eea3",
@@ -85,8 +153,13 @@ export const exRegisterUserResponse = {
       _id: "66d672d288105491d615eea5",
       __v: 0
     }
+  }
   
-export const exListOfTripsResponse = {
+export const exListOfTripsResponse = 
+  {
+    hasError: false,
+    message: "PasswordToken generated.",
+    status: 200,
   data: [
     {
       "id": "1e43e5eb-9d18-486c-96f7-a36997063110",
@@ -215,8 +288,12 @@ export const exListOfTripsResponse = {
   ]
 }
 
-export const exTripByIdResponse = {
-  "data": {
+export const exTripByIdResponse = 
+  {
+    hasError: false,
+    message: "PasswordToken generated.",
+    status: 200 ,
+    data:{
     "id": "1e43e5eb-9d18-486c-96f7-a36997063110",
     "origin": {
       "_id": "66d672d288105491d615eea1",
@@ -269,6 +346,7 @@ export const exTripByIdResponse = {
 export const exListOfPassengersNotFound = {
   "hasError": false,
   "message": "Not found passengers in the trip.",
+  "data": null,
   "status": 404
 }
 
@@ -443,5 +521,7 @@ export const exUpdateVehicleResponse = {
 export const exDeleteVehicleResponse = {
   "hasError": false,
   "message": "Vehicle deleted.",
+  "data": null,
   "status": 200
 }
+
