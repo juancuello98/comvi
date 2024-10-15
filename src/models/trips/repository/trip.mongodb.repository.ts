@@ -13,7 +13,7 @@ export class TripMongodbRepository implements ITripRepository {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
-  async findByDriver(driver: string): Promise<Trip[]> {
+  async findByDriver(driver: string): Promise<Trip[]|any[]> {
 
     const trips = await this.tripModel
       .find({ driver })
@@ -27,7 +27,7 @@ export class TripMongodbRepository implements ITripRepository {
     return trips;
   }
 
-  async find(field: any): Promise<Trip[]> {
+  async find(field: any): Promise<Trip[]|any[]> {
     return await this.tripModel.find(field).select('-__v -_id').exec();
   }
 
@@ -44,19 +44,25 @@ export class TripMongodbRepository implements ITripRepository {
     return {...trip,driver};
   }
 
-  async findById(id: string): Promise<Trip> {
+  async findById(id: string): Promise<Trip|any> {
     const trip = await this.tripModel.findOne({id})
     .select('-__v -_id')
     .populate('passengers')
     .populate('vehicle')
     .populate('origin')
     .populate('destination')
-    .select('-__v -_id')
+    .populate('driverSchema')
+    .populate('passengers')
+    .populate('bookings')
+    .populate('tripRequests')
+    .populate('valuations')
+    .populate('tripResumeId')
+    .select('-__v -_id -password -status -verificationCode -resetPasswordToken' )
     .exec();
     return trip;
   }
 
-  async findNonDriverTrips(email: string) {
+  async findNonDriverTrips(email: string): Promise<Trip[]|any[]> {
     return await this.tripModel
     .find({ driver: { $ne: email } })
     .select('-__v -_id')
@@ -67,17 +73,17 @@ export class TripMongodbRepository implements ITripRepository {
     .exec();
   }
 
-  async create(trip: NewTripDTO) {
+  async create(trip: NewTripDTO): Promise<Trip|any> {
     return await this.tripModel
     .create(trip);
   }
 
-  async update(trip: TripDocument) : Promise<Trip> {
+  async update(trip: TripDocument) : Promise<Trip|any> {
     const tripUpdated = await trip.updateOne();
     return tripUpdated;
   }
 
-  async updateStatus(id: string, newStatus: TripStatus) {
+  async updateStatus(id: string, newStatus: TripStatus) : Promise<Trip|any> {	
     try {
       // Buscar el viaje por su ID
       const trip = await this.tripModel.findOne({id});

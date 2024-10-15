@@ -23,7 +23,7 @@ export class ChangeStatusOfRequestDTO extends PartialType(ActionRequestDTO) {
   newStatus: string;
 
   @ApiProperty({
-    description: 'nuevo estado de la solicitud respondida',
+    description: 'mensaje de la solicitud respondida',
     name: 'newStatus',
     enum: StatusRequest,
   })

@@ -1,14 +1,18 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Prop, Schema, SchemaFactory,  } from '@nestjs/mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 export type RequestDocument = Request & Document;
 
 @Schema()
 export class Request {
+  
+  @Prop({ required: true , type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  userId: string;
+  
   @Prop({ required: true })
   email: string;
 
-  @Prop({ required: true })
+  @Prop({ required:true, type: MongooseSchema.Types.ObjectId, ref: 'Trips' })
   tripId: string;
 
   @Prop({ required: true })

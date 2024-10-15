@@ -8,25 +8,25 @@ export type TripResumeDocument = TripResume & Document;
 @Schema()
 export class TripResume {
   /**
-   * Lista de IDs de los pasajeros del viaje.
+   * @property {string} id - Lista de IDs de los pasajeros del viaje.
    */
   @Prop({ required:true, type: MongooseSchema.Types.ObjectId, ref: 'Users' })
   passengers: string[];
 
   /**
-   * Lista de IDs de las valuaciones asociadas al viaje.
+   * @property {string} id - Lista de IDs de las valuaciones asociadas al viaje.
    */
-  @Prop()
+  @Prop({ required:true, type: MongooseSchema.Types.ObjectId, ref: 'Valuations' })
   valuations: string[];
 
   /**
-   * Marca de tiempo de inicio del viaje.
+   * @property {string} id - Marca de tiempo de inicio del viaje.
    */
   @Prop({ required: true })
   startedTimestamp: string;
 
   /**
-   * Marca de tiempo de finalización del viaje.
+   * @property {string} id - Marca de tiempo de finalización del viaje.
    */
   @Prop()
   endedTimestamp: string;

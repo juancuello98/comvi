@@ -12,7 +12,13 @@ export class TripResumeRepository {
   ) {}
 
   async findById(id: any): Promise<TripResumeDocument> {
-    return await this.tripResumeModel.findById(id).exec();
+    const trip = await this.tripResumeModel.findOne({id})
+    .select('-__v -_id')
+    .populate('Users')
+    .populate('Valuations')
+    .select('-__v -_id')
+    .exec();
+    return trip;
   }
 
   async update(resume: TripResumeDocument) {
@@ -27,5 +33,6 @@ export class TripResumeRepository {
       createdTimestamp
     });
     return newResume;
+    
   }
 }
