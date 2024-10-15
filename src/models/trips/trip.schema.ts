@@ -66,11 +66,18 @@ export class Trip {
   vehicle: MongooseSchema.Types.ObjectId;
 
   /**
-   * @property {string} driver - Email del conductor del viaje.
+   * @property {string} User - Email del conductor del viaje.
    */
   @Prop({ required: true })
-  driver: string;
+  driver:string;
 
+
+  /**
+  * @property {User} User - Id del conductor del viaje.
+  */
+  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  driverSchema: MongooseSchema.Types.ObjectId;
+  
   /**
    * @property {string} startedTimestamp - Marca de tiempo de inicio del viaje.
    */

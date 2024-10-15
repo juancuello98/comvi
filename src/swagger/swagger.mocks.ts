@@ -3,6 +3,22 @@ export const  exPasswordToken = {
   email: "admin@gmail.com",
 }
 
+export const exSendRequest = {
+
+  tripId: "66d67cbdd6d5aa8b1baa2fcd",
+
+  description: "Hola pa soy re picante si no me aceptas la soli muere tu perro",
+  hasEquipment: true,
+  hasPartner: true, 
+  partnerQuantity: 2,
+}
+
+export const exCreateRequestResponse = {
+  hasError: false,
+  message: 'PasswordToken generated.',
+  data: {  },
+  status: 200
+}
 
 
 export const exRequestResetPassword = {

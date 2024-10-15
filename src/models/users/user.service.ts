@@ -3,7 +3,7 @@ import { ResponseHelper } from '@/helpers/http/response.helper';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { GetUserDTO } from './dto/user.dto';
 import { UserDTO } from './interfaces/user-details.interface';
-import { UserRepository } from './user.repository';
+import { UserRepository } from './repository/user.repository';
 import { UserDocument } from './user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 
@@ -66,7 +66,7 @@ export class UserService {
   async findById(id: string): Promise<UserDTO | null> {
     const user = await this.userRepository.findById(id);
     if (!user) return null;
-    return this.userRepository.getUser(user);
+    return this.userRepository.getUserData(user);
   }
 
   async create(
