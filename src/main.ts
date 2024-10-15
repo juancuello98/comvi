@@ -2,9 +2,12 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core/nest-factory';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import mongoose from 'mongoose';
 
 async function bootstrap() {
   const logger = new Logger();
+
+  mongoose.set('strictPopulate', false);
 
   const app = await NestFactory.create(AppModule,{
     logger:['log','error']

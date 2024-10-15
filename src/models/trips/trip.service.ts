@@ -107,7 +107,7 @@ export class TripService {
       return this.responseHelper.makeResponse(
         true,
         'Error in findById',
-        null,
+        error.message,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -134,7 +134,7 @@ export class TripService {
     } catch (error) {
       return this.responseHelper.makeResponse(
         false,
-        error.message,
+        "Error in create trip",
         error.message,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
@@ -260,7 +260,7 @@ export class TripService {
       return this.responseHelper.makeResponse(
         true,
         'Error in listWithPassengers.',
-        null,
+        error.message,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
