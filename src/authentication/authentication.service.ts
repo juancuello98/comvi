@@ -18,7 +18,7 @@ import { User, UserDocument } from 'src/models/users/user.schema';
 import { MailService } from 'src/mail/config.service';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { ResponseDTO } from '@/common/interfaces/responses.interface';
-import { UserRepository } from '@/users/user.repository';
+import { UserRepository } from '@/users/repository/user.repository';
 import { ResponseHelper } from '@/helpers/http/response.helper';
 import { ValidateResult } from './Enum/enum';
 import { TripDTO } from '@/trips/dto/existing-trip.dto';
@@ -102,7 +102,7 @@ export class AuthService {
       user
     );
 
-    const userData = this.userRepository.getUser(newUser);
+    const userData = this.userRepository.getUserData(newUser);
 
     return this.responseHelper.makeResponse(
       false,
@@ -166,7 +166,7 @@ export class AuthService {
     try{
       const user = await this.validate(email, password);
 
-      const userData = this.userRepository.getUser(user);
+      const userData = this.userRepository.getUserData(user);
 
       const token = this.loginWithCredentials(userData);
 
