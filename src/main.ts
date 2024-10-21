@@ -2,6 +2,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core/nest-factory';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import mongoose from 'mongoose';
 
 async function bootstrap() {
   const logger = new Logger();
@@ -10,6 +11,9 @@ async function bootstrap() {
     logger:['log','error']
   });
 
+
+  mongoose.set('strictPopulate', false);
+  
   const config = new DocumentBuilder()
     .setTitle('COMVI - API')
     .setDescription('Proyecto Final ISI UTN')

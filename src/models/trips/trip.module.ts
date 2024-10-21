@@ -11,6 +11,7 @@ import { TripMongodbRepository } from './repository/trip.mongodb.repository';
 import { ITRIP_REPOSITORY } from './repository/constants/trip.repository.constant';
 import { UserModule } from '../users/user.module';
 import { LocationModule } from '../locations/location.module';
+import { ITRIP_RESUME_REPOSITORY } from './resumes/constants/trip.resume.repository.constant';
 
 
 @Module({
@@ -25,10 +26,14 @@ import { LocationModule } from '../locations/location.module';
     LocationModule
   ],
   controllers: [TripController],
-  providers: [TripService, TripResumeRepository, {
+  providers: [TripService, TripResumeRepository,TripMongodbRepository, {
     provide: ITRIP_REPOSITORY,
     useClass: TripMongodbRepository,
+  },
+  {
+    provide: ITRIP_RESUME_REPOSITORY,
+    useClass: TripResumeRepository,
   }],
-  exports: [TripService],
+  exports: [TripService , TripResumeRepository, ITRIP_REPOSITORY  , TripMongodbRepository ,ITRIP_RESUME_REPOSITORY ],
 })
 export class TripModule {}

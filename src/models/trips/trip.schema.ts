@@ -63,20 +63,13 @@ export class Trip {
    * @property {Vehicle} vehicle - Id del vehículo utilizado en el viaje.
    */
   @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Vehicle' })
-  vehicle: MongooseSchema.Types.ObjectId;
+  vehicle: MongooseSchema.Types.ObjectId
 
   /**
-   * @property {string} User - Email del conductor del viaje.
+   * @property {User} User - Email del conductor del viaje.
    */
-  @Prop({ required: true })
-  driver:string;
-
-
-  /**
-  * @property {User} User - Id del conductor del viaje.
-  */
   @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'User' })
-  driverSchema: MongooseSchema.Types.ObjectId;
+  driver:string;
   
   /**
    * @property {string} startedTimestamp - Marca de tiempo de inicio del viaje.
@@ -91,7 +84,7 @@ export class Trip {
   status: TripStatus;
 
   /**
-   * @property {string[]} passengers - IDs de los usuarios que participan como pasajeros en el viaje.
+   * @property {Booking[]} passengers - IDs de los usuarios que participan como pasajeros en el viaje.
    */
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Booking' })
   bookings: MongooseSchema.Types.ObjectId[];
@@ -121,22 +114,23 @@ export class Trip {
   createdTimestamp: string;
 
   /**
-   * @property {string[]} tripsRequests - IDs de las solicitudes asociadas al viaje.
+   * @property {Request[]} tripsRequests - IDs de las solicitudes asociadas al viaje.
    */
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Requests' })
   tripsRequests: MongooseSchema.Types.ObjectId[];
 
   /**
-   * @property {string[]} valuations - IDs de las valuaciones asociadas al viaje.
+   * @property {Valuation[]} valuations - IDs de las valuaciones asociadas al viaje.
    */
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Valuations' })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Valuation' })
   valuations: MongooseSchema.Types.ObjectId[];
 
   /**
-   * @property {string} tripResumeId - ID del resumen del viaje.
+   * @property {TripResume} tripResumeId - ID del resumen del viaje.
    */
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'TripResumes' })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'TripResume' })
   tripResumeId: MongooseSchema.Types.ObjectId;
 }
 
 export const TripSchema = SchemaFactory.createForClass(Trip);
+TripSchema.set('timestamps', true);

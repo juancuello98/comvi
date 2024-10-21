@@ -6,6 +6,7 @@ import { UserController } from './user.controller';
 import { UserRepository } from './repository/user.repository';
 import { User, UserSchema } from './user.schema';
 import { UserService } from './user.service';
+import { IUSER_REPOSITORY } from './repository/constants/user.repository.constant';
 
 @Module({
   imports: [
@@ -13,7 +14,10 @@ import { UserService } from './user.service';
     CommonModule,
   ],
   controllers: [UserController],
-  providers: [UserService, UserRepository],
-  exports: [UserService, UserRepository],
+  providers: [UserService, UserRepository,  {
+    provide: IUSER_REPOSITORY,
+    useClass: UserRepository,
+  }],
+  exports: [UserService, UserRepository,IUSER_REPOSITORY  ],
 })
 export class UserModule {}
