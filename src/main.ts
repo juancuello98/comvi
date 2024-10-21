@@ -7,6 +7,8 @@ import mongoose from 'mongoose';
 async function bootstrap() {
   const logger = new Logger();
 
+  mongoose.set('strictPopulate', false);
+
   const app = await NestFactory.create(AppModule,{
     logger:['log','error']
   });
