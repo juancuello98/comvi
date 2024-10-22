@@ -15,12 +15,16 @@ import { ITRIP_REPOSITORY } from './repository/constants/trip.repository.constan
 import { ResponseHelper } from '@/common/helpers/http/response.helper';
 import { LocationService } from '../locations/location.service';
 import { Location } from '@/locations/location-schema';
+import { IUserRepository } from '@/users/interfaces/user.repository.interface';
+import { IUSER_REPOSITORY } from '@/users/repository/constants/user.repository.constant';
 
 @Injectable()
 export class TripService {
   private readonly logger = new Logger(TripService.name);
 
   constructor(
+    @Inject(IUSER_REPOSITORY)
+    private readonly userRepository: IUserRepository,
     @Inject(ITRIP_REPOSITORY)
     private readonly tripRepository: ITripRepository,
     private readonly tripResumeRepository: TripResumeRepository,
@@ -64,6 +68,24 @@ export class TripService {
     return this.responseHelper.makeResponse(
       false,
       'Trip founded.',
+      trips,
+      HttpStatus.OK,
+    );
+  }
+
+  async findAll(): Promise<ResponseDTO> {
+    const trips = await this.tripRepository.findAll();
+    if (!trips.length)
+      return this.responseHelper.makeResponse(
+        false,
+        'Not found trips.',
+        null,
+        HttpStatus.NOT_FOUND,
+      );
+
+    return this.responseHelper.makeResponse(
+      false,
+      'Trips founded.',
       trips,
       HttpStatus.OK,
     );
@@ -115,13 +137,14 @@ export class TripService {
 
   async create(trip: NewTripDTO): Promise<ResponseDTO> {
     try {
+      const driver = (await this.userRepository.findByEmail(trip.driver))._id;
       const origin = (await this.locationService.create((trip.origin as Location))).id;
       const destination = (await this.locationService.create(trip.destination as Location)).id;
       const id = uuidv4();
       const status = TripStatus.OPEN;
       const placesAvailable = trip.peopleQuantity;
       const createdTimestamp = new Date().toISOString();
-      const input = Object.assign(trip, { id, origin, destination, status, placesAvailable, createdTimestamp });
+      const input = Object.assign(trip, { id, origin, destination, status, placesAvailable, createdTimestamp, driver });
 
       const newTrip = await this.tripRepository.create(input);
       const message = 'Trip was created succesfully.';
@@ -183,9 +206,11 @@ export class TripService {
       );
     }
 
-    const resume = await this.tripResumeRepository.create({
-      passengers: trip.bookings
-    });
+    const resume = await this.tripResumeRepository.create(
+      { passengers: trip.bookings,
+        valuations: [],
+       }
+    );
 
     const resumeId = resume.id;
 

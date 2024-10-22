@@ -1,11 +1,6 @@
 import { InjectModel } from "@nestjs/mongoose";
 import { Request, RequestDocument } from "../request.schema";
-import { ClientSession, Model } from "mongoose";
-import {  ActionRequestDTO} from "../dto/action-request.dto";
-import {  CancelRequestDTO} from "../dto/cancel-request.dto";
-import {  ChangeStatusOfRequestDTO} from "../dto/change-status-request.dto";
-import {  ExtendedRequestDTO} from "../dto/extended-request.dto";
-import {  NewRequestDTO} from "../dto/new-request.dto";
+import mongoose, { ClientSession, Model, Query, SortOrder } from "mongoose";
 
 
 import { IRequestRepository } from "../interfaces/request.repository.interface";
@@ -16,22 +11,44 @@ export class RequestMongodbRepository implements IRequestRepository {
         @InjectModel(Request.name) private readonly requestModel: Model<RequestDocument>,
     ) { }
 
+    async findWithPopulate(filter: any, populateFields: { [key: string]: string[] }, sort: string | {
+        [key: string]: SortOrder} ): Promise<RequestDocument[]> {
+        let query: Query<RequestDocument[], RequestDocument> = this.requestModel.find(filter);
+
+        for (const [table, fields] of Object.entries(populateFields)) {
+            query = query.populate(table, fields.join(' ')); // Aplica populate dinámicamente
+        }
+
+        if (sort) {
+            query = query.sort(sort);
+        }
+
+        return query.exec(); // Esto debería funcionar correctamente si los tipos son compatibles
+    }   
+
     async startSession(): Promise<ClientSession> {
         return this.requestModel.startSession();
     }
 
+    // async findAll(populateFields: { [key: string]: string[] }={}): Promise<RequestDocument[]> {
+    //     return await this.findWithPopulate({}, populateFields,{createdTimestamp: 'desc'});
+    // }
+
+    
     async findAll(): Promise<RequestDocument[]> {
-        return this.requestModel.find().sort({createdTimestamp: 'desc'}).exec();
+        return await this.requestModel.find().populate("userId").populate("tripId").sort({createdTimestamp: 'desc'}).exec();
     }
+
     async findById(id: string): Promise<RequestDocument> {
+        // const idObj = new mongoose.Types.ObjectId(id);
         return this.requestModel.findById(id).sort({createdTimestamp: 'desc'}).exec();
     }
 
-    async find(campoos: {}): Promise<RequestDocument> {
-        return this.requestModel.findOne(campoos).exec();   
+    async find(campoos: {}): Promise<RequestDocument[]> {
+        return this.requestModel.find(campoos).select('-__v').sort({createdTimestamp: 'desc'}).exec();   
     }
 
-    async findMyRequest(): Promise<RequestDocument[]> {
+    async findAllRequest(): Promise<RequestDocument[]> {
         return this.requestModel.find().sort({createdTimestamp: 'desc'}).exec();
     }
 
@@ -55,6 +72,7 @@ export class RequestMongodbRepository implements IRequestRepository {
             const newRequest = new this.requestModel(
             {
               email : req.email,
+              userId : req.userId,
               tripId : req.tripId,
               description : req.description,
               hasEquipment : req.hasEquipment,
@@ -78,7 +96,7 @@ export class RequestMongodbRepository implements IRequestRepository {
         const request = await this.requestModel
         .findOneAndUpdate(
             {_id: id}, req, { new: true }
-        ).exec();
+        ).populate("userId").populate("tripId").exec();
         return request;
     }
 

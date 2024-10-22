@@ -13,6 +13,9 @@ async function bootstrap() {
     logger:['log','error']
   });
 
+
+  mongoose.set('strictPopulate', false);
+  
   const config = new DocumentBuilder()
     .setTitle('COMVI - API')
     .setDescription('Proyecto Final ISI UTN')

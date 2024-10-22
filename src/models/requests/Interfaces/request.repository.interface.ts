@@ -12,8 +12,8 @@ export interface IRequestRepository extends IRepository<Request, RequestDocument
     create(createRequest: Request): Promise<RequestDocument>;
     findAll(): Promise<RequestDocument[]>;
     findById(id: string): Promise<RequestDocument>;
-    find(campoos:{}): Promise<RequestDocument>;
-    update(id: string, updateDTO: RequestDocument): Promise<RequestDocument>;
+    find(campoos:{}): Promise<RequestDocument[]>;
+    update(id: string, updateDTO: Request): Promise<RequestDocument>;
     delete(id: string): Promise<void>;
     getRequest(req:RequestDocument): Request; 
   }
