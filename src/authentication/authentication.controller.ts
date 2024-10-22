@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, HttpCode,Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpCode,Request, Req } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { AuthService } from './authentication.service';
@@ -9,16 +9,18 @@ import { UserVerificationDTO } from 'src/models/users/dto/user-verification.dto'
 
 import { UserDTO } from 'src/models/users/interfaces/user-details.interface';
 import { UserValidatedDTO } from 'src/models/users/interfaces/user-validated.interface';
-import { exLogin, exLoginResponse, exPasswordToken, exRegisterUser, exRegisterUserResponse, exRequestResetPassword, exRequestResetPasswordResponse, exResetPassword, exValidatePasswordToken, exValidateToken ,exValidateTokenResponse } from '../swagger/swagger.mocks';
+import { exChangePasswordResponseBad, exChangePasswordResponseNotFound, exChangePasswordResponseOK, exLogin, exLoginResponse, exPasswordToken, exRegisterUser, exRegisterUserResponse, exRequestResetPassword, exRequestResetPasswordResponse, exResetPassword, exValidatePasswordToken, exValidateToken ,exValidateTokenResponse } from '../swagger/swagger.mocks';
 import { RequestResetPasswordDTO } from './dto/request-reset-password-dto';
 import { PasswordTokenDTO } from './dto/token-password.dto';
 import { ResetPasswordDTO } from './dto/reset-password-dto';
 import { ResponseDTO } from '@/common/interfaces/responses.interface';
+import { JwtAuthGuard } from './jwt/jwt-auth.guard';
 
 @ApiTags('auth')
 
 @Controller('auth')
 export class AuthController {
+  requestHelper: any;
   constructor(private readonly authService: AuthService) { }
 
   @Post('register')
@@ -115,21 +117,26 @@ export class AuthController {
     const {email} = reqDTO;
     return this.authService.requestResetPassword(email);
   }
-
+  
   @Post('/resetpassword')
-  @ApiOperation({ summary: 'Reset password' })
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Change your password while logged' })
   @ApiBody({
-    type: PasswordTokenDTO, examples: {
+    type: ResetPasswordDTO, examples: {
       example1: {
-        summary: 'Typical user login',
-        description: 'Example of a typical user login',
-        value: exResetPassword
+        summary: 'Typical user password change',
+        description: 'Example of a typical change pass request',
+        value: exRegisterUser
       }
     }
   }) // Información del cuerpo de la solicitud
-  @ApiResponse({ status: 200, description: 'Validation was succesfully.', example: exRequestResetPasswordResponse })
-  @HttpCode(200)
-  resetPassword(@Body() resetData: ResetPasswordDTO) :  Promise< ResponseDTO > {
+  @ApiResponse({ status: 200, description: 'Password was changed.', example:exChangePasswordResponseOK })
+  @ApiResponse({ status: 400, description: 'The password was wrong.', example:exChangePasswordResponseBad })
+  @ApiResponse({ status: 404, description: 'The user not exist.', example:exChangePasswordResponseNotFound })
+ 
+  resetPassword(@Body() resetData: ResetPasswordDTO, @Req() request: Request) :  Promise<ResponseDTO> {
+    const email = this.requestHelper.getPayload(request);
+    resetData.email = email;	
     return this.authService.resetPassword(resetData);
   }
 }

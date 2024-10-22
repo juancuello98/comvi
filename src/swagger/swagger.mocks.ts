@@ -125,6 +125,27 @@ export const exCancelRequestResponse = {
   status: 200
 }
 
+export const exChangePasswordResponseOK= {
+  hasError: false,
+  message: 'Password changed succesfully',
+  data: {  },
+  status: 200
+}
+
+export const exChangePasswordResponseBad = {
+  hasError: true,
+  message: 'The password was wrong',
+  data: {  },
+  status: 400
+}
+
+export const exChangePasswordResponseNotFound = {
+  hasError: true,
+  message: 'The user not exist',
+  data: {  },
+  status: 400
+}
+
 
 export const exFindRequestResponse = {
   hasError: false,
