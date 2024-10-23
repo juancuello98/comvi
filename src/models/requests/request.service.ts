@@ -358,7 +358,7 @@ export class RequestService {
       const newRequest = new Request();
       newRequest.userId = user.id;
       newRequest.email = req.email;
-      newRequest.tripId =  trip.id;
+      newRequest.tripId =  trip._id;
       newRequest.description = req.description;
       newRequest.hasEquipment = req.hasEquipment;
       newRequest.hasPartner = req.hasPartner;
