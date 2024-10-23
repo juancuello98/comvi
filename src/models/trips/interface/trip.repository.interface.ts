@@ -1,16 +1,18 @@
+import { ClientSession } from "mongoose";
 import { NewTripDTO } from "../dto/new-trip.dto";
 import { TripStatus } from "../enums/state.enum";
-import { Trip } from "../trip.schema";
+import { Trip, TripDocument } from "../trip.schema";
 
 export interface ITripRepository {
-  findByDriver(driver: string): Promise<Trip[]|any[]>;
-  find(field: Record<string, any>): Promise<Trip[]|any[]>;
-  findByIdWithDriver(id: string): Promise<Trip|any> ;
-  findById(id: string): Promise<Trip|any> ;
-  findNonDriverTrips(email: string) : Promise<Trip[]|any[]>;
-  create(trip: NewTripDTO): Promise<Trip|any>;
-  update(trip: Trip) : Promise<Trip>;
-  updateStatus(tripId: string, newStatus: TripStatus): Promise<Trip|any>;
-  findByIdAndDriver(driver: string, id: string): Promise<Trip|any>;
+  getSession(): Promise<ClientSession>;
+  findByDriver(driver: string): Promise<TripDocument[]|any[]>;
+  find(field: Record<string, any>): Promise<TripDocument[]|any[]>;
+  findByIdWithDriver(id: string): Promise<TripDocument|any> ;
+  findById(id: string): Promise<TripDocument|any> ;
+  findNonDriverTrips(email: string) : Promise<TripDocument[]|any[]>;
+  create(trip: NewTripDTO): Promise<TripDocument|any>;
+  update(trip: Trip) : Promise<TripDocument>;
+  updateStatus(tripId: string, newStatus: TripStatus): Promise<TripDocument|any>;
+  findByIdAndDriver(driver: string, id: string): Promise<TripDocument|any>;
   passengersByTrip( id: string): Promise<any> 
   }

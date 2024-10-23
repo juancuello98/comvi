@@ -27,8 +27,8 @@ export class RequestMongodbRepository implements IRequestRepository {
         return this.requestModel.findById(id).sort({createdTimestamp: 'desc'}).exec();
     }
 
-    async find(campoos: {}): Promise<RequestDocument> {
-        return this.requestModel.findOne(campoos).exec();   
+    async find(campoos: {}): Promise<RequestDocument[]> {
+        return this.requestModel.findOne(campoos);   
     }
 
     async findMyRequest(): Promise<RequestDocument[]> {

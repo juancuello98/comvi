@@ -7,7 +7,7 @@ import {
 import { ResponseDTO } from '@/common/interfaces/responses.interface';
 import { Trip } from './trip.schema';
 import { TripStatus } from './enums/state.enum';
-import { TripResumeRepository } from './resumes/trip.resume.repository';
+import { TripResumeRepository } from './resumes/repository/trip.resume.repository';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { ITripRepository } from './interface/trip.repository.interface';
@@ -15,6 +15,7 @@ import { ITRIP_REPOSITORY } from './repository/constants/trip.repository.constan
 import { ResponseHelper } from '@/common/helpers/http/response.helper';
 import { LocationService } from '../locations/location.service';
 import { Location } from '@/locations/location-schema';
+import { ITRIP_RESUME_REPOSITORY } from './resumes/repository/constants/trip.resume.repository.constant';
 
 @Injectable()
 export class TripService {
@@ -23,6 +24,7 @@ export class TripService {
   constructor(
     @Inject(ITRIP_REPOSITORY)
     private readonly tripRepository: ITripRepository,
+    @Inject(ITRIP_RESUME_REPOSITORY)
     private readonly tripResumeRepository: TripResumeRepository,
     private readonly responseHelper: ResponseHelper,
     private readonly locationService: LocationService,
@@ -227,7 +229,6 @@ export class TripService {
     this.logger.log(`Trip status updated to ${status}`);
 
     const resume = await this.tripResumeRepository.findById(trip.tripResumeId);
-    resume.endedTimestamp = new Date().toISOString();
     const resumeId = (await this.tripResumeRepository.update(resume)).id;
 
     this.logger.log(`Trip resume ${resumeId} updated.`);

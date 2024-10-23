@@ -1,26 +1,29 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Puntaje } from './puntaje.enums';
+import { TripDocument } from '@/trips/trip.schema';
+import { UserDocument } from '@/users/user.schema';
 
-export type ValuationDocument = Document<Valuation>;
+export type ValuationDocument = Valuation & Document;
 
-@Schema() // Marca una clase como definición de esquema
+@Schema({ timestamps: true })// Marca una clase como definición de esquema y añade timestamps
 // @Prop : Define una propiedad en el documento
 export class Valuation {
+
+  @Prop({ required: false })
+  id: string;
+  
   @Prop({ required: true })
   email: string;
 
-  @Prop({ required: true })
-  tripId: string;
+  @Prop({ required:true, type: MongooseSchema.Types.ObjectId, ref: 'Trips' })
+  tripId: string|TripDocument;
+
+  @Prop({ required:true, type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  userId: string|UserDocument;
 
   @Prop()
   detalle: string;
-
-  @Prop({ required: true })
-  fechaHoraCreado: string;
-
-  @Prop({ required: true })
-  fechaHoraModificado: string;
 
   @Prop({ required: true, type: Number})
   puntaje: Puntaje;

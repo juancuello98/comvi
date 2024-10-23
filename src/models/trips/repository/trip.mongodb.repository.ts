@@ -1,6 +1,6 @@
 
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 import { NewTripDTO } from '../dto/new-trip.dto';
 import { TripStatus } from '../enums/state.enum';
 import { Trip, TripDocument } from '../trip.schema';
@@ -12,6 +12,9 @@ export class TripMongodbRepository implements ITripRepository {
     @InjectModel(Trip.name) private readonly tripModel: Model<TripDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
+  async getSession(): Promise<ClientSession> {
+    return this.tripModel.db.startSession();
+  }
 
   async findByDriver(driver: string): Promise<Trip[]|any[]> {
 
