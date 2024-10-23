@@ -37,10 +37,9 @@ export class TripResumeRepository {
   }
 
   async create(resume: TripResume) {
-    const createdTimestamp = new Date().toISOString();
+    
     const newResume = await this.tripResumeModel.create({
-      ...resume,
-      createdTimestamp
+      ...resume
     });
     return newResume;
     
