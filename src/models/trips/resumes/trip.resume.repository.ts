@@ -11,11 +11,21 @@ export class TripResumeRepository {
     private readonly tripResumeModel: Model<TripResumeDocument>,
   ) {}
 
+  async findAll(): Promise<TripResumeDocument[]> {
+    const trips = await this.tripResumeModel.find()
+    .select('-__v -_id')
+    .populate('passengers')
+    .populate('valuations')
+    .select('-__v -_id')
+    .exec();
+    return trips;
+  }
+
   async findById(id: any): Promise<TripResumeDocument> {
     const trip = await this.tripResumeModel.findOne({id})
     .select('-__v -_id')
-    .populate('Users')
-    .populate('Valuations')
+    .populate('passengers')
+    .populate('valuations')
     .select('-__v -_id')
     .exec();
     return trip;
@@ -26,7 +36,7 @@ export class TripResumeRepository {
     return tripUpdated;
   }
 
-  async create(resume: NewResumeDTO) {
+  async create(resume: TripResume) {
     const createdTimestamp = new Date().toISOString();
     const newResume = await this.tripResumeModel.create({
       ...resume,

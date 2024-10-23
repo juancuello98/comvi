@@ -7,7 +7,7 @@ export type TripResumeDocument = TripResume & Document;
 /**
  * Esquema para representar un resumen de viaje en la base de datos.
  */
-@Schema()
+@Schema({ timestamps: true })
 export class TripResume {
   /**
    * @property {User[]} passengers - Lista de IDs de los pasajeros del viaje.
