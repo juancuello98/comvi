@@ -14,8 +14,8 @@ export class Request {
   @Prop({ required: true})
   email: string;
 
-  @Prop({ required: true, type: MongooseSchema.Types.UUID, ref: 'Trips' })
-  tripId: TripDocument|string;
+  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Trips' })
+  tripId: TripDocument|MongooseSchema.Types.ObjectId;
 
   @Prop({ required: true })
   description: string;

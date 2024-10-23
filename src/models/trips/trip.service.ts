@@ -206,12 +206,12 @@ export class TripService {
       );
     }
 
-    const resume = await this.tripResumeRepository.create(
-      { passengers: trip.bookings,
-        valuations: [],
-       }
-    );
-
+    const resume = await this.tripResumeRepository.create({
+      passengers: trip.bookings,
+      valuations: [],
+      startedTimestamp: trip.startedTimestamp, // Asegúrate de que estas propiedades existan en `trip`
+      endedTimestamp: trip.endedTimestamp,
+    });
     const resumeId = resume.id;
 
     this.logger.log(`Trip resume created with id ${resumeId}`);
