@@ -4,9 +4,9 @@ import { TripDocument } from "@/trips/trip.schema";
 import { ResponseDTO } from "@/common/interfaces/responses.interface";
 
 export interface changeStatusInterface {
-    driver: UserDocument;
-    passenger: UserDocument,
-    trip: TripDocument,	
-    request: RequestDocument
-    response: ResponseDTO
+    actioner: UserDocument|any;
+    passenger: UserDocument|any,
+    trip: TripDocument|any,	
+    request: RequestDocument|any,
+    response: ResponseDTO|any
   }

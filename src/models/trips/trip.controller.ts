@@ -40,7 +40,8 @@ export class TripController {
   @Post('/publish')
   async create(@Request() req, @Body() trip: NewTripDTO): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req)
-    return await this.tripsService.create({ ...trip, driver });
+    trip.driver = driver;
+    return await this.tripsService.create({ ...trip });
   }
 
   @ApiOperation({ summary: 'Get list of trips.' })
@@ -49,8 +50,7 @@ export class TripController {
    })
   @Get('/list')
   async findAll(@Request() req): Promise<ResponseDTO> {
-    const driver = this.requestHelper.getPayload(req);
-    return this.tripsService.findNonDriverTrips(driver);
+    return this.tripsService.findAll();
   }
 
   @ApiOperation({ summary: 'Get trip by id.' })
@@ -89,7 +89,7 @@ export class TripController {
   @ApiBearerAuth()
   @Post('/cancel/:id')
   async cancel(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
-    const driver = this.requestHelper.getPayload(req);
+    // const driver = this.requestHelper.getPayload(req);
     const resp = await this.tripsService.cancel(id);
     return resp;
   }

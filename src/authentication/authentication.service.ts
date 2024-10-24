@@ -168,7 +168,7 @@ export class AuthService {
 
       const userData = this.userRepository.getUserData(user);
 
-      const token = this.loginWithCredentials(userData);
+      const token = await this.loginWithCredentials(userData);
 
       return this.responseHelper.makeResponse(
         false,
@@ -178,7 +178,7 @@ export class AuthService {
       );
     } 
     catch (error) {
-      switch (error.message) {
+      switch (error) {
         case ValidateResult.USER_NOT_FOUND:
           return this.responseHelper.makeResponse(
             true,
@@ -201,7 +201,7 @@ export class AuthService {
             HttpStatus.UNAUTHORIZED,
           );
         default:
-          this.logger.error(error.message);
+          this.logger.error(error);
           return this.responseHelper.makeResponse(
             true,
             error.message,

@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory,  } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
+import { Trip, TripDocument } from '../trips';
+import { UserDocument } from '@/users/user.schema';
 
 export type RequestDocument = Request & Document;
 
@@ -7,13 +9,13 @@ export type RequestDocument = Request & Document;
 export class Request {
   
   @Prop({ required: true , type: MongooseSchema.Types.ObjectId, ref: 'User' })
-  userId: string;
+  userId: UserDocument|string;
   
-  @Prop({ required: true })
+  @Prop({ required: true})
   email: string;
 
-  @Prop({ required:true, type: MongooseSchema.Types.ObjectId, ref: 'Trips' })
-  tripId: string;
+  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Trips' })
+  tripId: TripDocument|string;
 
   @Prop({ required: true })
   description: string;

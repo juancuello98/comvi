@@ -16,7 +16,8 @@ import { Trip} from '@/trips/trip.schema';
 import { TripResume } from '@/trips/resumes/trip.resume.schema'; 
 import { ITRIP_RESUME_REPOSITORY } from '@/trips/resumes/repository/constants/trip.resume.repository.constant';
 import { ITripResumeRepository } from '@/trips/resumes/interface/trip.repository.interface';
-
+import { Schema as MongooseSchema } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
 @Injectable()
 export class ValuationsService {
   private readonly logger = new Logger(ValuationsService.name);
@@ -290,12 +291,22 @@ export class ValuationsService {
       let ValSession; 
       let TripRSession; 
       let deletedValuation;
+      deletedValuation = await this.valuationRepository.deleteValuation(id);
+      if (!deletedValuation) {
+        this.logger.log(`The valuation couldnt been founded ${id}`);
+        return this.responseHelper.makeResponse(
+          false,
+          `Not deleted valuation ${id}`,
+          null,
+          HttpStatus.NOT_MODIFIED,
+        );
+      }
+
       try {
         ValSession = await this.valuationRepository.getSession();
         TripRSession = await this.tripResumeRepository.getSession();
-        deletedValuation = await this.valuationRepository.deleteValuation(id);
         const tripResume = await this.tripResumeRepository.findById(deletedValuation.tripId);
-        const valuationsSet = new Set(tripResume.valuations);
+        const valuationsSet = new Set(tripResume.valuations.map(v => v.id?v.id:v));
         valuationsSet.delete(id);
         tripResume.valuations = Array.from(valuationsSet);
         await tripResume.save({ session: TripRSession });
@@ -311,15 +322,7 @@ export class ValuationsService {
         await TripRSession.endSession();
       }
 
-      if (!deletedValuation) {
-        this.logger.log(`The valuation couldnt ben erased ${id}`);
-        return this.responseHelper.makeResponse(
-          false,
-          `Not deleted valuation ${id}`,
-          null,
-          HttpStatus.NOT_MODIFIED,
-        );
-      }
+
       this.logger.log(
         `The valuation of the trip ${deletedValuation.tripId} for user ${deletedValuation.email} was deleted`,
       );
