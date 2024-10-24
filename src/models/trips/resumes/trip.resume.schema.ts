@@ -7,31 +7,26 @@ export type TripResumeDocument = TripResume & Document;
 /**
  * Esquema para representar un resumen de viaje en la base de datos.
  */
-@Schema()
+@Schema({ timestamps: true })
 export class TripResume {
   /**
    * @property {User[]} passengers - Lista de IDs de los pasajeros del viaje.
    */
-  @Prop({ required: true, type: [{ type: MongooseSchema.Types.ObjectId, ref: 'User' }] })
-  passengers: MongooseSchema.Types.ObjectId[] | User[];
+  @Prop({ required: true, type: [{ type: [MongooseSchema.Types.ObjectId], ref: 'User' }] })
+  passengers: string[] | User[];
 
   /**
    * @property {Valuation[]} valuations - Lista de IDs de las valuaciones asociadas al viaje.
    */
-  @Prop({ required: true, type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Valuation' }] })
-  valuations: MongooseSchema.Types.ObjectId[] | Valuation[];
+  @Prop({ required: true, type: [{ type: [MongooseSchema.Types.ObjectId], ref: 'Valuation' }] })
+  valuations: string[] | Valuation[];
 
   /**
-   * @property {string} startedTimestamp - Marca de tiempo de inicio del viaje.
+   * @property {string} id - id del Trip.
    */
-  @Prop({ required: true })
-  startedTimestamp: string;
-
-  /**
-   * @property {string} endedTimestamp - Marca de tiempo de finalización del viaje.
-   */
-  @Prop()
-  endedTimestamp: string;
+  @Prop({ required:true, type: MongooseSchema.Types.ObjectId, ref: 'Trip' })
+  tripId: string;
+  
 }
 
 export const TripResumeSchema = SchemaFactory.createForClass(TripResume);

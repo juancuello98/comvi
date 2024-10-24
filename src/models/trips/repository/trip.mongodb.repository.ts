@@ -1,6 +1,6 @@
 
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 import { NewTripDTO } from '../dto/new-trip.dto';
 import { TripStatus } from '../enums/state.enum';
 import { Trip, TripDocument } from '../trip.schema';
@@ -12,6 +12,9 @@ export class TripMongodbRepository implements ITripRepository {
     @InjectModel(Trip.name) private readonly tripModel: Model<TripDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
+  async getSession(): Promise<ClientSession> {
+    return this.tripModel.db.startSession();
+  }
 
   async findByDriver(driver: string): Promise<TripDocument[]|any[]> {
 
@@ -85,7 +88,58 @@ export class TripMongodbRepository implements ITripRepository {
   }
 
   async findById(id: string): Promise<TripDocument|any> {
-    const trip = await this.tripModel.findOne({id}).select('-__v -id') 
+    const trip = await this.tripModel.findById(id).select('-__v -id') 
+            .populate({
+                path: 'driver', 
+                select: '-__v -id -password -status -verificationCode -resetPasswordToken' 
+            })
+            .populate({
+                path: 'passengers', 
+                select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+            })
+            .populate({
+              path: 'vehicle', 
+              select: '-__v -id' 
+            	})
+            .populate({
+                path: 'origin', 
+                select: '-__v -id' 
+              }) 
+              .populate({
+                path: 'destination', 
+                select: '-__v -id' 
+              }) 
+              .populate({
+                path: 'bookings', 
+                select: '-__v -id' 
+              })
+              .populate({
+                path: 'bookings', 
+                select: '-__v -id' 
+              })
+              .populate({
+                path: 'tripRequests', 
+                select: '-__v -id' })
+             
+                .populate({
+                  path: 'tripResumeId', 
+                  select: '-__v -id',
+                  populate: [
+                      { 
+                          path: 'valuations', 
+                          select: '-__v -id' 
+                      },
+                      { 
+                          path: 'passengers', 
+                          select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+                      }
+                  ]
+              }).exec();
+    return trip;
+  }
+
+  async findByUUIDd(id: string): Promise<TripDocument|any> {
+    const trip = await this.tripModel.find({id}).select('-__v -id') 
             .populate({
                 path: 'driver', 
                 select: '-__v -id -password -status -verificationCode -resetPasswordToken' 

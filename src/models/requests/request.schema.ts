@@ -9,12 +9,12 @@ export type RequestDocument = Request & Document;
 export class Request {
   
   @Prop({ required: true , type: MongooseSchema.Types.ObjectId, ref: 'User' })
-  userId: UserDocument|MongooseSchema.Types.ObjectId;
+  userId: UserDocument|string;
   
   @Prop({ required: true})
   email: string;
 
-  @Prop({ required: true, type: MongooseSchema.Types.UUID, ref: 'Trips' })
+  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Trips' })
   tripId: TripDocument|string;
 
   @Prop({ required: true })

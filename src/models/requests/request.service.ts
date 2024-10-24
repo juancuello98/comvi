@@ -14,7 +14,6 @@ import { IUserRepository } from '@/users/interfaces/user.repository.interface';
 import { changeStatusInterface } from './Interfaces/changeStatus.Interface';
 import { ExtendedRequestDTO } from './dto/extended-request.dto';
 import { TripDocument, TripResume } from '../trips';
-import mongoose, { Schema as MongooseSchema } from 'mongoose';
 import { TripStatus } from '@/trips/enums/state.enum';
 import { ITRIP_RESUME_REPOSITORY } from '@/trips/resumes/constants/trip.resume.repository.constant';
 import { ITripResumeRepository } from '@/trips/resumes/interface/trip.resume.repository.interface';
@@ -31,11 +30,6 @@ export class RequestService {
     private readonly responseHelper : ResponseHelper,
     @Inject(IREQUEST_REPOSITORY) private readonly requestRepository: IRequestRepository,
   ){}
-
-//   async findByStatus(status: string): Promise<ResponseDTO> {
-//     const requests = this.requestRepository.find({status}).exec();
-//     return this.responseHelper.makeResponse(true,'requests by status succesfully.',requests,HttpStatus.OK)
-//   }
 
   async findMyRequests(email: string): Promise<ResponseDTO> {
 
@@ -218,7 +212,22 @@ export class RequestService {
 
       const destination = trip.destination.locality //Juan fijate que cuando uso la prop destination no me deja usar la prop locality
       
-      const mail = await this.mailService.sendAcceptedRequestNotification(passenger.email,passenger.name,actioner.name,origin,destination,req.description); //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema
+      const mail = this.mailService.sendAcceptedRequestNotification(passenger.email,passenger.name,actioner.name,origin,destination,req.description); //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema
+
+      if (trip.tripResumeId) {
+        const tripResume = await this.tripResumeRepository.findById(trip.tripResumeId);
+        tripResume.passengers.push(passenger.id);
+        await tripResume.save();
+      }
+      else{
+        const tripResume = new TripResume();
+
+        tripResume.passengers = [passenger.id];
+        const tripResumeDoc = await this.tripResumeRepository.create(tripResume);
+
+        trip.tripResumeId = tripResumeDoc.id;
+        await trip.save();
+      }
 
       return this.responseHelper.makeResponse(false,'Request accepted succesfully.',null,HttpStatus.OK);
     }
@@ -261,14 +270,18 @@ export class RequestService {
       const {request, response, passenger,actioner, trip} = await this.changeStatusOfRequest(req,passengerEmail,StatusRequest.CANCELLED);
       
       if (response) return response;
-      
-      // const mail = await this.mailService.sendAcceptedRequestNotification(passenger.email,passenger.name,driver.name,trip.origin.locality,trip.destination.locality,req.description);
-
+    
       const origin = trip.origin.locality //Juan fijate que cuando uso la prop origin no me deja usar la prop locality
 
       const destination = trip.destination.locality //Juan fijate que cuando uso la prop destination no me deja usar la prop locality
       
       const mail = await this.mailService.sendCanceledRequestNotification(passenger.email,passenger.name,actioner.name,origin,destination,req.description); //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema
+
+      if (trip.tripResumeId) {
+        const tripResume = await this.tripResumeRepository.findById(trip.tripResumeId);
+        tripResume.passengers = tripResume.passengers.filter(x => x != passenger.id);
+        await tripResume.save();}
+
 
       return this.responseHelper.makeResponse(false,'Request canceled succesfully.',request,HttpStatus.OK);
     }
@@ -345,7 +358,7 @@ export class RequestService {
       const newRequest = new Request();
       newRequest.userId = user.id;
       newRequest.email = req.email;
-      newRequest.tripId =  trip.id;
+      newRequest.tripId =  trip._id;
       newRequest.description = req.description;
       newRequest.hasEquipment = req.hasEquipment;
       newRequest.hasPartner = req.hasPartner;
@@ -464,7 +477,6 @@ export class RequestService {
     }
   }
 
-
   async getRequestsByTripsId(tripId: string){
     try {
       
@@ -502,27 +514,9 @@ export class RequestService {
 
   }
 
-
   custom_sort(a, b) {
     return new Date(b.createdTimestamp).getTime() - new Date(a.createdTimestamp).getTime();
   }
-
-  // async getRequests( trip : TripDocument){
-  //   let requests = [];
-
-  //   for (const req in trip.tripsRequests) {
-
-  //     let id = trip.tripsRequests[req];
-
-  //     let requestFounded = await this.requestModel.findById(id);
-
-  //     requests.push(await this._getRequestDetails(requestFounded,trip));
-
-  //     console.log(`${trip.id}: ${JSON.stringify(requests)}`);
-  //   }
-
-  //   return requests;
-  // }
 
   async _getRequestDetails(request : RequestDocument, trip: TripDocument){
     const user = await this.userRepository.findByEmail(request.email);
@@ -545,10 +539,5 @@ export class RequestService {
     }
   }
 
-  // async processSendRequest(request: any, userEmail: string){
-  //   await this.userService.updateUserRequests(userEmail,request.id);
-  //   await this.tripService.updateTripRequests(request.tripId,request.id)
-  //   await this.sendNotificacion(payload) TODO: Notificar al usuario conductor de la nueva solicitud en su viaje
-  // }
 
 }
