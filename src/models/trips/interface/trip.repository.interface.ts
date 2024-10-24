@@ -2,7 +2,6 @@ import { ClientSession } from "mongoose";
 import { NewTripDTO } from "../dto/new-trip.dto";
 import { TripStatus } from "../enums/state.enum";
 import { Trip, TripDocument } from "../trip.schema";
-import { Trip, TripDocument } from "../trip.schema";
 
 export interface ITripRepository {
   getSession(): Promise<ClientSession>;
