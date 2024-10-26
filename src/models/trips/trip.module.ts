@@ -12,6 +12,8 @@ import { ITRIP_REPOSITORY } from './repository/constants/trip.repository.constan
 import { UserModule } from '../users/user.module';
 import { LocationModule } from '../locations/location.module';
 import { ITRIP_RESUME_REPOSITORY } from './resumes/constants/trip.resume.repository.constant';
+import { Vehicle } from '@/vehicles/vehicles.schema';
+import { VehiclesModule } from '@/vehicles/vehicles.module';
 
 
 @Module({
@@ -23,6 +25,7 @@ import { ITRIP_RESUME_REPOSITORY } from './resumes/constants/trip.resume.reposit
     ]),
     CommonModule,
     UserModule,
+    VehiclesModule,
     LocationModule
   ],
   controllers: [TripController],
