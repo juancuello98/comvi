@@ -31,6 +31,8 @@ export class TripService {
     private readonly tripRepository: ITripRepository,
     @Inject(ITRIP_RESUME_REPOSITORY)
     private readonly tripResumeRepository: ITripResumeRepository,
+    @Inject(IVEHICLE_REPOSITORY)
+    private readonly vehicleRepository: IVehicleRepository,
     private readonly responseHelper: ResponseHelper,
     private readonly locationService: LocationService,
   ) { }
@@ -140,17 +142,139 @@ export class TripService {
 
   async create(trip: NewTripDTO): Promise<ResponseDTO> {
     try {
-      const driver = (await this.userRepository.findByEmail(trip.driver))._id;
-      const origin = (await this.locationService.create((trip.origin as Location))).id;
-      const destination = (await this.locationService.create(trip.destination as Location)).id;
-      const id = uuidv4();
-      const status = TripStatus.OPEN;
-      const placesAvailable = trip.peopleQuantity;
-      const createdTimestamp = new Date().toISOString();
-      const input = Object.assign(trip, { id, origin, destination, status, placesAvailable, createdTimestamp, driver });
+      let response;
+      let message = 'Trip was created succesfully.';
+      let driver = (await this.userRepository.findByEmail(trip.driver));
+      let origin = (await this.locationService.create((trip.origin as Location)));
+      let destination = (await this.locationService.create(trip.destination as Location));
+      let vehicle = (await this.vehicleRepository.findByPatent(trip.vehicle));
+      if (!driver )
+      {
+        return this.responseHelper.makeResponse(
+          false,
+          'Driver not found',
+          null,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      if (!origin )
+      {
+        return this.responseHelper.makeResponse(
+          false,
+          'Origin not found',
+          null,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      if (!destination )
+      {
+        return this.responseHelper.makeResponse(
+          false,
+          'Destination not found',
+          null,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      if (trip.peopleQuantity < 1)
+      {
+        return this.responseHelper.makeResponse(
+          false,
+          'People quantity must be greater than 0',
+          null,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (trip.peopleQuantity < 1)
+        {
+          return this.responseHelper.makeResponse(
+            false,
+            'People quantity must be greater than 0',
+            null,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      if (trip.allowPassenger === false && trip.allowPackage === false)
+        {
+          return this.responseHelper.makeResponse(
+            false,
+            'Trip must allow passengers or packages',
+            null,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      if (!vehicle)
+      {
+        return this.responseHelper.makeResponse(
+          false,
+          'Vehicle not found',
+          null,
+          HttpStatus.NOT_FOUND,
+        );
+      }
 
-      const newTrip = await this.tripRepository.create(input);
-      const message = 'Trip was created succesfully.';
+      let newTrip;
+      
+      const sessionTrip = await this.tripRepository.getSession(); 
+      const sessionTripResume = await this.tripRepository.getSession(); 
+      
+      try{
+        sessionTrip.startTransaction();
+        sessionTripResume.startTransaction();
+        newTrip = new Trip();
+        
+        const id = uuidv4();
+        const status = TripStatus.OPEN;
+        const placesAvailable = trip.peopleQuantity;
+        // const input = {
+        //   id,
+        //   origin._id,
+        //   destination,
+        //   description: trip.description,
+        //   allowPackage: trip.allowPackage,
+        //   allowPassenger: trip.allowPassenger,
+        //   peopleQuantity: trip.peopleQuantity,
+        //   placesAvailable,
+        //   vehicle: trip.vehicle,
+        //   driver,
+        //   status,
+        // };
+        newTrip.origin = origin._id;
+        newTrip.destination = destination._id;
+        newTrip.description = trip.description;
+        newTrip.allowPackage = trip.allowPackage;
+        newTrip.allowPassenger = trip.allowPassenger;
+        newTrip.peopleQuantity = trip.peopleQuantity;
+        newTrip.placesAvailable = placesAvailable;
+        newTrip.driver = driver._id;
+        // newTrip.status = status;
+        newTrip.vehicle = vehicle._id;
+        const newTripResume = await this.tripResumeRepository.create({ passengers: [], valuations: [] });
+        newTrip.tripResumeId = newTripResume._id;
+        
+        const tripCreated = await this.tripRepository.create(newTrip);
+
+        await sessionTrip.commitTransaction();
+        await sessionTripResume.commitTransaction();
+
+      }
+      catch(e){
+        sessionTrip.abortTransaction();
+        sessionTripResume.abortTransaction();
+        
+        console.error('Error: ', e);
+        response = this.responseHelper.makeResponse(
+          true,
+          'Error in create trip',
+          e.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      finally{
+        sessionTrip.endSession();
+        sessionTripResume.endSession();
+      }
+      if(response) return response;
+
       return this.responseHelper.makeResponse(
         false,
         message,
@@ -216,9 +340,9 @@ export class TripService {
     });
     const resumeId = resume.id;
 
-    this.logger.log(`Trip resume created with id ${resumeId}`);
+    // this.logger.log(`Trip resume created with id ${resumeId}`);
 
-    trip.tripResumeId = resumeId;
+    // trip.tripResumeId = resumeId;
     trip.status = TripStatus.IN_PROGRESS;
     trip.startedTimestamp = date;
 

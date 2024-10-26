@@ -12,9 +12,8 @@ export class TripMongodbRepository implements ITripRepository {
     @InjectModel(Trip.name) private readonly tripModel: Model<TripDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
-  async getSession(): Promise<ClientSession> {
-    return this.tripModel.db.startSession();
-  }
+
+  async getSession(): Promise<ClientSession> {}
 
   async findByDriver(driver: string): Promise<TripDocument[]|any[]> {
 
@@ -291,7 +290,7 @@ export class TripMongodbRepository implements ITripRepository {
     return trip;
   }
 
-  async create(trip: NewTripDTO): Promise<TripDocument|any> {
+  async create(trip: Trip): Promise<TripDocument|any> {
     return await this.tripModel
     .create(trip);
   }

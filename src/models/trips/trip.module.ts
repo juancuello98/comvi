@@ -24,6 +24,7 @@ import { ITRIP_RESUME_REPOSITORY } from './resumes/repository/constants/trip.res
     ]),
     CommonModule,
     UserModule,
+    VehiclesModule,
     LocationModule
   ],
   controllers: [TripController],

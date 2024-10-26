@@ -17,6 +17,7 @@ import { TripDocument, TripResume } from '../trips';
 import { TripStatus } from '@/trips/enums/state.enum';
 import { ITRIP_RESUME_REPOSITORY } from '@/trips/resumes/constants/trip.resume.repository.constant';
 import { ITripResumeRepository } from '@/trips/resumes/interface/trip.resume.repository.interface';
+import { User } from '@/users/user.schema';
 @Injectable()
 export class RequestService {
 
@@ -279,12 +280,15 @@ export class RequestService {
 
       if (trip.tripResumeId) {
         const tripResume = await this.tripResumeRepository.findById(trip.tripResumeId);
-        tripResume.passengers = tripResume.passengers.filter(x => x != passenger.id);
+        if (typeof tripResume.passengers[0] === 'string') {
+          tripResume.passengers = (tripResume.passengers as string[]).filter(x => x !== passenger.id);
+        } else {
+          tripResume.passengers = (tripResume.passengers as User[]).filter(x => x.email !== passenger.email);
+        }
         await tripResume.save();}
-
-
-      return this.responseHelper.makeResponse(false,'Request canceled succesfully.',request,HttpStatus.OK);
-    }
+  
+        return this.responseHelper.makeResponse(false,'Request canceled succesfully.',request,HttpStatus.OK);
+      }
     catch(error){
       this.logger.error(error);
       return this.responseHelper.makeResponse(true,`${RequestService.name}: ${error.name} in send method.\n${error.message}`,null,HttpStatus.INTERNAL_SERVER_ERROR);
