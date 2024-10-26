@@ -1,3 +1,102 @@
+export const exCreateValuationRequest = {
+  tripId: "66d67cbdd6d5aa8b1baa2fcd",
+  puntaje: 5,
+  detalle: "Excelente viaje, muy cómodo y seguro."
+};
+
+export const exCreateValuationResponse = {
+  hasError: false,
+  message: 'Valuation created successfully.',
+  data: {
+    id: "66d67cbdd6d5aa8b1baa2fcd",
+    email: "admin@gmail.com",
+    tripId: "66d67cbdd6d5aa8b1baa2fcd",
+    puntaje: 5,
+    detalle: "Excelente viaje, muy cómodo y seguro.",
+    createdAt: "2024-09-02T14:00:00Z",
+    updatedAt: "2024-09-02T14:00:00Z"
+  },
+  status: 201
+};
+
+export const exFindAllValuationsResponse = {
+  hasError: false,
+  message: 'Successfully found valuations',
+  data: [
+    {
+      id: "66d67cbdd6d5aa8b1baa2fcd",
+      email: "admin@gmail.com",
+      tripId: "66d67cbdd6d5aa8b1baa2fcd",
+      puntaje: 5,
+      detalle: "Excelente viaje, muy cómodo y seguro.",
+      createdAt: "2024-09-02T14:00:00Z",
+      updatedAt: "2024-09-02T14:00:00Z"
+    },
+    {
+      id: "66d67cbdd6d5aa8b1baa2fce",
+      email: "user@example.com",
+      tripId: "66d67cbdd6d5aa8b1baa2fce",
+      puntaje: 4,
+      detalle: "Buen viaje, pero podría mejorar.",
+      createdAt: "2024-09-03T14:00:00Z",
+      updatedAt: "2024-09-03T14:00:00Z"
+    }
+  ],
+  status: 200
+};
+
+export const exFindOneValuationResponse = {
+  hasError: false,
+  message: 'Valuation Successfully founded',
+  data: {
+    id: "66d67cbdd6d5aa8b1baa2fcd",
+    email: "admin@gmail.com",
+    tripId: "66d67cbdd6d5aa8b1baa2fcd",
+    puntaje: 5,
+    detalle: "Excelente viaje, muy cómodo y seguro.",
+    createdAt: "2024-09-02T14:00:00Z",
+    updatedAt: "2024-09-02T14:00:00Z"
+  },
+  status: 200
+};
+
+export const exUpdateValuationRequest = {
+  id: "66d67cbdd6d5aa8b1baa2fcd",
+  tripId: "66d67cbdd6d5aa8b1baa2fcd",
+  puntaje: 4,
+  detalle: "Actualización: Buen viaje, pero podría mejorar."
+};
+
+export const exUpdateValuationResponse = {
+  hasError: false,
+  message: 'The valuation of the trip was updated',
+  data: {
+    id: "66d67cbdd6d5aa8b1baa2fcd",
+    email: "admin@gmail.com",
+    tripId: "66d67cbdd6d5aa8b1baa2fcd",
+    puntaje: 4,
+    detalle: "Actualización: Buen viaje, pero podría mejorar.",
+    createdAt: "2024-09-02T14:00:00Z",
+    updatedAt: "2024-09-02T14:00:00Z"
+  },
+  status: 200
+};
+
+export const exDeleteValuationResponse = {
+  hasError: false,
+  message: 'The valuation of the trip was deleted',
+  data: {
+    id: "66d67cbdd6d5aa8b1baa2fcd",
+    email: "admin@gmail.com",
+    tripId: "66d67cbdd6d5aa8b1baa2fcd",
+    puntaje: 5,
+    detalle: "Excelente viaje, muy cómodo y seguro.",
+    createdAt: "2024-09-02T14:00:00Z",
+    updatedAt: "2024-09-02T14:00:00Z"
+  },
+  status: 200
+};
+
 export const  exPasswordToken = {
   passwordToken: "Gonzales",
   email: "admin@gmail.com",

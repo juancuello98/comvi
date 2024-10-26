@@ -12,9 +12,8 @@ export class TripMongodbRepository implements ITripRepository {
     @InjectModel(Trip.name) private readonly tripModel: Model<TripDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
-  getSession(): Promise<ClientSession> {
-    return this.tripModel.db.startSession();
-  }
+
+  async getSession(): Promise<ClientSession> {}
 
   async findByDriver(driver: string): Promise<TripDocument[]|any[]> {
 
