@@ -228,19 +228,7 @@ export class TripService {
         const id = uuidv4();
         const status = TripStatus.OPEN;
         const placesAvailable = trip.peopleQuantity;
-        // const input = {
-        //   id,
-        //   origin._id,
-        //   destination,
-        //   description: trip.description,
-        //   allowPackage: trip.allowPackage,
-        //   allowPassenger: trip.allowPassenger,
-        //   peopleQuantity: trip.peopleQuantity,
-        //   placesAvailable,
-        //   vehicle: trip.vehicle,
-        //   driver,
-        //   status,
-        // };
+      
         newTrip.origin = origin._id;
         newTrip.destination = destination._id;
         newTrip.description = trip.description;
@@ -255,6 +243,9 @@ export class TripService {
         newTrip.tripResumeId = newTripResume._id;
         
         const tripCreated = await this.tripRepository.create(newTrip);
+
+
+        newTrip = tripCreated;
 
         await sessionTrip.commitTransaction();
         await sessionTripResume.commitTransaction();
