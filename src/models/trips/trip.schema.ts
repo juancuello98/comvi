@@ -11,7 +11,7 @@ import { TripResume } from './resumes/trip.resume.schema';
 // import { Booking } from '@/bookings/booking.schema'; // Juancito despues agrega esto
 export type TripDocument = Trip & Document;
 
-@Schema()
+@Schema({ timestamps: true })
 /**
  * Representa un viaje en la base de datos.
  *
@@ -21,7 +21,7 @@ export class Trip {
   /**
    * @property {string} id - UUID de viaje.
    */
-  @Prop({ required: true, type: MongooseSchema.Types.UUID, default: null })
+  // @Prop({ required: true, type: MongooseSchema.Types.UUID, default: null })
   id: string;
 
   /**
@@ -80,12 +80,6 @@ export class Trip {
   @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
   // driver: MongooseSchema.Types.ObjectId;
   driver: User | string;
-
-  /**
-   * @property {string} startedTimestamp - Marca de tiempo de inicio del viaje.
-   */
-  @Prop({ required: true, default: () => new Date().toISOString() })
-  startedTimestamp: string;
 
   /**
    * @property {TripStatus} status - Estado actual del viaje.
