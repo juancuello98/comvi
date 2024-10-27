@@ -7,7 +7,7 @@ import {
 import { ResponseDTO } from '@/common/interfaces/responses.interface';
 import { Trip } from './trip.schema';
 import { TripStatus } from './enums/state.enum';
-import { TripResumeRepository } from './resumes/trip.resume.repository';
+import { TripResumeRepository } from './resumes/repository/trip.resume.repository';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { ITripRepository } from './interface/trip.repository.interface';
@@ -17,11 +17,8 @@ import { LocationService } from '../locations/location.service';
 import { Location } from '@/locations/location-schema';
 import { IUserRepository } from '@/users/interfaces/user.repository.interface';
 import { IUSER_REPOSITORY } from '@/users/repository/constants/user.repository.constant';
-import { session } from 'passport';
-import { ITRIP_RESUME_REPOSITORY } from './resumes/constants/trip.resume.repository.constant';
-import { IVEHICLE_REPOSITORY } from '@/vehicles/repository/constants/vehicle.repository.constant';
+import { ITRIP_RESUME_REPOSITORY } from './resumes/repository/constants/trip.resume.repository.constant';
 import { ITripResumeRepository } from './resumes/interface/trip.resume.repository.interface';
-import { IVehicleRepository } from '@/vehicles/interfaces/vehicle.repository.interface';
 
 @Injectable()
 export class TripService {
@@ -327,11 +324,12 @@ export class TripService {
       );
     }
 
-    // const resume = await this.tripResumeRepository.create({
-    //   passengers: [],
-    //   valuations: []
-    // });
-    // const resumeId = resume.id;
+    const resume = await this.tripResumeRepository.create({
+      passengers: trip.bookings,
+      valuations: [],
+      tripId: trip.id,
+    });
+    const resumeId = resume.id;
 
     // this.logger.log(`Trip resume created with id ${resumeId}`);
 
@@ -371,7 +369,7 @@ export class TripService {
     this.logger.log(`Trip status updated to ${status}`);
 
     const resume = await this.tripResumeRepository.findById(trip.tripResumeId);
-    const resumeId = resume._id;
+    const resumeId = (await this.tripResumeRepository.update(resume, resume.id)).id;
 
     this.logger.log(`Trip resume ${resumeId} updated.`);
 

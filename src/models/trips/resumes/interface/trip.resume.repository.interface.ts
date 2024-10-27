@@ -1,5 +1,4 @@
 // import { TripReseume, TripResumeDocument } from '@/models/trips/resumes/trip.resume.schema';	
-
 // import { NewTripDTO } from "@/trips/dto/new-trip.dto";
 import { TripResumeDocument, TripResume } from "../trip.resume.schema";
 import { ClientSession } from "mongoose";

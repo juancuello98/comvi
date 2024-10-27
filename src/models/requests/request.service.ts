@@ -24,11 +24,11 @@ export class RequestService {
   private readonly logger = new Logger(RequestService.name);
 
   constructor(
-    @Inject(ITRIP_REPOSITORY) private readonly tripRepository: ITripRepository,
     private mailService: MailService,
+    private readonly responseHelper : ResponseHelper,
+    @Inject(ITRIP_REPOSITORY) private readonly tripRepository: ITripRepository,
     @Inject(IUSER_REPOSITORY) private readonly userRepository: IUserRepository,
     @Inject(ITRIP_RESUME_REPOSITORY) private readonly tripResumeRepository: ITripResumeRepository,
-    private readonly responseHelper : ResponseHelper,
     @Inject(IREQUEST_REPOSITORY) private readonly requestRepository: IRequestRepository,
   ){}
 

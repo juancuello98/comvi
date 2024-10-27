@@ -12,15 +12,19 @@ export class TripResume {
   /**
    * @property {User[]} passengers - Lista de IDs de los pasajeros del viaje.
    */
-  @Prop({ required: true, type: [{ type: MongooseSchema.Types.ObjectId, ref: 'User' }] })
-  passengers: string[] | User[];
+  @Prop({ required: true, type: [{ type: [MongooseSchema.Types.ObjectId], ref: 'User' }] })
 
   /**
    * @property {Valuation[]} valuations - Lista de IDs de las valuaciones asociadas al viaje.
    */
-  @Prop({ required: true, type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Valuation' }] })
-  valuations:string[] | Valuation[];
+  @Prop({ required: true, type: [{ type: [MongooseSchema.Types.ObjectId], ref: 'Valuation' }] })
+  valuations: string[] | Valuation[];
 
+  /**
+   * @property {string} id - id del Trip.
+   */
+  @Prop({ required:true, type: MongooseSchema.Types.ObjectId, ref: 'Trip' })
+  tripId: string;
 }
 
 export const TripResumeSchema = SchemaFactory.createForClass(TripResume);
