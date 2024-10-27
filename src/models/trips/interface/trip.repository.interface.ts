@@ -4,13 +4,16 @@ import { TripStatus } from "../enums/state.enum";
 import { Trip, TripDocument } from "../trip.schema";
 
 export interface ITripRepository {
-  getSession(): Promise<ClientSession>;
-  findByDriver(driver: string): Promise<TripDocument[]|any[]>;
-  find(field: Record<string, any>): Promise<TripDocument[]|any[]>;
-  findByIdWithDriver(id: string): Promise<TripDocument|any> ;
-  findById(id: string): Promise<TripDocument|any> ;
-  findNonDriverTrips(email: string) : Promise<TripDocument[]|any[]>;
-  create(trip: NewTripDTO): Promise<TripDocument|any>;
-  update(trip: Trip) : Promise<TripDocument>;
-  updateStatus(tripId: string, newStatus: TripStatus): Promise<TripDocument|any>;
-  findByIdAndDriver(driver: string, id: string): Promise<TripDocument|any>;
+  //getSession(): Promise<ClientSession>;
+  findAll(): Promise<Trip[]>;
+  findByDriver(driver: string): Promise<Trip[]>;
+  find(field: Record<string, any>): Promise<Trip[]>;
+  findByIdWithDriver(id: string): Promise<Trip> ;
+  findById(id: string): Promise<Trip> ;
+  findNonDriverTrips(email: string) : Promise<Trip[]>;
+  create(trip: Trip): Promise<Trip>;
+  update(trip: Trip) : Promise<Trip>;
+  updateStatus(tripId: string, newStatus: TripStatus): Promise<Trip>;
+  passengersByTrip(tripId: string): Promise<string[]>;
+}
+  // findByIdAndDriver(driver: string, id: string): Promise<Trip>;}

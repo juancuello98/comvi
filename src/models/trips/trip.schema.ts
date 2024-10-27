@@ -21,7 +21,7 @@ export class Trip {
   /**
    * @property {string} id - UUID de viaje.
    */
-  // @Prop({ required: true, type: MongooseSchema.Types.UUID, default: null })
+   @Prop({ required: true, type: MongooseSchema.Types.UUID, default: null })
   id: string;
 
   /**

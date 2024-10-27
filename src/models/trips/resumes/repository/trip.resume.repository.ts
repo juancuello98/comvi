@@ -11,11 +11,7 @@ export class TripResumeRepository implements ITripResumeRepository {
     private readonly tripResumeModel: Model<TripResumeDocument>,
   ) {}
 
-  async getSession(): Promise<ClientSession> {
-    return this.tripResumeModel.db.startSession();
-  }
-
-  async findById(id: any): Promise<TripResumeDocument> {
+  async findById(id: any): Promise<TripResume> {
     const trip = await this.tripResumeModel.findOne({ id })
       .select('-__v -_id')
       .populate('Users')
@@ -25,17 +21,13 @@ export class TripResumeRepository implements ITripResumeRepository {
     return trip;
   }
 
-  async update(resume: TripResumeDocument): Promise<TripResumeDocument> {
-    const tripUpdated = await resume.save();
+  async update(resume: TripResume, id: string): Promise<TripResume> {
+    const tripUpdated = await this.tripResumeModel.findOneAndUpdate(resume, { id }, { new: true });
     return tripUpdated;
   }
 
-  async create(resume: NewResumeDTO): Promise<TripResumeDocument> {
-    const createdTimestamp = new Date().toISOString();
-    const newResume = await this.tripResumeModel.create({
-      ...resume,
-      createdTimestamp,
-    });
+  async create(resume: TripResume): Promise<TripResume> {
+  const newResume = await this.tripResumeModel.create(resume);
     return newResume;
   }
 }

@@ -7,7 +7,7 @@ import {
 import { ResponseDTO } from '@/common/interfaces/responses.interface';
 import { Trip } from './trip.schema';
 import { TripStatus } from './enums/state.enum';
-import { TripResumeRepository } from './resumes/repository/trip.resume.repository';
+import { TripResumeRepository } from './resumes/trip.resume.repository';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { ITripRepository } from './interface/trip.repository.interface';
@@ -17,8 +17,12 @@ import { LocationService } from '../locations/location.service';
 import { Location } from '@/locations/location-schema';
 import { IUserRepository } from '@/users/interfaces/user.repository.interface';
 import { IUSER_REPOSITORY } from '@/users/repository/constants/user.repository.constant';
-import { ITRIP_RESUME_REPOSITORY } from './resumes/repository/constants/trip.resume.repository.constant';
+import { session } from 'passport';
+import { ITRIP_RESUME_REPOSITORY } from './resumes/constants/trip.resume.repository.constant';
+import { IVEHICLE_REPOSITORY } from '@/vehicles/repository/constants/vehicle.repository.constant';
 import { ITripResumeRepository } from './resumes/interface/trip.resume.repository.interface';
+import { IVehicleRepository } from '@/vehicles/interfaces/vehicle.repository.interface';
+import { TripResumeService } from './resumes/tripResume.service';
 
 @Injectable()
 export class TripService {
@@ -29,8 +33,7 @@ export class TripService {
     private readonly userRepository: IUserRepository,
     @Inject(ITRIP_REPOSITORY)
     private readonly tripRepository: ITripRepository,
-    @Inject(ITRIP_RESUME_REPOSITORY)
-    private readonly tripResumeRepository: ITripResumeRepository,
+    private readonly tripResumeService: TripResumeService,
     @Inject(IVEHICLE_REPOSITORY)
     private readonly vehicleRepository: IVehicleRepository,
     private readonly responseHelper: ResponseHelper,
@@ -214,18 +217,11 @@ export class TripService {
 
       let newTrip;
       
-      const sessionTrip = await this.tripRepository.getSession(); 
-      const sessionTripResume = await this.tripRepository.getSession(); 
-      
-      try{
-        sessionTrip.startTransaction();
-        sessionTripResume.startTransaction();
         newTrip = new Trip();
         
         const id = uuidv4();
         const status = TripStatus.OPEN;
         const placesAvailable = trip.peopleQuantity;
-      
         newTrip.origin = origin._id;
         newTrip.destination = destination._id;
         newTrip.description = trip.description;
@@ -236,34 +232,12 @@ export class TripService {
         newTrip.driver = driver._id;
         // newTrip.status = status;
         newTrip.vehicle = vehicle._id;
-        const newTripResume = await this.tripResumeRepository.create({ passengers: [], valuations: [] });
-        newTrip.tripResumeId = newTripResume._id;
-        
+          
         const tripCreated = await this.tripRepository.create(newTrip);
 
-
-        newTrip = tripCreated;
-
-        await sessionTrip.commitTransaction();
-        await sessionTripResume.commitTransaction();
-
-      }
-      catch(e){
-        sessionTrip.abortTransaction();
-        sessionTripResume.abortTransaction();
         
-        console.error('Error: ', e);
-        response = this.responseHelper.makeResponse(
-          true,
-          'Error in create trip',
-          e.message,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-      finally{
-        sessionTrip.endSession();
-        sessionTripResume.endSession();
-      }
+
+
       if(response) return response;
 
       return this.responseHelper.makeResponse(
@@ -302,7 +276,7 @@ export class TripService {
 
   async init(id: string, driver: string): Promise<ResponseDTO> { //TODO: Refactorizar esto
     const date = new Date().toISOString();
-    const trip = await this.tripRepository.findByIdAndDriver(driver, id);
+    const trip = await this.tripRepository.find({driver, _id: id})[0];
 
     if (!trip) {
       return this.responseHelper.makeResponse(
@@ -324,12 +298,11 @@ export class TripService {
       );
     }
 
-    const resume = await this.tripResumeRepository.create({
-      passengers: trip.bookings,
-      valuations: [],
-      tripId: trip.id,
-    });
-    const resumeId = resume.id;
+    // const resume = await this.tripResumeRepository.create({
+    //   passengers: [],
+    //   valuations: []
+    // });
+    // const resumeId = resume.id;
 
     // this.logger.log(`Trip resume created with id ${resumeId}`);
 
@@ -352,7 +325,7 @@ export class TripService {
   async finish(id: string, driver: string): Promise<ResponseDTO> {
     this.logger.log('Initialize process to finish trip...');
 
-    const trip = await this.tripRepository.findByIdAndDriver(driver, id);
+    const trip = await this.tripRepository.findById(id);
 
     if (!trip || trip.status !== TripStatus.IN_PROGRESS)
       return this.responseHelper.makeResponse(
@@ -368,10 +341,18 @@ export class TripService {
 
     this.logger.log(`Trip status updated to ${status}`);
 
-    const resume = await this.tripResumeRepository.findById(trip.tripResumeId);
-    const resumeId = (await this.tripResumeRepository.update(resume, resume.id)).id;
+    let res; let resId;
 
-    this.logger.log(`Trip resume ${resumeId} updated.`);
+    if ( typeof(trip.tripResumeId) == 'string') {
+      resId = trip.tripResumeId.toString();
+      res = await this.tripResumeService.findById(resId);
+    }
+    if ( typeof(trip.tripResumeId) == 'object') {
+      resId = trip.tripResumeId.id;
+      res = await this.tripResumeService.findById(resId);
+    }
+
+    this.logger.log(`Trip resume ${resId} updated.`);
 
     return this.responseHelper.makeResponse(
       false,

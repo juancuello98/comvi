@@ -13,9 +13,19 @@ export class TripMongodbRepository implements ITripRepository {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
-  async getSession(): Promise<ClientSession> {}
+  
 
-  async findByDriver(driver: string): Promise<TripDocument[]|any[]> {
+  getTrip(obj: any): Trip {
+    const trip = new Trip();
+    Object.keys(trip).forEach(key => {
+      if (obj[key] !== undefined) {
+        trip[key] = obj[key];
+      }
+    });
+    return trip;
+  }
+
+  async findByDriver(driver: string): Promise<Trip[]> {
 
     const trips = await this.tripModel
       .find({ driver })
@@ -26,19 +36,29 @@ export class TripMongodbRepository implements ITripRepository {
       .populate('destination')
       .select('-__v -id')
       .exec();
-    return trips;
+    const newTrips = trips.map(trip => this.getTrip(trip));
+
+    return newTrips;
   }
 
-  async find(field: any): Promise<Trip[]|any[]> {
-    return await this.tripModel.find(field).select('-__v -id').exec();
+  async find(field: any): Promise<Trip[]> {
+    const trips =  await this.tripModel.find(field).select('-__v -id').exec();
+    const result = trips.map(trip => this.getTrip(trip));
+    return result;
   }
 
-  async findByIdWithDriver(id: any): Promise<any> {
+  async findByIdWithDriver(id: string): Promise<Trip> {
     const trip = await this.tripModel.findOne({id}).select('-__v -id') 
             .populate({
                 path: 'driver', 
                 select: '-__v -id -password -status -verificationCode -resetPasswordToken' 
             })
+            .populate(
+              {
+                path: 'driver',
+                select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+              }
+            )
             .populate({
                 path: 'passengers', 
                 select: '-__v -id -password -status -verificationCode -resetPasswordToken'
@@ -81,12 +101,13 @@ export class TripMongodbRepository implements ITripRepository {
                     }
                 ]
             }).exec();
-    const fields = ['email','name','lastname'];
-    const driver = await this.userModel.findOne({email: trip.driver}).select(fields.join(' ')).exec();
-    return {...trip,driver};
+    // const fields = ['email','name','lastname'];
+    // const driver = await this.userModel.findOne({email: trip.driver}).select(fields.join(' ')).exec();
+    const result = this.getTrip(trip); 
+    return result;	
   }
 
-  async findById(id: string): Promise<TripDocument|any> {
+  async findById(id: string): Promise<Trip> {
     const trip = await this.tripModel.findById(id).select('-__v -id') 
             .populate({
                 path: 'driver', 
@@ -134,10 +155,13 @@ export class TripMongodbRepository implements ITripRepository {
                       }
                   ]
               }).exec();
-    return trip;
+
+    const result = this.getTrip(trip);
+
+    return result;
   }
 
-  async findByUUIDd(id: string): Promise<TripDocument|any> {
+  async findByUUIDd(id: string): Promise<Trip> {
     const trip = await this.tripModel.find({id}).select('-__v -id') 
             .populate({
                 path: 'driver', 
@@ -185,11 +209,13 @@ export class TripMongodbRepository implements ITripRepository {
                       }
                   ]
               }).exec();
-    return trip;
+
+    const result = await this.tripModel.findOne({id}).select('-__v -id')
+    return result;
   }
 
-  async findNonDriverTrips(email: string): Promise<TripDocument[]|any[]> {
-    return await this.tripModel
+  async findNonDriverTrips(email: string): Promise<Trip[]> {
+    const trips =  await this.tripModel
     .find({ driver: { $ne: email } })
     .populate({
       path: 'driver', 
@@ -237,9 +263,13 @@ export class TripMongodbRepository implements ITripRepository {
           }
       ]
   }).exec();
+  
+  const result = trips.map(trip => this.getTrip(trip));
+  return result;
+
   }
 
-  async findAll(): Promise<TripDocument[]|any[]> {
+  async findAll(): Promise<Trip[]> {
     const trip = await this.tripModel.find().select('-__v -id')
     .populate({
       path: 'driver', 
@@ -287,23 +317,24 @@ export class TripMongodbRepository implements ITripRepository {
           }
       ]
   }).exec();
+
+    // const result = trip.map(trip => this.getTrip(trip));
+    // return result;
+
     return trip;
   }
 
-  async create(trip: Trip): Promise<TripDocument|any> {
-    return await this.tripModel
-    .create(trip);
+  async create(trip: Trip): Promise<Trip> {
+    return await this.tripModel.create(trip);
+   
   }
 
-  async update(trip: Trip) : Promise<TripDocument|any> {
-
-    const updatedTrip = await this.tripModel.updateOne({id: trip.id}, trip).exec();
-    const tripUpdated = await this.tripModel.findOne({id: trip.id}).exec();
-    return tripUpdated;
-
+  async update(trip: Trip) : Promise<Trip> {   
+    const updatedTrip = await this.tripModel.findOneAndUpdate({id:trip.id}, trip).exec();    
+    return updatedTrip;
   }
 
-  async updateStatus(id: string, newStatus: TripStatus) : Promise<TripDocument|any> {	
+  async updateStatus(id: string, newStatus: TripStatus) : Promise<Trip> {	
     try {
       // Buscar el viaje por su ID
       const trip = await this.tripModel.findOne({id});
@@ -324,16 +355,6 @@ export class TripMongodbRepository implements ITripRepository {
     }
   }
 
-  async findByIdAndDriver(driver: string, id: string): Promise<any> {
-    const filter = {
-      driver,
-      id,
-    };
-
-    const hasUserTrip = await this.tripModel.findOne(filter).lean().exec();
-
-    return hasUserTrip;
-  }
 
   async passengersByTrip(
     id: string,
