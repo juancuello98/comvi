@@ -11,7 +11,7 @@ export class LocationService {
     private readonly locationRepository: ILocationRepository,
   ) {}
 
-  async create(createLocationDto: NewLocationDTO): Promise<LocationDocument> {
+  async create(createLocationDto: NewLocationDTO): Promise<Location> {
     return this.locationRepository.create(createLocationDto);
   }
 
