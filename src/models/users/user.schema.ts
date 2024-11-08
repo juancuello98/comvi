@@ -10,6 +10,10 @@ export type UserDocument = User & Document;
  */
 @Schema()
 export class User {
+  
+  @Prop({ type: String, ref: '_id' })
+  id: string;	
+  
   /**
    * Apellido del usuario.
    */
@@ -49,7 +53,7 @@ export class User {
   /**
    * Token para restablecer la contraseña del usuario.
    */
-  @Prop()
+  @Prop({ type: PasswordToken })
   resetPasswordToken: PasswordToken;
 }
 

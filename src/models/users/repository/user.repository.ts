@@ -7,31 +7,47 @@ export class UserRepository implements IUserRepository {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
-  async findByUsername(username: string): Promise<UserDocument | null> {
-    return this.userModel.findOne({ username }).exec();
+
+  turnIntoUser(user: any): User {
+     const { _id, email, name, lastname, password,} = user;
+     const us = new User();
+      us.id = _id;
+      us.email = email;
+      us.name = name;
+      us.lastname = lastname;
+      us.password = password;
+      return us;
+  }
+
+  async findByUsername(username: string): Promise<User> {
+     const doc = this.userModel.findOne({ username }).exec();
+    return doc ? this.turnIntoUser(doc) : null;
   }
   async changePassword(id: string, newPassword: string): Promise<boolean> {
     const user = this.userModel.updateOne({ _id: id }, { password: newPassword }).exec();
     return user ? true : false;
   }
-  async createUser(user: User): Promise<UserDocument> {
-    return this.userModel.create(user);
+  async createUser(user: User): Promise<User> {
+    const us = this.userModel.create(user);
+    return us?  this.turnIntoUser(us) : null;
   }
-  async getUserById(id: string): Promise<UserDocument | null> {
-    return await this.userModel.findById(id).exec(); 
+  async getUserById(id: string): Promise<User> {
+    const us = await this.userModel.findById(id).exec(); 
+    return us ? this.turnIntoUser(us) : null;
   }
-  async updateUser(id: string, user: Partial<User>): Promise<UserDocument | null> {
+  async updateUser(id: string, user: Partial<User>): Promise<User> {
     return await this.userModel.findByIdAndUpdate(id, user).exec();
   }
   async deleteUser(id: string): Promise<boolean> {
     const user = this.userModel.deleteOne({ _id:id}).exec();
     return user ? true : false;
   }
-  getAllUsers(): Promise<UserDocument[]> {
-    return  this.userModel.find().exec();
+  async getAllUsers(): Promise<User[]> {
+    const users = await this.userModel.find();
+    return users ? users.map((user) => this.turnIntoUser(user)) : null;
   }
 
-  async findByEmail(email: string): Promise<UserDocument> {
+  async findByEmail(email: string): Promise<User> {
     const user = await this.userModel.findOne({ email }).exec();
     return user
   }
@@ -45,30 +61,31 @@ export class UserRepository implements IUserRepository {
     return await newUser.save();
   }
 
-  async update(user: UserDocument): Promise<UserDocument> {
-    return await user.save();
+  async update(user: User): Promise<User> {
+    const userUpdated = await this.userModel.updateOne({ email: user.email }, user);
+    return userUpdated ? this.turnIntoUser(user) : null;
   }
 
   async findUsersById(
     usersId: string[],
     fieldsToSelect: string[],
-  ): Promise<UserDocument[]> {
+  ): Promise<User[]> {
     const users = await this.userModel
       .find({ _id: { $in: usersId } })
       .select(fieldsToSelect.join(' '));
 
-    return users;
+    return users? users.map((user) => this.turnIntoUser(user)) : null;
   }
 
-  async createRequest(email: string, id: string) {
-    const update = { $push: { joinRequests: id } };
-    const user = await this.userModel.findOneAndUpdate(
-      { email: email },
-      update,
-    );
-    await this.update(user);
-  }
-  getUserData(user:UserDocument): UserData{
+  // async createRequest(email: string, id: string) {
+  //   const update = { $push: { joinRequests: id } };
+  //   const user = await this.userModel.findOneAndUpdate(
+  //     { email: email },
+  //     update,
+  //   );
+  //   await this.update(user);
+  // }
+  getUserData(user:User): UserData{
     const {id, email, name, lastname} = user;
     const userData: UserData = {  id, email, name, lastname };
     return userData

@@ -4,7 +4,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { GetUserDTO } from './dto/user.dto';
 import { UserDTO } from './interfaces/user-details.interface';
 import { UserRepository } from './repository/user.repository';
-import { UserDocument } from './user.schema';
+import { User, UserDocument } from './user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
@@ -14,11 +14,11 @@ export class UserService {
     private readonly responseHelper: ResponseHelper,
   ) {}
 
-  async update(user: UserDocument) {
+  async update(user: User): Promise<User> {
     return this.userRepository.update(user)
   }
   
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findByEmail(email);
     return user;
   }
@@ -71,13 +71,13 @@ export class UserService {
 
   async create(
  user : CreateUserDto,
-  ): Promise<UserDocument> {
+  ): Promise<User> {
     return this.userRepository.create(user);
   }
 
-  async updateUserRequests(email: string, requestId: string) {
-    await this.userRepository.createRequest(email, requestId);
-  }
+  // async updateUserRequests(email: string, requestId: string) {
+  //   await this.userRepository.createRequest(email, requestId);
+  // }
 
   async getUsers(ids: string[]) {
     const users = this.userRepository.findUsersById(ids, [

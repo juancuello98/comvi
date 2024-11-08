@@ -1,20 +1,19 @@
 import { User, UserDocument } from "../user.schema";
 
 export interface IUserRepository {
-    findByEmail(email: string): Promise<UserDocument | null>;
-    createUser(user: User): Promise<UserDocument>;
-    getUserById(id: string): Promise<UserDocument | null>;
-    updateUser(id: string, user: Partial<UserDocument>): Promise<UserDocument | null>;
+    findByEmail(email: string): Promise<User>;
+    createUser(user: User): Promise<User>;
+    getUserById(id: string): Promise<User>;
+    updateUser(id: string, user: Partial<UserDocument>): Promise<User>;
     deleteUser(id: string): Promise<boolean>;
-    getAllUsers(): Promise<UserDocument[]>;
-    getUserData(user: UserDocument): UserData;
-    findByUsername(username: string): Promise<UserDocument | null>;
+    getAllUsers(): Promise<User[]>;
+    // getUserData(user: UserDocument): UserData;
+    findByUsername(username: string): Promise<User>;
     changePassword(id: string, newPassword: string): Promise<boolean>;
-    findById(id: string): Promise<UserDocument | null>;
-    create(user: any): Promise<UserDocument>;
-    update(user: UserDocument): Promise<UserDocument>;
-    findUsersById(usersId: string[], fieldsToSelect: string[]): Promise<UserDocument[]>;
-    createRequest(email: string, id: string): Promise<void>;
+    findById(id: string): Promise<User>;
+    create(user: any): Promise<User>;
+    update(user: UserDocument): Promise<User>;
+    findUsersById(usersId: string[], fieldsToSelect: string[]): Promise<User[]>;
 }
 
 export interface UserData {
