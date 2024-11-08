@@ -10,7 +10,6 @@ import { NewUserDTO } from '../models/users/dto/new-user.dto';
 import { UserDTO } from '../models/users/interfaces/user-details.interface';
 import { VERIFICATION_CODE_STATUS } from './authentication.enum';
 import { UserVerificationDTO } from '../models/users/dto/user-verification.dto';
-import { UserValidatedDTO } from 'src/models/users/interfaces/user-validated.interface';
 import { ResetPasswordDTO } from './dto/reset-password-dto';
 import { PasswordTokenDTO } from './dto/token-password.dto';
 import { PasswordToken } from '../models/users/passwordToken.schema';
@@ -21,9 +20,11 @@ import { ResponseDTO } from '@/common/interfaces/responses.interface';
 import { UserRepository } from '@/users/repository/user.repository';
 import { ResponseHelper } from '@/helpers/http/response.helper';
 import { ValidateResult } from './Enum/enum';
+import { UserValidatedDTO } from 'src/models/users/interfaces/user-validated.interface';
 import { TripDTO } from '@/trips/dto/existing-trip.dto';
 import { get } from 'http';
 import { GetUserDTO } from '@/users/dto/user.dto';
+import { ChangePasswordDTO } from './dto/change-password-dto';
 
 @Injectable()
 export class AuthService {
@@ -57,7 +58,7 @@ export class AuthService {
     return auxDate < token.expire ? true : false;
   }
 
-  async compareResetPasswordCode(token: string, user: UserDocument) {
+  async compareResetPasswordCode(token: string, user: User) {
     return token === user.resetPasswordToken.code ? true : false;
   }
 
@@ -135,7 +136,7 @@ export class AuthService {
     return bcrypt.compare(password, hashedPassword);
   }
 
-  async validate(email: string, password: string): Promise<UserDocument> {
+  async validate(email: string, password: string): Promise<User> {
 
     const user = await this.userRepository.findByEmail(email);
 
@@ -313,13 +314,13 @@ export class AuthService {
     );
   }
 
-  async resetPassword(
-    resetPasswordDTO: ResetPasswordDTO,
+  async changePassword(
+    resetPasswordDTO: ChangePasswordDTO,
   ): Promise<ResponseDTO> {
     try {
     const { email } = resetPasswordDTO;
     const { password } = resetPasswordDTO;
-    const { passwordToken } = resetPasswordDTO;
+    const { newPassword } = resetPasswordDTO;
 
     const findUser = await this.userRepository.findByEmail(email);
 
@@ -333,17 +334,82 @@ export class AuthService {
       );
     }
     
-    if (!passwordToken) {
-      this.logger.log('El usuario no tiene un token de recuperación: ' + email);
+    if (!newPassword) {
+      this.logger.log('El usuario no trajo una nueva contraseña: ' + email);
       return this.responseHelper.makeResponse(
         false,
-        'User has no reset token.',
+        'El usuario no trajo una nueva contraseña.',
         {email},
         HttpStatus.NOT_ACCEPTABLE,
       );
     }    
 
-    if (findUser.resetPasswordToken.code !== passwordToken) {
+    if (findUser.password !== password) {
+      this.logger.log('La ultima contraseña no coincide: ' + email);
+      return this.responseHelper.makeResponse(
+        false,
+        'The token does not match.',
+        {email},
+        HttpStatus.NOT_ACCEPTABLE,
+      );
+    }
+    
+    findUser.password = await this.hashPassword(password);
+      
+    const updated = await this.userRepository.update(findUser);
+      
+    this.logger.log('Se le actualizó la contraseña a: ' + updated.email);
+      
+    findUser.resetPasswordToken= null;
+      
+    return this.responseHelper.makeResponse(
+        false,
+        'Password reseted.',
+        {email:updated.email},
+        HttpStatus.OK,
+    );
+
+  } catch (error) {
+    this.logger.error(error.message);
+    return this.responseHelper.makeResponse(
+      true,
+      error.message,
+      null,
+      HttpStatus.INTERNAL_SERVER_ERROR,);
+    }
+  }
+
+  async resetPassword(
+    resetPasswordDTO: ResetPasswordDTO,
+  ): Promise<ResponseDTO> {
+    try {
+    const { email } = resetPasswordDTO;
+    const { password } = resetPasswordDTO;
+    const { token } = resetPasswordDTO;
+
+    const findUser = await this.userRepository.findByEmail(email);
+
+    if (!findUser) {
+      this.logger.log('El usuario no existe: ' + email);
+      return this.responseHelper.makeResponse( 
+        false,
+        'User not found.',
+        {email},
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    
+    if (!findUser.resetPasswordToken.validated) {
+      this.logger.log('El usuario no tiene ha validado su token de recuperación: ' + email);
+      return this.responseHelper.makeResponse(
+        false,
+        'User has not validated his token.',
+        {email},
+        HttpStatus.NOT_ACCEPTABLE,
+      );
+    }    
+
+    if (findUser.resetPasswordToken.code !== token) {
       this.logger.log('El token de recuperación no coincide: ' + email);
       return this.responseHelper.makeResponse(
         false,
@@ -353,16 +419,6 @@ export class AuthService {
       );
     }
     
-    if (!findUser.resetPasswordToken.validated){
-      this.logger.log('El token de recuperación no ha sido validado: ' + email);
-      return this.responseHelper.makeResponse(
-        false,
-        'The token has not been validated yet.',
-        {email},
-        HttpStatus.METHOD_NOT_ALLOWED,
-      );
-    }
-
 
     findUser.password = await this.hashPassword(password);
       

@@ -9,12 +9,13 @@ import { UserVerificationDTO } from 'src/models/users/dto/user-verification.dto'
 
 import { UserDTO } from 'src/models/users/interfaces/user-details.interface';
 import { UserValidatedDTO } from 'src/models/users/interfaces/user-validated.interface';
-import { exChangePasswordResponseBad, exChangePasswordResponseNotFound, exChangePasswordResponseOK, exLogin, exLoginResponse, exPasswordToken, exRegisterUser, exRegisterUserResponse, exRequestResetPassword, exRequestResetPasswordResponse, exResetPassword, exValidatePasswordToken, exValidateToken ,exValidateTokenResponse } from '../swagger/swagger.mocks';
+import { exChangePassword, exChangePasswordPasswordDoesNotMatch, exChangePasswordResponseBad, exChangePasswordResponseNotFound, exChangePasswordResponseOK, exLogin, exLoginResponse, exPasswordToken, exRegisterUser, exRegisterUserResponse, exRequestResetPassword, exRequestResetPasswordResponse, exResetPassword, exValidatePasswordToken, exValidateToken ,exValidateTokenResponse } from '../swagger/swagger.mocks';
 import { RequestResetPasswordDTO } from './dto/request-reset-password-dto';
 import { PasswordTokenDTO } from './dto/token-password.dto';
 import { ResetPasswordDTO } from './dto/reset-password-dto';
 import { ResponseDTO } from '@/common/interfaces/responses.interface';
 import { JwtAuthGuard } from './jwt/jwt-auth.guard';
+import { ChangePasswordDTO } from './dto/change-password-dto';
 
 @ApiTags('auth')
 
@@ -34,9 +35,7 @@ export class AuthController {
       }
     }
   }) // Información del cuerpo de la solicitud
-  @ApiResponse({ status: 201, description: 'The user has been successfully registered.', example:
-    exRegisterUserResponse
-   })
+  @ApiResponse({ status: 201, description: 'The user has been successfully registered.', example: exRegisterUserResponse})
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 409, description: 'User already exists with this email' })
   register(@Body() user: NewUserDTO): Promise<ResponseDTO> {
@@ -118,25 +117,48 @@ export class AuthController {
     return this.authService.requestResetPassword(email);
   }
   
-  @Post('/resetpassword')
+  @Post('/changepassword')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Change your password while logged' })
+  @ApiBody({
+    type: ChangePasswordDTO, examples: {
+      example1: {
+        summary: 'Typical user password change',
+        description: 'Example of a typical change pass request',
+        value: exChangePassword
+      }
+    }
+  }) // Información del cuerpo de la solicitud
+  @ApiResponse({ status: 200, description: 'Password was changed.', example:exChangePasswordResponseOK })
+  @ApiResponse({ status: 400, description: 'The password was wrong.', example:exChangePasswordResponseBad })
+  @ApiResponse({ status: 406, description: 'The user not exist.', example:exChangePasswordResponseNotFound })
+  @ApiResponse({ status: 406, description: 'The user not exist.', example:exChangePasswordPasswordDoesNotMatch })
+ 
+
+  changePassword(@Body() resetData: ResetPasswordDTO, @Req() request: Request) :  Promise<ResponseDTO> {
+    const email = this.requestHelper.getPayload(request);
+    resetData.email = email;	
+    return this.authService.changePassword(resetData);
+  }
+
+  @Post('/resetpassword')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'reset your password while logged' })
   @ApiBody({
     type: ResetPasswordDTO, examples: {
       example1: {
         summary: 'Typical user password change',
         description: 'Example of a typical change pass request',
-        value: exRegisterUser
+        value: exResetPassword
       }
     }
   }) // Información del cuerpo de la solicitud
   @ApiResponse({ status: 200, description: 'Password was changed.', example:exChangePasswordResponseOK })
   @ApiResponse({ status: 400, description: 'The password was wrong.', example:exChangePasswordResponseBad })
   @ApiResponse({ status: 404, description: 'The user not exist.', example:exChangePasswordResponseNotFound })
- 
   resetPassword(@Body() resetData: ResetPasswordDTO, @Req() request: Request) :  Promise<ResponseDTO> {
     const email = this.requestHelper.getPayload(request);
     resetData.email = email;	
-    return this.authService.resetPassword(resetData);
+    return this.authService.changePassword(resetData);
   }
 }
