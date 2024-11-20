@@ -25,6 +25,7 @@ import { TripDTO } from '@/trips/dto/existing-trip.dto';
 import { get } from 'http';
 import { GetUserDTO } from '@/users/dto/user.dto';
 import { ChangePasswordDTO } from './dto/change-password-dto';
+import { UserData } from '@/users/interfaces/user.repository.interface';
 
 @Injectable()
 export class AuthService {
@@ -213,7 +214,7 @@ export class AuthService {
     }
   }
 
-  async loginWithCredentials(user: UserDTO) {
+  async loginWithCredentials(user: UserData) {
     const payload = { user };
 
     return {
@@ -463,11 +464,10 @@ export class AuthService {
       );
     }
 
-    const { id } = user;
     const validated =
       (await this.IsExpired(user.resetPasswordToken)) &&
       (await this.compareResetPasswordCode(passwordToken, user));
-    const result = { id, email, validated };
+    const result = { email, validated };
 
     return this.responseHelper.makeResponse(
       false,

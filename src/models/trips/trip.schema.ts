@@ -4,9 +4,10 @@ import { TripStatus } from './enums/state.enum';
 import { Vehicle } from '@/vehicles/vehicles.schema';
 import { User } from '@/users/user.schema';
 import { Location } from '@/locations/location-schema';
-import { Request } from '@/requests/request.schema';
+// import { Request } from '@/requests/request.schema';
 import { Valuation } from '@/valuations/entities/valuation.schema';
 import { TripResume } from './resumes/trip.resume.schema';
+// import { Booking } from '@/bookings/booking.schema'; // Juancito despues agrega esto
 
 // import { Booking } from '@/bookings/booking.schema'; // Juancito despues agrega esto
 export type TripDocument = Trip & Document;
@@ -21,21 +22,21 @@ export class Trip {
   /**
    * @property {string} id - UUID de viaje.
    */
-   @Prop({ required: true, type: MongooseSchema.Types.UUID, default: null })
+  @Prop({ type: MongooseSchema.Types.ObjectId })
   id: string;
 
   /**
    * @property {Location} origin - Ubicación de origen del viaje.
    */
-  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Location', default: null })
+  @Prop({ required: true, type: Location, default: null })
   // origin:  Location | string | MongooseSchema.Types.ObjectId;
-  origin:  Location | string ;
+  origin:  Location ;
 
   /**
    * @property {Location} destination - Ubicación de destino del viaje.
    */
-  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Location', default: null })
-  destination: Location | string;
+  @Prop({ required: true, type: Location, default: null })
+  destination: Location ;
 
   /**
    * @property {string} description - Descripción del viaje.
@@ -70,16 +71,16 @@ export class Trip {
   /**
    * @property {Vehicle} vehicle - Id del vehículo utilizado en el viaje.
    */
-  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Vehicle', default: null })
+  @Prop({ required: true, type: String, ref: 'Vehicle', default: null })
   // vehicle: MongooseSchema.Types.ObjectId;
-  vehicle: Vehicle | string;
+  vehicle: string| Vehicle;
 
   /**
    * @property {User} User - Email del conductor del viaje.
    */
-  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
+  @Prop({ required: true, type: String, ref: 'User', default: null })
   // driver: MongooseSchema.Types.ObjectId;
-  driver: User | string;
+  driver:  string | User;
 
   /**
    * @property {TripStatus} status - Estado actual del viaje.
@@ -90,7 +91,8 @@ export class Trip {
   /**
    * @property {Booking[]} passengers - IDs de los usuarios que participan como pasajeros en el viaje.
    */
-  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'Booking', default: [] })
+  @Prop({ required: true, type:  [MongooseSchema.Types.ObjectId], default: [] })
+
   // bookings: MongooseSchema.Types.ObjectId[];
   // bookings: string[] | Booking[];
   bookings: string[];
@@ -136,7 +138,35 @@ export class Trip {
   // tripResumeId: MongooseSchema.Types.ObjectId;
   tripResumeId: string | TripResume;
 
+
+  getVehicle(): Vehicle {
+    if (typeof this.vehicle =="object") {
+      return this.vehicle;
+    }
+    return null;
+  }
+  getPantent(): string {
+    if (typeof this.vehicle =="string") {
+      return this.vehicle;
+    }
+    return null;
+  }
+
 }
 
 export const TripSchema = SchemaFactory.createForClass(Trip);
 TripSchema.set('timestamps', true);
+
+TripSchema.methods.getVehicle = function() {
+  if (typeof this.vehicle == "object") {
+    return this.vehicle;
+  }
+  return null;
+};
+
+TripSchema.methods.getPantent = function() {
+  if (typeof this.vehicle == "string") {
+    return this.vehicle;
+  }
+  return null;
+};

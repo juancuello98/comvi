@@ -17,7 +17,6 @@ export interface IUserRepository {
 }
 
 export interface UserData {
-    id: string;
     name: string;
     lastname: string;
     email: string;

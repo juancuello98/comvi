@@ -21,8 +21,8 @@ export class TripResumeRepository implements ITripResumeRepository {
     return trip;
   }
 
-  async update(resume: TripResume, id: string): Promise<TripResume> {
-    const tripUpdated = await this.tripResumeModel.findOneAndUpdate(resume, { id }, { new: true });
+  async update(resume: TripResume): Promise<TripResume> {
+    const tripUpdated = await this.tripResumeModel.findByIdAndUpdate(resume.id, resume, { new: true }).exec();
     return tripUpdated;
   }
 

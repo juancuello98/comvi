@@ -12,6 +12,7 @@ import { CommonModule } from './common/common.module';
 import { VehiclesModule } from './models/vehicles/vehicles.module';
 import { ValuationsModule } from './models/valuations/valuations.module';
 import { RequestModule } from '@/requests/request.module';
+import { FuelsModule } from './models/fuels/fuels.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { RequestModule } from '@/requests/request.module';
     VehiclesModule,
     RequestModule,
     ValuationsModule,
+    FuelsModule
   ],
   controllers: [AppController],
   providers: [AppService],

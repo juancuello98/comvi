@@ -11,6 +11,7 @@ import { UserModule } from '@/users/user.module';
 import { IREQUEST_REPOSITORY } from './repository/constants/request.repository.constant';
 import { RequestMongodbRepository } from './repository/request.mongodb.repository';
 import { TripResumeSchema } from '@/trips/resumes/trip.resume.schema';
+import { LocationModule } from '@/locations/location.module';
 @Module({
   imports: [MongooseModule.forFeature([
     { name: Request.name, schema: RequestSchema },
@@ -21,6 +22,7 @@ import { TripResumeSchema } from '@/trips/resumes/trip.resume.schema';
   CommonModule,
   TripModule,
   UserModule,
+  LocationModule
 ],
   controllers: [RequestController],
   providers: [RequestService, RequestMongodbRepository, {

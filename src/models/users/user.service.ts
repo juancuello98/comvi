@@ -63,11 +63,6 @@ export class UserService {
     }
   }
 
-  async findById(id: string): Promise<UserDTO | null> {
-    const user = await this.userRepository.findById(id);
-    if (!user) return null;
-    return this.userRepository.getUserData(user);
-  }
 
   async create(
  user : CreateUserDto,

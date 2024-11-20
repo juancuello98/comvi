@@ -9,9 +9,8 @@ export class UserRepository implements IUserRepository {
   ) {}
 
   turnIntoUser(user: any): User {
-     const { _id, email, name, lastname, password,} = user;
+     const {  email, name, lastname, password,} = user;
      const us = new User();
-      us.id = _id;
       us.email = email;
       us.name = name;
       us.lastname = lastname;
@@ -86,8 +85,8 @@ export class UserRepository implements IUserRepository {
   //   await this.update(user);
   // }
   getUserData(user:User): UserData{
-    const {id, email, name, lastname} = user;
-    const userData: UserData = {  id, email, name, lastname };
+    const {email, name, lastname} = user;
+    const userData: UserData = { email, name, lastname };
     return userData
   }
 }

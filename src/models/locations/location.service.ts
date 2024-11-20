@@ -1,4 +1,5 @@
 import { NewLocationDTO } from "./dto/new-location.dto";
+import * as geolib from 'geolib';
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { ILocationRepository } from "./interfaces/location.repository.interface";
 import { ILOCATION_REPOSITORY } from "./repository/constants/location.repository.constant";
@@ -38,4 +39,19 @@ export class LocationService {
   async delete(id: string): Promise<void> {
     await this.locationRepository.delete(id);
   }
+
+  getDisntance(origin: Location, destiny: Location): number {
+    
+    const pointA = { latitude: origin.latitude, longitude: origin.longitude }; 
+    const pointB = { latitude: destiny.latitude , longitude: destiny.longitude }; 
+
+    // Calcular distancia en metros
+    const distanceMeters = geolib.getDistance(pointA, pointB);
+
+    // Convertir a kilómetros
+    const distanceKilometers = geolib.convertDistance(distanceMeters, 'km');
+
+    return distanceKilometers;
+  }
+
 }

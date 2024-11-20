@@ -1,11 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { Product } from '../fuels/schemas/ProductSchemas';
 
 export type VehicleDocument = Vehicle & Document;
 
-@Schema()
+@Schema({ _id: false }) // Esto desactiva la generación automática de _id
 export class Vehicle {
-  @Prop({ required: true, unique: true })
+
+  @Prop({ type: String, unique: true, required: true, index: true })
   patentPlate: string;
 
   @Prop({ required: true })
@@ -20,12 +22,20 @@ export class Vehicle {
   @Prop()
   pics: string[];
 
-  @Prop({ required: true })
-  email: string;
+  @Prop({ required: true, type:String, ref:"User", match: [/.+\@.+\..+/, 'Please enter a valid email address'] })
+  user: string;
 
   @Prop()
   color: string;
 
+  @Prop({ required: true, min: 0 })
+  consumption: number;
+
+  @Prop({ required: true, type: [String], ref: 'Product' })
+  fuels: Product[] | string[];
+
 }
 
 export const VehicleSchema = SchemaFactory.createForClass(Vehicle);
+
+// Al desactivar el _id, ahora usarás patentPlate como la clave primaria.

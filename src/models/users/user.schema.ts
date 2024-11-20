@@ -1,19 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import { Request } from '../requests/request.schema';
-import { Trip } from '../trips/trip.schema';
+import { Document, Types } from 'mongoose';
 import { PasswordToken } from './passwordToken.schema';
 
 export type UserDocument = User & Document;
+
 /**
  * Representa un usuario en la base de datos.
  */
-@Schema()
+@Schema({ _id: false })
 export class User {
-  
-  @Prop({ type: String, ref: '_id' })
-  id: string;	
-  
+
   /**
    * Apellido del usuario.
    */
@@ -25,11 +21,10 @@ export class User {
    */
   @Prop({ required: true })
   name: string;
-
   /**
    * Correo electrónico único del usuario.
    */
-  @Prop({ unique: true })
+  @Prop({ type: String, unique: true, required: true, index: true })
   email: string;
 
   /**
