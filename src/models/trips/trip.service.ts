@@ -7,40 +7,60 @@ import {
 import { ResponseDTO } from '@/common/interfaces/responses.interface';
 import { Trip } from './trip.schema';
 import { TripStatus } from './enums/state.enum';
-import { TripResumeRepository } from './resumes/trip.resume.repository';
 import { NewTripDTO } from './dto/new-trip.dto';
-import { v4 as uuidv4 } from 'uuid';
 import { ITripRepository } from './interface/trip.repository.interface';
 import { ITRIP_REPOSITORY } from './repository/constants/trip.repository.constant';
 import { ResponseHelper } from '@/common/helpers/http/response.helper';
 import { LocationService } from '../locations/location.service';
 import { Location } from '@/locations/location-schema';
-import { IUserRepository } from '@/users/interfaces/user.repository.interface';
-import { IUSER_REPOSITORY } from '@/users/repository/constants/user.repository.constant';
-import { session } from 'passport';
-import { ITRIP_RESUME_REPOSITORY } from './resumes/constants/trip.resume.repository.constant';
-import { IVEHICLE_REPOSITORY } from '@/vehicles/repository/constants/vehicle.repository.constant';
-import { ITripResumeRepository } from './resumes/interface/trip.resume.repository.interface';
-import { IVehicleRepository } from '@/vehicles/interfaces/vehicle.repository.interface';
+import { VehiclesService } from '@/vehicles/vehicles.service';
+import { UserService } from '@/users/user.service';
 import { TripResumeService } from './resumes/tripResume.service';
+import { NotificationsService } from '../../notifications/notifications.service';
+import { Product } from '../fuels/schemas/ProductSchemas';
+import { FuelService } from '../fuels/fuels.service';
+import { ExistingtTripDTO } from './dto/existing-trip.dto';
+import { User } from '@/users/user.schema';
 
 @Injectable()
 export class TripService {
   private readonly logger = new Logger(TripService.name);
 
   constructor(
-    @Inject(IUSER_REPOSITORY)
-    private readonly userRepository: IUserRepository,
+    private readonly userService: UserService,
+    private readonly tripResumeService: TripResumeService,
     @Inject(ITRIP_REPOSITORY)
     private readonly tripRepository: ITripRepository,
-    private readonly tripResumeService: TripResumeService,
-    @Inject(IVEHICLE_REPOSITORY)
-    private readonly vehicleRepository: IVehicleRepository,
+    private readonly vehicleService: VehiclesService,
     private readonly responseHelper: ResponseHelper,
     private readonly locationService: LocationService,
+    private readonly fuelsService: FuelService,
+    private readonly notificationsService: NotificationsService,
   ) { }
+  
 
-  async findByDriver(driver: string): Promise<ResponseDTO> {
+  
+  async findAllDrivers(): Promise<User[]>{
+    return this.tripRepository.getAllDrivers();
+  }
+
+  canHaveValuations(trip: Trip): boolean {
+    return trip.status === TripStatus.FINISHED;
+  }
+
+  async findByDriver(driver: string): Promise<Trip[]> {
+    const trips = await this.tripRepository.findByDriver(driver);
+
+    if (!trips.length) {
+      this.logger.log(`Trips of user ${driver} not founded.`);
+      throw new Error('Not found trips.');
+    }
+
+    return trips;
+
+  }
+
+  async findByDriverController(driver: string): Promise<ResponseDTO> {
     const trips = await this.tripRepository.findByDriver(driver);
 
     if (!trips.length) {
@@ -117,7 +137,7 @@ export class TripService {
     );
   }
 
-  async findById(tripId: string): Promise<ResponseDTO> {
+  async findByIdController(tripId: string): Promise<ResponseDTO> {
     try {
       let message = 'Successfully found trips';
       let status = HttpStatus.OK;
@@ -143,14 +163,131 @@ export class TripService {
     }
   }
 
-  async create(trip: NewTripDTO): Promise<ResponseDTO> {
+  async findById(tripId: string): Promise<Trip> {
+    try {
+      let message = 'Successfully found trips';
+      let status = HttpStatus.OK;
+
+      let trip = await this.tripRepository.findById(tripId);
+
+      if (!trip) {
+        this.logger.error('Not found trips');
+        throw new Error('Not found trips');
+      }
+
+      return trip;
+    
+    } catch (error) {
+      this.logger.error('Error: ', error);
+      throw error;
+    }
+  }
+
+  async create(trip: NewTripDTO): Promise<Trip> {
     try {
       let response;
       let message = 'Trip was created succesfully.';
-      let driver = (await this.userRepository.findByEmail(trip.driver));
+      let driver = (await this.userService.findByEmail(trip.driver));
       let origin = (await this.locationService.create((trip.origin as Location)));
       let destination = (await this.locationService.create(trip.destination as Location));
-      let vehicle = (await this.vehicleRepository.findByPatent(trip.vehicle));
+      let vehicle = (await this.vehicleService.findByPatent(trip.vehicle));
+      if (!driver )
+      {
+        this.logger.log('Driver not found');
+        throw new Error('Driver not found');
+        return null;
+      }
+      if (!origin )
+      {
+        this.logger.log('Origin not found');
+        throw new Error('Origin not found');
+        return null;
+      }
+      if (!destination )
+      {
+        this.logger.log('Destination not found');
+        throw new Error('Destination not found');
+        return null;
+      }
+      if (trip.peopleQuantity < 1)
+      {
+        this.logger.log('People quantity must be greater than 0');
+        throw new Error('People quantity must be greater than 0');
+        return null;
+      }
+      if (trip.allowPassenger === false && trip.allowPackage === false)
+        {
+          this.logger.log('Trip must allow passengers or packages');
+          throw new Error('Trip must allow passengers or packages');
+          return null;
+        }
+      if (!vehicle)
+      {
+        this.logger.log('Vehicle not found');
+        throw new Error('Vehicle not found');
+        return null;
+      }
+
+      let newTrip;
+      
+
+        newTrip = new Trip();
+        
+   
+        const status = TripStatus.OPEN;
+        const placesAvailable = trip.peopleQuantity;
+       
+        newTrip.origin = origin;
+        newTrip.destination = destination;
+        newTrip.description = trip.description;
+        newTrip.allowPackage = trip.allowPackage;
+        newTrip.allowPassenger = trip.allowPassenger;
+        newTrip.peopleQuantity = trip.peopleQuantity;
+        newTrip.placesAvailable = placesAvailable;
+        newTrip.driver = trip.driver;
+        newTrip.vehicle = trip.vehicle;
+        newTrip.tripResumeId = null;
+        newTrip.status = status;
+        const calculatedKilometers = this.locationService.getDisntance(origin, destination);
+        newTrip.kilometers = calculatedKilometers;
+                // Inicialización de `bookings` como un array vacío, si se espera un array de strings o IDs
+                newTrip.bookings = []; // Cambia a `MongooseSchema.Types.ObjectId[]` si necesitas que almacene IDs de `Booking`
+        
+                // Otros campos opcionales
+                newTrip.packages = [];
+                // newTrip.estimatedCosts = ;
+                // newTrip.kilometers = trip.kilometers || 0;
+                newTrip.tripsRequests = [];
+        const tripCreated = await this.tripRepository.create(newTrip);
+
+      return tripCreated;
+
+    } catch (error) {
+      this.logger.error('Error in create: ', error.message);
+      throw error;
+    }
+  }
+
+  async getTripCost(TripDTO: ExistingtTripDTO): Promise<{ fuelType: string, cost: number }[]> {
+    const trip = await this.tripRepository.findById(TripDTO.id);
+    console.log('Trip:', trip);
+    let vehicle = trip.getVehicle();
+    if(!vehicle) vehicle = await this.vehicleService.findByPatent(trip.vehicle);
+    const fuels = vehicle.fuels.map(fuel => {
+      if (typeof(fuel) === 'string') return fuel; 
+      else return (fuel as Product).idproducto;
+    });
+      return this.fuelsService.calcularCosto(trip.kilometers, vehicle.consumption,fuels);
+    }
+    
+  async createToController(trip: NewTripDTO): Promise<ResponseDTO> {
+    try {
+      let response;
+      let message = 'Trip was created succesfully.';
+      let driver = (await this.userService.findByEmail(trip.driver));
+      let origin = (await this.locationService.create((trip.origin as Location)));
+      let destination = (await this.locationService.create(trip.destination as Location));
+      let vehicle = (await this.vehicleService.findByPatent(trip.vehicle));
       if (!driver )
       {
         return this.responseHelper.makeResponse(
@@ -214,36 +351,48 @@ export class TripService {
           HttpStatus.NOT_FOUND,
         );
       }
+      if(response) return response;
 
       let newTrip;
       
+
         newTrip = new Trip();
-        
-        const id = uuidv4();
         const status = TripStatus.OPEN;
         const placesAvailable = trip.peopleQuantity;
-        newTrip.origin = origin._id;
-        newTrip.destination = destination._id;
-        newTrip.description = trip.description;
+
+        // Asignar valores a las propiedades requeridas
+
+        newTrip.origin = origin; // Asegúrate de que `origin.id` sea un ObjectId válido
+        newTrip.destination = destination; // Asegúrate de que `destination.id` sea un ObjectId válido
+        newTrip.description = trip.description || ''; // Descripción del viaje, asegurándose de que no esté vacío
         newTrip.allowPackage = trip.allowPackage;
         newTrip.allowPassenger = trip.allowPassenger;
         newTrip.peopleQuantity = trip.peopleQuantity;
-        newTrip.placesAvailable = placesAvailable;
-        newTrip.driver = driver._id;
-        // newTrip.status = status;
-        newTrip.vehicle = vehicle._id;
-          
-        const tripCreated = await this.tripRepository.create(newTrip);
-
+        newTrip.placesAvailable = trip.peopleQuantity; // O el valor adecuado
+        newTrip.driver = trip.driver; // ID del conductor (asegúrate de que sea un ObjectId válido)
+        // newTrip.driverEmail = driver.email; // Correo electrónico del conductor
+        newTrip.status = TripStatus.OPEN;
+        newTrip.vehicle = trip.vehicle ; // ID del vehículo (asegúrate de que sea un ObjectId válido)
+        newTrip.tripResumeId = null; // Si es opcional, puede estar en null
+        newTrip.tripResumeId = null;
+        newTrip.status = status;
+        const calculatedKilometers = this.locationService.getDisntance(origin, destination);
+        newTrip.kilometers = calculatedKilometers;
         
-
-
-      if(response) return response;
+        // Inicialización de `bookings` como un array vacío, si se espera un array de strings o IDs
+        newTrip.bookings = []; // Cambia a `MongooseSchema.Types.ObjectId[]` si necesitas que almacene IDs de `Booking`
+        
+        // Otros campos opcionales
+        newTrip.packages = [];
+        // newTrip.estimatedCosts = ;
+        // newTrip.kilometers = trip.kilometers || 0;
+        newTrip.tripsRequests = [];
+        const tripCreated = await this.tripRepository.create(newTrip);
 
       return this.responseHelper.makeResponse(
         false,
         message,
-        newTrip,
+        tripCreated,
         HttpStatus.CREATED,
       );
     } catch (error) {
@@ -270,6 +419,10 @@ export class TripService {
         null,
         HttpStatus.NOT_FOUND,
       );
+
+      // for (let i = 0; i < trip.bookings.length; i++) {
+      //   //send notification to passengers)
+      // }
     
       return this.responseHelper.makeResponse(false,'Trip was cancelled.',null,HttpStatus.OK)
   }
@@ -298,21 +451,16 @@ export class TripService {
       );
     }
 
-    // const resume = await this.tripResumeRepository.create({
-    //   passengers: [],
-    //   valuations: []
-    // });
-    // const resumeId = resume.id;
-
-    // this.logger.log(`Trip resume created with id ${resumeId}`);
-
-    // trip.tripResumeId = resumeId;
     trip.status = TripStatus.IN_PROGRESS;
     trip.startedTimestamp = date;
 
     const updated = await this.tripRepository.update(trip);
 
     this.logger.log(`Trip updated with status ${updated.status}`);
+
+    // for (let i = 0; i < trip.bookings.length; i++) {
+    //     this.notificationsService.sendNotification(trip.bookings[i].passengers, {title:'Trip started', body: `Trip ${trip.id} started`});  
+    //   }
 
     return this.responseHelper.makeResponse(
       false,
@@ -325,15 +473,27 @@ export class TripService {
   async finish(id: string, driver: string): Promise<ResponseDTO> {
     this.logger.log('Initialize process to finish trip...');
 
+
     const trip = await this.tripRepository.findById(id);
 
+    if (driver !== trip.driver){
+      return this.responseHelper.makeResponse(
+        false,
+        `Driver not match with trip driver.`,
+        null,
+        HttpStatus.FORBIDDEN
+      );
+    }
+    
     if (!trip || trip.status !== TripStatus.IN_PROGRESS)
+    {
       return this.responseHelper.makeResponse(
         false,
         `Not found trip or status not is IN PROGRESS.`,
         null,
         HttpStatus.NOT_FOUND,
       );
+    }
 
     trip.status = TripStatus.FINISHED;
 
@@ -341,18 +501,23 @@ export class TripService {
 
     this.logger.log(`Trip status updated to ${status}`);
 
-    let res; let resId;
+    let tripResumeId;;
 
-    if ( typeof(trip.tripResumeId) == 'string') {
-      resId = trip.tripResumeId.toString();
-      res = await this.tripResumeService.findById(resId);
-    }
-    if ( typeof(trip.tripResumeId) == 'object') {
-      resId = trip.tripResumeId.id;
-      res = await this.tripResumeService.findById(resId);
-    }
+    if (typeof(trip.tripResumeId) === 'string') {
+        tripResumeId = trip.tripResumeId;
+    } 
+    else {
+        tripResumeId = trip.tripResumeId.id;
+    } 
 
-    this.logger.log(`Trip resume ${resId} updated.`);
+    const resume = await this.tripResumeService.findById(tripResumeId);
+    const resumeId = resume.id;
+
+    this.logger.log(`Trip resume ${resumeId} updated.`);
+
+    // for (let i = 0; i < trip.bookings.length; i++) {
+    //   this.notificationsService.sendNotification(trip.bookings[i].passengers, {title:'Trip ended', body: `Trip ${trip.id} started`});  
+    // }
 
     return this.responseHelper.makeResponse(
       false,

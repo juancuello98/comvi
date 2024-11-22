@@ -11,10 +11,8 @@ export class TripResumeRepository implements ITripResumeRepository {
     @InjectModel(TripResume.name)
     private readonly tripResumeModel: Model<TripResumeDocument>,
   ) {}
-  getSession(): Promise<ClientSession> {
-    return this.tripResumeModel.db.startSession();  }
 
-  async findAll(): Promise<TripResumeDocument[]> {
+  async findAll(): Promise<TripResume[]> {
     const trips = await this.tripResumeModel.find()
     .select('-__v -_id')
     .populate('passengers')
@@ -24,7 +22,7 @@ export class TripResumeRepository implements ITripResumeRepository {
     return trips;
   }
 
-  async findById(id: any): Promise<TripResumeDocument> {
+  async findById(id: any): Promise<TripResume> {
     const trip = await this.tripResumeModel.findOne({id})
     .select('-__v -_id')
     .populate('passengers')
@@ -34,12 +32,12 @@ export class TripResumeRepository implements ITripResumeRepository {
     return trip;
   }
 
-  async update(resume: TripResumeDocument) {
-    const tripUpdated = await resume.save();
+  async update(resume: TripResume): Promise<TripResume> {
+    const tripUpdated = await this.tripResumeModel.findByIdAndUpdate(resume.id, resume);
     return tripUpdated;
   }
 
-  async create(resume: TripResume) {
+  async create(resume: TripResume): Promise<TripResume> {
     
     const newResume = await this.tripResumeModel.create({
       ...resume

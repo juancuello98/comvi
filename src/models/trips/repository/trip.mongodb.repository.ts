@@ -5,17 +5,26 @@ import { NewTripDTO } from '../dto/new-trip.dto';
 import { TripStatus } from '../enums/state.enum';
 import { Trip, TripDocument } from '../trip.schema';
 import { ITripRepository } from '../interface/trip.repository.interface';
-import { User, UserDocument } from '@/users/user.schema';
+import { User } from '@/users/user.schema';
+import { driverView } from '@/users/repository/users.views';
 
 export class TripMongodbRepository implements ITripRepository {
   constructor(
     @InjectModel(Trip.name) private readonly tripModel: Model<TripDocument>,
-    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
-  
+  async getAllDrivers(): Promise<User[]> {
+    const trips = await this.tripModel.find().select('driver').populate({
+      path: 'driver',
+      localField: 'driver',
+      foreignField: 'email',
+      select: driverView,
+    }).exec();
 
-  getTrip(obj: any): Trip {
+    const drivers = trips.map(trip => trip.getDriver());
+    return drivers;
+  }
+   getTrip(obj: any): Trip {
     const trip = new Trip();
     Object.keys(trip).forEach(key => {
       if (obj[key] !== undefined) {
@@ -25,16 +34,58 @@ export class TripMongodbRepository implements ITripRepository {
     return trip;
   }
 
-  async findByDriver(driver: string): Promise<Trip[]> {
-
+  async findByDriver(driverEmail: string): Promise<Trip[]> {
     const trips = await this.tripModel
-      .find({ driver })
+      .find({ driverEmail })
       .sort({ createdTimestamp: 'desc' })
       .select('-__v -id')
-      .populate('vehicle')
-      .populate('origin')
-      .populate('destination')
-      .select('-__v -id')
+      .populate({
+        path: 'driver', 
+        localField: 'driver',
+        foreignField: 'email',
+        select: driverView
+    })
+    .populate({
+      path: 'vehicle', 
+      localField: 'vehicle',
+      foreignField: 'patentPlate',
+      select: '-__v -id' 
+      })
+  
+    .populate({
+        path: 'passengers', 
+        select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+    })
+    .populate({
+        path: 'origin', 
+        select: '-__v -id' 
+      }) 
+      .populate({
+        path: 'destination', 
+        select: '-__v -id' 
+      }) 
+      .populate({
+        path: 'bookings', 
+        select: '-__v -id' 
+      })
+      .populate({
+        path: 'tripRequests', 
+        select: '-__v -id' 
+      }) 
+      .populate({
+        path: 'tripResumeId', 
+        select: '-__v -id',
+        populate: [
+            { 
+                path: 'valuations', 
+                select: '-__v -id' 
+            },
+            { 
+                path: 'passengers', 
+                select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+            }
+        ]
+    })
       .exec();
     const newTrips = trips.map(trip => this.getTrip(trip));
 
@@ -49,24 +100,22 @@ export class TripMongodbRepository implements ITripRepository {
 
   async findByIdWithDriver(id: string): Promise<Trip> {
     const trip = await this.tripModel.findOne({id}).select('-__v -id') 
-            .populate({
-                path: 'driver', 
-                select: '-__v -id -password -status -verificationCode -resetPasswordToken' 
-            })
-            .populate(
-              {
-                path: 'driver',
-                select: '-__v -id -password -status -verificationCode -resetPasswordToken'
-              }
-            )
-            .populate({
+    .populate({
+      path: 'driver', 
+      localField: 'driver',
+      foreignField: 'email',
+      select: driverView , 
+  })
+  .populate({
+    path: 'vehicle', 
+    localField: 'vehicle',
+    foreignField: 'patentPlate',
+    select: '-__v -id' 
+    })
+    .populate({
                 path: 'passengers', 
                 select: '-__v -id -password -status -verificationCode -resetPasswordToken'
             })
-            .populate({
-              path: 'vehicle', 
-              select: '-__v -id' 
-            	})
             .populate({
                 path: 'origin', 
                 select: '-__v -id' 
@@ -79,14 +128,6 @@ export class TripMongodbRepository implements ITripRepository {
                 path: 'bookings', 
                 select: '-__v -id' 
               })
-              .populate({
-                path: 'bookings', 
-                select: '-__v -id' 
-              })
-              .populate({
-                path: 'tripRequests', 
-                select: '-__v -id' 
-              }) 
               .populate({
                 path: 'tripResumeId', 
                 select: '-__v -id',
@@ -109,38 +150,26 @@ export class TripMongodbRepository implements ITripRepository {
 
   async findById(id: string): Promise<Trip> {
     const trip = await this.tripModel.findById(id).select('-__v -id') 
-            .populate({
-                path: 'driver', 
-                select: '-__v -id -password -status -verificationCode -resetPasswordToken' 
-            })
-            .populate({
+    .populate({
+      path: 'driver', 
+      localField: 'driver',
+      foreignField: 'email',
+      select: driverView , 
+  })
+  .populate({
+    path: 'vehicle', 
+    localField: 'vehicle',
+    foreignField: 'patentPlate',
+    select: '-__v -id' 
+    })
+    .populate({
                 path: 'passengers', 
                 select: '-__v -id -password -status -verificationCode -resetPasswordToken'
             })
-            .populate({
-              path: 'vehicle', 
-              select: '-__v -id' 
-            	})
-            .populate({
-                path: 'origin', 
-                select: '-__v -id' 
-              }) 
-              .populate({
-                path: 'destination', 
-                select: '-__v -id' 
-              }) 
-              .populate({
+           .populate({
                 path: 'bookings', 
                 select: '-__v -id' 
               })
-              .populate({
-                path: 'bookings', 
-                select: '-__v -id' 
-              })
-              .populate({
-                path: 'tripRequests', 
-                select: '-__v -id' })
-             
                 .populate({
                   path: 'tripResumeId', 
                   select: '-__v -id',
@@ -154,27 +183,30 @@ export class TripMongodbRepository implements ITripRepository {
                           select: '-__v -id -password -status -verificationCode -resetPasswordToken'
                       }
                   ]
-              }).exec();
+              }).exec();    
 
-    const result = this.getTrip(trip);
+    return trip;
 
-    return result;
   }
 
   async findByUUIDd(id: string): Promise<Trip> {
     const trip = await this.tripModel.find({id}).select('-__v -id') 
-            .populate({
-                path: 'driver', 
-                select: '-__v -id -password -status -verificationCode -resetPasswordToken' 
-            })
+    .populate({
+      path: 'driver', 
+      localField: 'driver',
+      foreignField: 'email',
+      select: driverView , 
+  })
+  .populate({
+    path: 'vehicle', 
+    localField: 'vehicle',
+    foreignField: 'patentPlate',
+    select: '-__v -id' 
+    })
             .populate({
                 path: 'passengers', 
                 select: '-__v -id -password -status -verificationCode -resetPasswordToken'
             })
-            .populate({
-              path: 'vehicle', 
-              select: '-__v -id' 
-            	})
             .populate({
                 path: 'origin', 
                 select: '-__v -id' 
@@ -183,10 +215,6 @@ export class TripMongodbRepository implements ITripRepository {
                 path: 'destination', 
                 select: '-__v -id' 
               }) 
-              .populate({
-                path: 'bookings', 
-                select: '-__v -id' 
-              })
               .populate({
                 path: 'bookings', 
                 select: '-__v -id' 
@@ -209,9 +237,8 @@ export class TripMongodbRepository implements ITripRepository {
                       }
                   ]
               }).exec();
-
-    const result = await this.tripModel.findOne({id}).select('-__v -id')
-    return result;
+              const result =this.getTrip(trip);
+              return result;
   }
 
   async findNonDriverTrips(email: string): Promise<Trip[]> {
@@ -219,36 +246,26 @@ export class TripMongodbRepository implements ITripRepository {
     .find({ driver: { $ne: email } })
     .populate({
       path: 'driver', 
-      select: '-__v -id -password -status -verificationCode -resetPasswordToken' 
+      localField: 'driver',
+      foreignField: 'email',
+      select: driverView , 
   })
+  .populate({
+    path: 'vehicle', 
+    localField: 'vehicle',
+    foreignField: 'patentPlate',
+    select: '-__v -id' 
+    })
+
+
   .populate({
       path: 'passengers', 
       select: '-__v -id -password -status -verificationCode -resetPasswordToken'
   })
-  .populate({
-    path: 'vehicle', 
-    select: '-__v -id' 
-    })
-  .populate({
-      path: 'origin', 
-      select: '-__v -id' 
-    }) 
-    .populate({
-      path: 'destination', 
-      select: '-__v -id' 
-    }) 
     .populate({
       path: 'bookings', 
       select: '-__v -id' 
     })
-    .populate({
-      path: 'bookings', 
-      select: '-__v -id' 
-    })
-    .populate({
-      path: 'tripRequests', 
-      select: '-__v -id' 
-    }) 
     .populate({
       path: 'tripResumeId', 
       select: '-__v -id',
@@ -273,15 +290,19 @@ export class TripMongodbRepository implements ITripRepository {
     const trip = await this.tripModel.find().select('-__v -id')
     .populate({
       path: 'driver', 
+      localField: 'driver',
+      foreignField: 'email',
       select: '-__v -id -password -status -verificationCode -resetPasswordToken' 
   })
   .populate({
+    path: 'vehicle', 
+    localField: 'vehicle',
+    foreignField: 'patentPlate',
+    select: '-__v -id' 
+    })
+  .populate({
       path: 'passengers', 
       select: '-__v -id -password -status -verificationCode -resetPasswordToken'
-  })
-  .populate({
-    path: 'vehicle', 
-    select: '-__v -id' 
     })
   .populate({
       path: 'origin', 
@@ -296,14 +317,6 @@ export class TripMongodbRepository implements ITripRepository {
       select: '-__v -id' 
     })
     .populate({
-      path: 'bookings', 
-      select: '-__v -id' 
-    })
-    .populate({
-      path: 'tripRequests', 
-      select: '-__v -id' 
-    }) 
-    .populate({
       path: 'tripResumeId', 
       select: '-__v -id',
       populate: [
@@ -317,10 +330,6 @@ export class TripMongodbRepository implements ITripRepository {
           }
       ]
   }).exec();
-
-    // const result = trip.map(trip => this.getTrip(trip));
-    // return result;
-
     return trip;
   }
 

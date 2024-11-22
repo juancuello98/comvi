@@ -7,17 +7,14 @@ import { ChangeStatusOfRequestDTO } from './dto/change-status-request.dto';
 import { MailService } from 'src/mail/config.service';
 import { IREQUEST_REPOSITORY } from './repository/constants/request.repository.constant';
 import { IRequestRepository } from './Interfaces/request.repository.interface';
-import { ITRIP_REPOSITORY } from '@/trips/repository/constants/trip.repository.constant';
-import { ITripRepository } from '@/trips/interface/trip.repository.interface';
-import {IUSER_REPOSITORY} from '@/users/repository/constants/user.repository.constant';
-import { IUserRepository } from '@/users/interfaces/user.repository.interface';
 import { changeStatusInterface } from './Interfaces/changeStatus.Interface';
 import { ExtendedRequestDTO } from './dto/extended-request.dto';
-import { TripDocument, TripResume } from '../trips';
+import { Trip, TripResume, TripService } from '../trips';
 import { TripStatus } from '@/trips/enums/state.enum';
-import { ITRIP_RESUME_REPOSITORY } from '@/trips/resumes/constants/trip.resume.repository.constant';
-import { ITripResumeRepository } from '@/trips/resumes/interface/trip.resume.repository.interface';
 import { User } from '@/users/user.schema';
+import { UserService } from '@/users/user.service';
+import { TripResumeService } from '@/trips/resumes/tripResume.service';
+import { LocationService } from '@/locations/location.service';
 @Injectable()
 export class RequestService {
 
@@ -25,11 +22,12 @@ export class RequestService {
 
   constructor(
     private mailService: MailService,
-    private readonly responseHelper : ResponseHelper,
-    @Inject(ITRIP_REPOSITORY) private readonly tripRepository: ITripRepository,
-    @Inject(IUSER_REPOSITORY) private readonly userRepository: IUserRepository,
-    @Inject(ITRIP_RESUME_REPOSITORY) private readonly tripResumeRepository: ITripResumeRepository,
     @Inject(IREQUEST_REPOSITORY) private readonly requestRepository: IRequestRepository,
+    private readonly responseHelper : ResponseHelper,
+    private readonly tripService: TripService,
+    private readonly userService: UserService,
+    private readonly tripResumeService: TripResumeService,
+    private readonly locationService: LocationService
   ){}
 
   async findMyRequests(email: string): Promise<ResponseDTO> {
@@ -58,7 +56,7 @@ export class RequestService {
     try {
 
       const request = await this.requestRepository.findById(req.requestId);
-      const trip = await this.tripRepository.findById(request.tripId.toString());
+      const trip = await this.tripService.findById(request.getTripId());
 
       let response;
       if(!request)  {
@@ -72,7 +70,7 @@ export class RequestService {
           response: response
         }
       }
-      if(trip.driver.email != actionerEmail && request.email != actionerEmail) { //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema) {
+      if (typeof trip.driver !== 'string' && trip.driver.email != actionerEmail && request.getMail() != actionerEmail) { //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema) {
         this.logger.error('You can only response requests from your OWN trip');
         response = this.responseHelper.makeResponse(true,'You can only response requests from your OWN trip',null,HttpStatus.UNAUTHORIZED);
         return {
@@ -120,7 +118,7 @@ export class RequestService {
         }
       }
 
-      if(varStatusRequest==StatusRequest.CANCELLED && request.email != actionerEmail ) {//(trip.driverSchema.email != actionerEmail) { //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema 
+      if(varStatusRequest==StatusRequest.CANCELLED && request.getMail() != actionerEmail ) {//(trip.driverSchema.email != actionerEmail) { //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema 
         this.logger.error("You can not cancel to anotherone's request");
         response = this.responseHelper.makeResponse(true,"You can not cancel to anotherone's request",null,HttpStatus.UNAUTHORIZED);
         return {
@@ -135,30 +133,12 @@ export class RequestService {
 
       request.status = varStatusRequest;
 
-      const passengerUser = await this.userRepository.findByEmail( request.email );
+      const passengerUser = await this.userService.findByEmail( request.getMail() );
 
-      const actioner = await this.userRepository.findByEmail(actionerEmail);
+      const actioner = await this.userService.findByEmail(actionerEmail);
       
       
-     
-    try {
-      await request.save();
-    } 
-    catch (saveError) {
-      this.logger.error(`Error saving request: ${saveError.message}`);
-      response = this.responseHelper.makeResponse(true, 'Error saving request.', null, HttpStatus.INTERNAL_SERVER_ERROR);
-      return {
-          actioner: actioner,
-          passenger: passengerUser,
-          trip: trip,
-          request: request,
-          response: response
-      };
-  }
-
-
-
-     
+         
       return {
         actioner: actioner,
         passenger: passengerUser,
@@ -173,8 +153,8 @@ export class RequestService {
 
   }
 
-  async addTripToRequest(x: RequestDocument) {
-    const trip = await this.tripRepository.findById(x.tripId.toString());
+  async addTripToRequest(x: Request) {
+    const trip = await this.tripService.findById(x.getTripId());
     return this._getRequestDetails(x,trip);
   }
 
@@ -185,7 +165,7 @@ export class RequestService {
 
       if(!request) return this.responseHelper.makeResponse(true,'Request not found.',null,HttpStatus.NOT_FOUND);
 
-      if(request.email != userEmail){
+      if(request.getMail() != userEmail){
         return this.responseHelper.makeResponse(true,'You can only see your own requests.',null,HttpStatus.UNAUTHORIZED);
       }
       
@@ -216,18 +196,19 @@ export class RequestService {
       const mail = this.mailService.sendAcceptedRequestNotification(passenger.email,passenger.name,actioner.name,origin,destination,req.description); //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema
 
       if (trip.tripResumeId) {
-        const tripResume = await this.tripResumeRepository.findById(trip.tripResumeId);
-        tripResume.passengers.push(passenger.id);
-        await tripResume.save();
+        const tripResume = await this.tripResumeService.updateTripResume(trip.tripResumeId);
+        tripResume.passangers.push(passenger.id);
+        await this.tripResumeService.updateTripResume(tripResume);
       }
       else{
         const tripResume = new TripResume();
 
-        tripResume.passengers = [passenger.id];
-        const tripResumeDoc = await this.tripResumeRepository.create(tripResume);
+        tripResume.passangers = [passenger.id];
+        const tripResumeDoc = await this.tripResumeService.createTripResume(tripResume);
 
         trip.tripResumeId = tripResumeDoc.id;
-        await trip.save();
+        
+        await this.tripService.update(trip.id);
       }
 
       return this.responseHelper.makeResponse(false,'Request accepted succesfully.',null,HttpStatus.OK);
@@ -279,13 +260,14 @@ export class RequestService {
       const mail = await this.mailService.sendCanceledRequestNotification(passenger.email,passenger.name,actioner.name,origin,destination,req.description); //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema
 
       if (trip.tripResumeId) {
-        const tripResume = await this.tripResumeRepository.findById(trip.tripResumeId);
-        if (typeof tripResume.passengers[0] === 'string') {
-          tripResume.passengers = (tripResume.passengers as string[]).filter(x => x !== passenger.id);
+        const tripResume = await this.tripResumeService.findById(trip.tripResumeId);
+        if (typeof tripResume.passangers[0] === 'string') {
+          tripResume.passangers = (tripResume.passangers as string[]).filter(x => x !== passenger.id);
         } else {
-          tripResume.passengers = (tripResume.passengers as User[]).filter(x => x.email !== passenger.email);
+          tripResume.passangers = (tripResume.passangers as User[]).filter(x => x.email !== passenger.email);
         }
-        await tripResume.save();}
+        await this.tripResumeService.updateTripResume(tripResume);}
+
   
         return this.responseHelper.makeResponse(false,'Request canceled succesfully.',request,HttpStatus.OK);
       }
@@ -299,12 +281,12 @@ export class RequestService {
   async send( req: ExtendedRequestDTO ): Promise<ResponseDTO> {
     
     try {
-      const user = await this.userRepository.findByEmail(req.email);
+      const user = await this.userService.findByEmail(req.email);
       if(!user || typeof user !== 'object'){
         return this.responseHelper.makeResponse(true,'User not found or invalid.',null,HttpStatus.NON_AUTHORITATIVE_INFORMATION);
       }
       
-      const trip = await this.tripRepository.findById(req.tripId);
+      const trip = await this.tripService.findById(req.tripId);
 
       if(!trip || typeof trip !== 'object'){
         return this.responseHelper.makeResponse(true,'Trip not found or invalid.',null,HttpStatus.UNPROCESSABLE_ENTITY);
@@ -312,17 +294,16 @@ export class RequestService {
       
       const alredryRequested = await this.requestRepository.find({email:req.email,tripId:req.tripId});
       if(alredryRequested.length > 0){
-        console.log(alredryRequested[0]._id);
-        console.log(alredryRequested[0].id);
+        console.log(alredryRequested[0].getTripId());
+        console.log(alredryRequested[0].getTripId());
         
         if(alredryRequested[0].status == StatusRequest.CANCELLED)
         {
           
           let partnerQuantity = ! req.partnerQuantity ? 0 : req.partnerQuantity;
           const newRequest = new Request();
-          newRequest.userId = user.id;
-          newRequest.email = req.email;
-          newRequest.tripId =  trip.id;
+          newRequest.sender = req.email ;
+          newRequest.trip =  trip.id;
           newRequest.description = req.description;
           newRequest.hasEquipment = req.hasEquipment;
           newRequest.hasPartner = req.hasPartner;
@@ -331,19 +312,22 @@ export class RequestService {
           newRequest.createdTimestamp = new Date().toISOString();
           newRequest.status = StatusRequest.ON_HOLD;        
         
-        const result =  await this.requestRepository.update(alredryRequested[0].id,newRequest);
+        const result =  await this.requestRepository.update(alredryRequested[0].getTripId(),newRequest);
         
         
 
-        const driverEmail = trip.driver.email; //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema  
         const driver = trip.driver; //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema
-        const origin = trip.origin.locality; //Juan fijate que cuando uso la prop origin no me deja usar la prop locality 
-        const destination = trip.destination.locality; //Juan fijate que cuando uso la prop destination no me deja usar la prop locality
+        const origin: string = typeof trip.origin === 'string' ?  (await this.locationService.findById(trip.origin)).locality: trip.origin.locality ; //Juan fijate que cuando uso la prop origin no me deja usar la prop locality 
+        const destination: string = typeof trip.destination === 'string' ?  (await this.locationService.findById(trip.destination)).locality: trip.destination.locality ; //Juan fijate que cuando uso la prop destination no me deja usar la prop locality 
+        
+
+        const driverName = typeof trip.driver === 'string' ?  (await this.userService.findByEmail(trip.driver)).name: trip.driver.name ; //Juan fijate que cuando uso la prop destination no me deja usar la prop locality 
+         
 
         const mail = await this.mailService.sendNewRequestNotification(
-          result.email,
+          result.getMail(),
           user.name,
-          driver.name,
+          driverName,
           origin,
           destination,
           result.description,
@@ -360,9 +344,8 @@ export class RequestService {
 
       let partnerQuantity = ! req.partnerQuantity ? 0 : req.partnerQuantity;
       const newRequest = new Request();
-      newRequest.userId = user.id;
-      newRequest.email = req.email;
-      newRequest.tripId =  trip._id;
+      newRequest.sender = req.email ;
+      newRequest.trip =  trip.id;
       newRequest.description = req.description;
       newRequest.hasEquipment = req.hasEquipment;
       newRequest.hasPartner = req.hasPartner;
@@ -373,14 +356,16 @@ export class RequestService {
     
     const result =  await this.requestRepository.create(newRequest);
 
-    const driver = trip.driver; //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema  
-    const origin = trip.origin.locality; //Juan fijate que cuando uso la prop origin no me deja usar la prop locality 
-    const destination = trip.destination.locality; //Juan fijate que cuando uso la prop destination no me deja usar la prop locality
-
+    const origin: string = typeof trip.origin === 'string' ?  (await this.locationService.findById(trip.origin)).locality: trip.origin.locality ; //Juan fijate que cuando uso la prop origin no me deja usar la prop locality 
+    const destination: string = typeof trip.destination === 'string' ?  (await this.locationService.findById(trip.destination)).locality: trip.destination.locality ; //Juan fijate que cuando uso la prop destination no me deja usar la prop locality 
+    
+    const driverName = typeof trip.driver === 'string' ?  (await this.userService.findByEmail(trip.driver)).name: trip.driver.name ; //Juan fijate que cuando uso la prop destination no me deja usar la prop locality 
+    
+    
     const mail = await this.mailService.sendNewRequestNotification(
-      result.email,
+      result.getMail(),
       user.name,
-      driver.name,
+      driverName,
       origin,
       destination,
       result.description,
@@ -395,7 +380,7 @@ export class RequestService {
     }
   }
 
-  async update( request: RequestDocument): Promise<ResponseDTO> {
+  async update( request: Request): Promise<ResponseDTO> {
     try{
       request = await this.requestRepository.update(request.id,request);
       if(!request) return this.responseHelper.makeResponse(true,'Request not found.',null,HttpStatus.NOT_FOUND);
@@ -411,10 +396,8 @@ export class RequestService {
 
   async getRequestsByTrips(email: string){ //TODO: Ver si se puede hacer como en sql la request al mongodb # en eso jmc
     try {
-      
-      const driver = await this.userRepository.findByEmail(email);
-
-      const trips = await this.tripRepository.find({driver: driver.id});
+    
+      const trips = await this.tripService.findByDriver(email);
       
       if(trips.length === 0)
       {
@@ -422,7 +405,7 @@ export class RequestService {
         return this.responseHelper.makeResponse(false,`${RequestService.name}: The user not have trips`,null,HttpStatus.NOT_FOUND);
       }
 
-      let requests: RequestDocument[] = [];
+      let requests: Request[] = [];
 
       await Promise.all(trips.map(async x => await this.requestRepository.find({tripId: x.id}).then( async req => requests.concat(req))));
 
@@ -484,7 +467,7 @@ export class RequestService {
   async getRequestsByTripsId(tripId: string){
     try {
       
-      const trip = await this.tripRepository.findById(tripId);
+      const trip = await this.tripService.findById(tripId);
 
       if(!trip)
       {
@@ -492,7 +475,7 @@ export class RequestService {
         return this.responseHelper.makeResponse(false,`${RequestService.name}: The user not have trips`,null,HttpStatus.NOT_FOUND);
       }
 
-      let requests: RequestDocument[] = [];
+      let requests: Request[] = [];
 
       requests = await this.requestRepository.find({tripId: tripId});
 
@@ -522,11 +505,12 @@ export class RequestService {
     return new Date(b.createdTimestamp).getTime() - new Date(a.createdTimestamp).getTime();
   }
 
-  async _getRequestDetails(request : RequestDocument, trip: TripDocument){
-    const user = await this.userRepository.findByEmail(request.email);
+  async _getRequestDetails(request : Request, trip: Trip){
+    
+    const user = await this.userService.findByEmail(request.getMail());
     return {
       id: request.id,
-      email: request.email,
+      email: request.getMail(),
       description: request.description,
       hasEquipment: request.hasEquipment,
       hasPartner: request.hasPartner,
@@ -534,7 +518,7 @@ export class RequestService {
       totalPassenger: request.totalPassenger,
       createdTimestamp: request.createdTimestamp,
       status: request.status,
-      tripId: request.tripId,
+      tripId: request.getTripId(),
       trip: trip,
       user: {
         name : user.name,

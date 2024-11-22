@@ -1,0 +1,1 @@
+export const driverView = '-__v -id -password -status -verificationCode -resetPasswordToken' 

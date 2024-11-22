@@ -3,6 +3,11 @@ import { NestFactory } from '@nestjs/core/nest-factory';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import mongoose from 'mongoose';
+import * as admin from 'firebase-admin';
+import { config } from 'dotenv'; // Importa dotenv si vas a usar variables de entorno
+
+config(); // Asegúrate de cargar las variables de entorno si usas .env
+
 
 async function bootstrap() {
   const logger = new Logger();
@@ -11,6 +16,11 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule,{
     logger:['log','error']
+  });
+
+   // Inicializa Firebase
+   admin.initializeApp({
+    credential: admin.credential.cert(process.env.FIREBASE_SERVICE_ACCOUNT),
   });
 
 

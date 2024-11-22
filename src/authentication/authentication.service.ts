@@ -2,29 +2,23 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-
-
-//DTOs
 import { LoginDTO } from '../models/users/dto/existing-user.dto';
 import { NewUserDTO } from '../models/users/dto/new-user.dto';
-import { UserDTO } from '../models/users/interfaces/user-details.interface';
 import { VERIFICATION_CODE_STATUS } from './authentication.enum';
 import { UserVerificationDTO } from '../models/users/dto/user-verification.dto';
 import { ResetPasswordDTO } from './dto/reset-password-dto';
 import { PasswordTokenDTO } from './dto/token-password.dto';
 import { PasswordToken } from '../models/users/passwordToken.schema';
-import { User, UserDocument } from 'src/models/users/user.schema';
+import { User } from 'src/models/users/user.schema';
 import { MailService } from 'src/mail/config.service';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { ResponseDTO } from '@/common/interfaces/responses.interface';
 import { UserRepository } from '@/users/repository/user.repository';
 import { ResponseHelper } from '@/helpers/http/response.helper';
 import { ValidateResult } from './Enum/enum';
-import { UserValidatedDTO } from 'src/models/users/interfaces/user-validated.interface';
-import { TripDTO } from '@/trips/dto/existing-trip.dto';
-import { get } from 'http';
-import { GetUserDTO } from '@/users/dto/user.dto';
+import * as admin from 'firebase-admin';
 import { ChangePasswordDTO } from './dto/change-password-dto';
+import { UserData } from '@/users/interfaces/user.repository.interface';
 
 @Injectable()
 export class AuthService {
@@ -34,7 +28,7 @@ export class AuthService {
     private mailService: MailService,
     private jwtTokenService: JwtService,
     private userRepository: UserRepository,
-    private responseHelper: ResponseHelper
+    private responseHelper: ResponseHelper,
   ) {}
 
   generateRandomString(num) {
@@ -168,8 +162,13 @@ export class AuthService {
       const user = await this.validate(email, password);
 
       const userData = this.userRepository.getUserData(user);
+      
+      const messaging = admin.messaging();
 
-      const token = await this.loginWithCredentials(userData);
+      const tokken = "";
+
+      const token = await this.loginWithCredentials(userData,tokken);
+
 
       return this.responseHelper.makeResponse(
         false,
@@ -213,8 +212,8 @@ export class AuthService {
     }
   }
 
-  async loginWithCredentials(user: UserDTO) {
-    const payload = { user };
+  async loginWithCredentials(user: UserData, token: string){
+    const payload = { user, notifiicationToken: token };
 
     return {
       token: this.jwtTokenService.sign(payload),
@@ -463,11 +462,10 @@ export class AuthService {
       );
     }
 
-    const { id } = user;
     const validated =
       (await this.IsExpired(user.resetPasswordToken)) &&
       (await this.compareResetPasswordCode(passwordToken, user));
-    const result = { id, email, validated };
+    const result = { email, validated };
 
     return this.responseHelper.makeResponse(
       false,
@@ -485,5 +483,39 @@ export class AuthService {
       HttpStatus.INTERNAL_SERVER_ERROR,
     );
   }
+  }
+
+  async takeOutToken(email: string, token: string): Promise<ResponseDTO> {
+    try {
+      const user = await this.userRepository.findByEmail(email);
+      if (!user) {
+        this.logger.log('El usuario no existe: ' + email);
+        return this.responseHelper.makeResponse(
+          false,
+          'User not found.',
+          email,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      const updated = await this.userRepository.removeTokenFromArray(
+        user.email,
+        token,
+      );
+      this.logger.log('Se le quitó el token a: ' + updated.email);
+      return this.responseHelper.makeResponse(
+        false,
+        'Token removed.',
+        { email: updated.email },
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      this.logger.error(error.message);
+      return this.responseHelper.makeResponse(
+        true,
+        error.message,
+        null,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

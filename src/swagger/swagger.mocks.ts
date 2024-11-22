@@ -1,3 +1,5 @@
+import { HttpStatus } from "@nestjs/common";
+
 export const exCreateValuationRequest = {
   tripId: "66d67cbdd6d5aa8b1baa2fcd",
   puntaje: 5,
@@ -231,11 +233,25 @@ export const exChangePasswordResponseOK= {
   status: 200
 }
 
+export const exChangePasswordPasswordDoesNotMatch = {
+  hasError: true,
+  message: 'The password does not match.',
+  data: {  },
+  status: HttpStatus.NOT_ACCEPTABLE
+}
+
 export const exChangePasswordResponseBad = {
   hasError: true,
-  message: 'The password was wrong',
+  message: 'The token does not match.',
   data: {  },
-  status: 400
+  status: HttpStatus.NOT_ACCEPTABLE
+}
+
+export const exChangePasswordUserNotPassword = {
+  hasError: true,
+  message: 'El usuario no trajo una nueva contraseña.',
+  data: {  },
+  status: HttpStatus.NOT_ACCEPTABLE
 }
 
 export const exChangePasswordResponseNotFound = {
@@ -273,8 +289,16 @@ export const exRequestResetPassword = {
 }
 
 
+export const exRegisterUser = {
+  lastname: "Gonzales",
+  name: "Maria",
+  email: "admin@gmail.com",
+  password: "admin123"
+}
+
+
 export const exResetPassword = {
-  password: "admin@1234",
+  token: "1234",
   email: "admin@gmail.com",
 }
 
@@ -284,11 +308,10 @@ export const UserValidatedDTO = {
   email: "admin@gmail.com"
 }
 
-export const exRegisterUser = {
-    lastname: "Gonzales",
-    name: "Maria",
+export const exChangePassword = {
     email: "admin@gmail.com",
-    password: "admin123"
+    password: "admin123",
+    newPassword: "admin"
 }
 
 export const exValidateToken = {
@@ -348,7 +371,7 @@ export const exValidatePasswordTokenResponse = {
 }
 
 export const exLogin = {
-    email: 'maria@gmail.com',
+    token: 'maria@gmail.com',
     password: 'admin123'
   }
 
@@ -1081,7 +1104,10 @@ export const exNewVehicle = {
   "year": 2020,
   "pics": [],
   "email": "jcuello673@gmail.com",
-  "color": "Negro"
+  "color": "Negro",
+  "consumption": "45",
+  "fuels": [3,6,21]
+  
 }
 
 export const exNewVehicleResponse = {

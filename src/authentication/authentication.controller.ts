@@ -7,8 +7,6 @@ import { LoginDTO } from '../models/users/dto/existing-user.dto';
 import { NewUserDTO } from '../models/users/dto/new-user.dto';
 import { UserVerificationDTO } from 'src/models/users/dto/user-verification.dto';
 
-import { UserDTO } from 'src/models/users/interfaces/user-details.interface';
-import { UserValidatedDTO } from 'src/models/users/interfaces/user-validated.interface';
 import { exChangePassword, exChangePasswordPasswordDoesNotMatch, exChangePasswordResponseBad, exChangePasswordResponseNotFound, exChangePasswordResponseOK, exLogin, exLoginResponse, exPasswordToken, exRegisterUser, exRegisterUserResponse, exRequestResetPassword, exRequestResetPasswordResponse, exResetPassword, exValidatePasswordToken, exValidateToken ,exValidateTokenResponse } from '../swagger/swagger.mocks';
 import { RequestResetPasswordDTO } from './dto/request-reset-password-dto';
 import { PasswordTokenDTO } from './dto/token-password.dto';
@@ -17,12 +15,16 @@ import { ResponseDTO } from '@/common/interfaces/responses.interface';
 import { JwtAuthGuard } from './jwt/jwt-auth.guard';
 import { ChangePasswordDTO } from './dto/change-password-dto';
 
+
 @ApiTags('auth')
 
 @Controller('auth')
 export class AuthController {
   requestHelper: any;
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+   
+  ) { }
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
@@ -78,6 +80,26 @@ export class AuthController {
  
   @HttpCode(200)
   login(@Body() user: LoginDTO): Promise<ResponseDTO> {
+    return this.authService.login(user);
+  }
+
+
+  @Post('logout')
+  @ApiOperation({
+    summary: ''
+  })
+  @ApiBody({
+    type: LoginDTO, examples: {
+      example1: {
+        summary: 'Typical user logout',
+        description: 'Example of a typical user login',
+        value: exLoginResponse
+      }
+    }
+  }) // Información del cuerpo de la solicitud
+  @ApiResponse({ status: 200, description: 'User was logged out succesfully.', example: exLoginResponse})
+  @HttpCode(200)
+  create(@Body() user: LoginDTO): Promise<ResponseDTO> {
     return this.authService.login(user);
   }
 

@@ -7,13 +7,13 @@ import { RequestDocument, Request } from "../request.schema";
 import { ClientSession } from "mongoose";
 import { IRepository } from "src/repository/mongodb.repository";
 
-export interface IRequestRepository extends IRepository<Request, RequestDocument> {
+export interface IRequestRepository  {
     startSession(): Promise<ClientSession>;
-    create(createRequest: Request): Promise<RequestDocument>;
+    create(createRequest: Request): Promise<Request>;
     findAll(): Promise<RequestDocument[]>;
-    findById(id: string): Promise<RequestDocument>;
-    find(campoos:{}): Promise<RequestDocument[]>;
-    update(id: string, updateDTO: Request): Promise<RequestDocument>;
+    findById(id: string): Promise<Request>;
+    find(campoos:{}): Promise<Request[]>;
+    update(id: string, updateDTO: Request): Promise<Request>;
     delete(id: string): Promise<void>;
     getRequest(req:RequestDocument): Request; 
   }

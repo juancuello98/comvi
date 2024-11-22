@@ -2,39 +2,33 @@ import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
 
 import { ResponseHelper } from '../../common/helpers/http/response.helper';
 import { ResponseDTO } from '../../common/interfaces/responses.interface';
-
 import { CreateValuationDto } from './dto/create-valuation.dto';
 import { UpdateValuationDto } from './dto/update-valuation.dto';
-import { Valuation, ValuationDocument } from './entities/valuation.schema';
+import { Valuation  } from './entities/valuation.schema';
 import { IVALUATION_REPOSITORY } from './repository/constants/valuations.repository.constant';
 import { IValuationRepository } from './interfaces/valuations.repository.interface';
-import { ITRIP_REPOSITORY } from '@/trips/repository/constants/trip.repository.constant';
-import { ITripRepository } from '@/trips/interface/trip.repository.interface';
-import { IUserRepository } from '@/users/interfaces/user.repository.interface';
-import { IUSER_REPOSITORY } from '@/users/repository/constants/user.repository.constant';
-import { Trip} from '@/trips/trip.schema';
-import { TripResume } from '@/trips/resumes/trip.resume.schema'; 
-import { ITRIP_RESUME_REPOSITORY } from '@/trips/resumes/repository/constants/trip.resume.repository.constant';
-import { ITripResumeRepository } from '@/trips/resumes/interface/trip.repository.interface';
-import { Schema as MongooseSchema } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
+
+import { TripResume } from '@/trips/resumes/trip.resume.schema';
+import { TripResumeService } from '@/trips/resumes/tripResume.service';
+import { UserService } from '@/users/user.service';
+import { TripService } from '../trips';
 @Injectable()
 export class ValuationsService {
   private readonly logger = new Logger(ValuationsService.name);
 
   constructor(
     @Inject(IVALUATION_REPOSITORY) private readonly valuationRepository: IValuationRepository,
-    @Inject(ITRIP_REPOSITORY) private readonly tripRepository: ITripRepository,
-    @Inject(IUSER_REPOSITORY) private readonly userRepository: IUserRepository,
-    @Inject(ITRIP_RESUME_REPOSITORY) private readonly tripResumeRepository: ITripResumeRepository,
+    private readonly tripService: TripService,
+    private readonly userService: UserService,
+    private readonly tripResumeService: TripResumeService,
 
     private readonly responseHelper: ResponseHelper,
   ) {}
 
-  async create(createValuationDto: CreateValuationDto) {
+  async createController(createValuationDto: CreateValuationDto):Promise<ResponseDTO> {
     try{
-    const user = await this.userRepository.findByEmail(createValuationDto.email);
-    const trip = await this.tripRepository.findById(createValuationDto.tripId);
+    const user = await this.userService.findByEmail(createValuationDto.email);
+    const trip = await this.tripService.findById(createValuationDto.tripId);
 
     if(!user){
       this.logger.log('User not found');	
@@ -45,76 +39,43 @@ export class ValuationsService {
       return this.responseHelper.makeResponse(true, 'Trip not found', null, HttpStatus.NOT_FOUND);
     }
 
-    const alredyValuated = await this.valuationRepository.findValuationBy_User_Trip(user.id, trip.id);
+    if(this.tripService.canHaveValuations(trip)){
+      this.logger.log('The trip is can have valuations yet');	
+      return this.responseHelper.makeResponse(true, 'The trip is not finished yet', null, HttpStatus.CONFLICT);
+    }
+
+    const alredyValuated = await this.valuationRepository.findValuationBy_User_Trip(user.email, trip.id);
 
     if(alredyValuated){
       this.logger.log('The user already valuated this trip');	
       return this.responseHelper.makeResponse(true, 'The user already valuated this trip', null, HttpStatus.CONFLICT);
     }
     
-    
-    // if (trip.status != 'FINISHED') {
-    //   this.logger.log('The trip is not finished yet');	
-    //   return this.responseHelper.makeResponse(true, 'The trip is not finished yet', null, HttpStatus.CONFLICT);
-    // }
-
-    //to do: chequear flujo de valuaciones cuuando si y cuanod no se puede hacer una.
-
-
     const input = new Valuation();
-    input.email = createValuationDto.email;
-    input.tripId = createValuationDto.tripId;
+    input.trip = createValuationDto.tripId;
     input.puntaje = createValuationDto.puntaje;
     input.detalle = createValuationDto.detalle;
-    input.userId = user._id;
-
-    const ValSession = await this.valuationRepository.getSession();
-    const TripSession = await this.tripRepository.getSession();
-    const TripResumeSession = await this.tripResumeRepository.getSession();
-    let tripResume = await this.tripResumeRepository.findById(trip.resumeId);
-    try {
-      ValSession.startTransaction();
-      TripSession.startTransaction();
-      TripResumeSession.startTransaction();
-      if(!tripResume){
-          const newValuation = await this.valuationRepository.createValuation(input);
-          const TR= new TripResume();
-          TR.passengers = trip.id;
-          TR.valuations = [newValuation.id]; 
-          TR.tripId = trip.id;
-          tripResume = await this.tripResumeRepository.create(TR);
-          trip.resumeId = tripResume.id;
-          // await tripResume.save({ session: TripResumeSession});
-          // await newValuation.save({ session: ValSession });
-          await trip.save({ session: TripSession}); 
-          await ValSession.commitTransaction();
-          await TripSession.commitTransaction();
-          await TripResumeSession.commitTransaction();
-      }
-      else{
-        const newValuation = await this.valuationRepository.createValuation(input);
-        trip.resumeId = tripResume.id; // por las moscas
-        await trip.save({ session: TripSession });
-        tripResume.valuations.push(newValuation.id);
-        await ValSession.commitTransaction();
-        await TripSession.commitTransaction();
-        await TripResumeSession.commitTransaction();
-      }
-      ValSession.endSession();
-      TripSession.endSession();
-      TripResumeSession.endSession();
-      
-    } catch (error) {
-      console.log('Error: %s', error.message);
-      TripSession.abortTransaction();
-      ValSession.abortTransaction();
-      TripResumeSession.abortTransaction();
-      ValSession.endSession();
-      TripResumeSession.endSession();
-      TripSession.endSession();
-      throw error;
+    input.user = user.email;
+    
+    const newValuation = await this.valuationRepository.createValuation(input);
+    
+    const tripResId = typeof trip.tripResumeId == "string" ? trip.tripResumeId : trip.tripResumeId.id;
+    
+    let tripResume = await this.tripResumeService.findById(tripResId);
+    
+    if(!tripResume){
+      tripResume = await this.tripResumeService.createTripResumeFromTrip(trip);
     }
-
+    else{
+      tripResume.valuations.push(newValuation as unknown as string & Valuation);
+      tripResume = await this.tripResumeService.updateTripResume(tripResume);
+    }
+    trip.tripResumeId = tripResume.id;
+    
+    const tripUpdated = await this.tripService.update(trip);
+    
+      
+    return this.responseHelper.makeResponse(false, 'Valuation created', newValuation, HttpStatus.CREATED);
    
     } catch (error) {
       this.logger.log('Error in create: ', error);
@@ -125,6 +86,58 @@ export class ValuationsService {
         error,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+
+  async create(createValuationDto: CreateValuationDto):Promise<Valuation> {
+    try{
+    const user = await this.userService.findByEmail(createValuationDto.email);
+    const trip = await this.tripService.findById(createValuationDto.tripId);
+
+    if(!user){
+      this.logger.log('User not found');	
+      throw new Error('User not found');
+    }
+    if(!trip){
+      this.logger.log('Trip not found');	
+      throw new Error('Trip not found');
+    }
+
+    const alredyValuated = await this.valuationRepository.findValuationBy_User_Trip(user.email, trip.id);
+
+    if(alredyValuated){
+      this.logger.log('The user already valuated this trip');	
+      throw new Error('The user already valuated this trip');
+    }
+    
+    const input = new Valuation();
+    input.trip = createValuationDto.tripId;
+    input.puntaje = createValuationDto.puntaje;
+    input.detalle = createValuationDto.detalle;
+    input.user = user.email;
+
+    const newValuation = await this.valuationRepository.createValuation(input);
+
+    const tripResId = typeof trip.tripResumeId == "string" ? trip.tripResumeId : trip.tripResumeId.id;
+ 
+    let tripResume = await this.tripResumeService.findById(tripResId);
+     
+    if(!tripResume){
+      const TR= new TripResume();
+      TR.passangers = [];
+      TR.valuations = [newValuation.id]; 
+      TR.tripId = trip.id;
+      tripResume = await this.tripResumeService.createTripResume(TR);
+    }
+    trip.tripResumeId = tripResume.id;
+    
+    const tripUpdated = await this.tripService.update(trip);
+    return newValuation;
+   
+    } catch (error) {
+      this.logger.log('Error in create: ', error);
+      throw error;
     }
   }
 
@@ -201,7 +214,7 @@ export class ValuationsService {
   async findMyValuations(email: string): Promise<ResponseDTO> {
     let message = 'Valuations not found';
     try {
-      const user = await this.userRepository.findByEmail(email);
+      const user = await this.userService.findByEmail(email);
 
       if (!user)
         return this.responseHelper.makeResponse(
@@ -211,7 +224,7 @@ export class ValuationsService {
           HttpStatus.NOT_FOUND,
         );
 
-      const valuations = await this.valuationRepository.findValuationsByUserId(user.id);
+      const valuations = await this.valuationRepository.findValuationsByEmail(user.email);
 
       if (valuations.length == 0)
         return this.responseHelper.makeResponse(
@@ -244,8 +257,8 @@ export class ValuationsService {
   async update(updateValuationDto: UpdateValuationDto): Promise<ResponseDTO> {
     try {
       const valuation =  new Valuation();
-      valuation.email = updateValuationDto.email;
-      valuation.tripId = updateValuationDto.tripId;
+      valuation.user = updateValuationDto.email;
+      valuation.trip = updateValuationDto.tripId;
       valuation.puntaje = updateValuationDto.puntaje;
       valuation.detalle = updateValuationDto.detalle;
       
@@ -288,8 +301,6 @@ export class ValuationsService {
 
   async remove(id: string): Promise<ResponseDTO> {
     try {
-      let ValSession; 
-      let TripRSession; 
       let deletedValuation;
       deletedValuation = await this.valuationRepository.deleteValuation(id);
       if (!deletedValuation) {
@@ -303,24 +314,14 @@ export class ValuationsService {
       }
 
       try {
-        ValSession = await this.valuationRepository.getSession();
-        TripRSession = await this.tripResumeRepository.getSession();
-        const tripResume = await this.tripResumeRepository.findById(deletedValuation.tripId);
+        const tripResume = await this.tripResumeService.findById(deletedValuation.tripId);
         const valuationsSet = new Set(tripResume.valuations.map(v => v.id?v.id:v));
         valuationsSet.delete(id);
         tripResume.valuations = Array.from(valuationsSet);
-        await tripResume.save({ session: TripRSession });
-        await ValSession.commitTransaction();
-        await TripRSession.commitTransaction();
       } catch (error) {
         console.log('Error: %s', error.message);
-        await ValSession.abortTransaction();
-        await TripRSession.abortTransaction();
         throw error;
-      } finally {
-        await ValSession.endSession();
-        await TripRSession.endSession();
-      }
+      } 
 
 
       this.logger.log(

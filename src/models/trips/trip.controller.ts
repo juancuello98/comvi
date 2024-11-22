@@ -14,6 +14,7 @@ import { NewTripDTO } from './dto/new-trip.dto';
 import { TripService } from './trip.service';
 import { RequestHelper } from '@/common/helpers/http/request.helper';
 import { exListMyTrips, exListOfPassengersNotFound, exListOfTripsResponse, exNewTrip, exNewTripResponse, exTripByIdResponse } from 'src/swagger/swagger.mocks';
+import { ExistingtTripDTO } from './dto/existing-trip.dto';
 
 @ApiTags('trips')
 @Controller('trips')
@@ -41,7 +42,7 @@ export class TripController {
   async create(@Request() req, @Body() trip: NewTripDTO): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req)
     trip.driver = driver;
-    return await this.tripsService.create({ ...trip });
+    return await this.tripsService.createToController({ ...trip });
   }
 
   @ApiOperation({ summary: 'Get list of trips.' })
@@ -109,6 +110,14 @@ export class TripController {
   async finish(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req);
     const resp = await this.tripsService.finish(id, driver);
+    return resp;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post('getTripCOST')
+  async getTripCost(@Request() req, @Body() trip: ExistingtTripDTO): Promise<{ fuelType: string, cost: number }[]> {
+    const resp = await this.tripsService.getTripCost(trip);
     return resp;
   }
 }

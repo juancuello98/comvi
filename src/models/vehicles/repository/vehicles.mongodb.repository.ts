@@ -12,18 +12,20 @@ export class VehicleMongodbRepository implements IVehicleRepository {
     ) { }
     getDocument(vehicle: VehicleDocument): Vehicle {
         
-        return{
+        return{ 
             patentPlate: vehicle.patentPlate,
             brand: vehicle.brand,
             model: vehicle.model,
             year: vehicle.year,
-            email: vehicle.email,
+            user: vehicle.user, 
             pics: vehicle.pics,
-            color: vehicle.color
+            color: vehicle.color,
+            fuels: vehicle.fuels,
+            consumption: vehicle.consumption
         }
     }
 
-    async create(createVehicleDto: CreateVehicleDto, email: string): Promise<VehicleDocument> {
+    async create(createVehicleDto: CreateVehicleDto, email: string): Promise<Vehicle> {
         try {
             return await this.vehiclesModel.create({...createVehicleDto, email});
         } catch (error) {
@@ -31,7 +33,7 @@ export class VehicleMongodbRepository implements IVehicleRepository {
         }
     }
 
-    async update(patent: string, updateVehicleDto: UpdateVehicleDto): Promise<VehicleDocument> {
+    async update(patent: string, updateVehicleDto: UpdateVehicleDto): Promise<Vehicle> {
         const vehicle = await this.vehiclesModel
         .findOneAndUpdate(
             {patentPlate: patent},
@@ -41,12 +43,12 @@ export class VehicleMongodbRepository implements IVehicleRepository {
         return vehicle;
     }
 
-    async findByPatent(patent: string): Promise<VehicleDocument> {
+    async findByPatent(patent: string): Promise<Vehicle> {
         const vehicle = await this.vehiclesModel.findOne({patentPlate: patent}).exec();
         return vehicle;
     }
 
-    async findByUser(email: string): Promise<VehicleDocument[]> {
+    async findByUser(email: string): Promise<Vehicle[]> {
         const vehicles = await this.vehiclesModel.find({ email }).exec();
         return vehicles;
     }

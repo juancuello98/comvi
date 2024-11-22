@@ -13,7 +13,7 @@ export class TripResume {
   /**
    * @property {string} IDs de los pasajeros del viaje.
    */
-  @Prop({ required: true, type: MongooseSchema.Types.ObjectId})
+  @Prop({ type: String, ref: '_id' })
   id: string;
   
   /**
@@ -32,6 +32,7 @@ export class TripResume {
    */
   @Prop({ required:true, type: MongooseSchema.Types.ObjectId, ref: 'Trip' })
   tripId: string;
+
 }
 
 export const TripResumeSchema = SchemaFactory.createForClass(TripResume);

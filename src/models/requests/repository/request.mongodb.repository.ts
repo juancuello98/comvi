@@ -50,28 +50,25 @@ export class RequestMongodbRepository implements IRequestRepository {
         return this.requestModel.find().sort({createdTimestamp: 'desc'}).exec();
     }
 
-    getRequest(req:RequestDocument): Request{
-        return {
-            userId : req.userId,
-            email : req.email,
-            tripId : req.tripId,
-            description : req.description,
-            hasEquipment : req.hasEquipment,
-            hasPartner : req.hasPartner,
-            partnerQuantity : req.partnerQuantity,
-            totalPassenger : req.totalPassenger,
-            createdTimestamp : req.createdTimestamp,
-            status : req.status
-        }   
-    }
+    getRequest(req:RequestDocument): Request {
+            const request = new Request()
+            request.description = req.description;
+            request.trip = req.trip;
+            request.sender = req.sender;
+            request.hasEquipment = req.hasEquipment;
+            request.hasPartner = req.hasPartner;
+            request.partnerQuantity = req.partnerQuantity;
+            request.totalPassenger = req.totalPassenger;
+            request.status = req.status;
+            request.totalPassenger = req.totalPassenger;
+            return request;}
 
-    async create( req:Request): Promise<RequestDocument> {
+    async create( req:Request): Promise<Request> {
         try {
             const newRequest = new this.requestModel(
             {
-              email : req.email,
-              userId : req.userId,
-              tripId : req.tripId,
+              senderEmail : req.sender,
+              tripId : req.trip,
               description : req.description,
               hasEquipment : req.hasEquipment,
               hasPartner : req.hasPartner,

@@ -8,10 +8,15 @@ export class UserRepository implements IUserRepository {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
+  async addToken(mail: string, token: string): Promise<User> {
+    const update = { $push: { tokens: token } };
+    const user = await this.userModel.findByIdAndUpdate(mail, update, { new: true }).exec();
+    return user;
+  }
+
   turnIntoUser(user: any): User {
-     const { _id, email, name, lastname, password,} = user;
+     const {  email, name, lastname, password,} = user;
      const us = new User();
-      us.id = _id;
       us.email = email;
       us.name = name;
       us.lastname = lastname;
@@ -66,6 +71,12 @@ export class UserRepository implements IUserRepository {
     return userUpdated ? this.turnIntoUser(user) : null;
   }
 
+  async removeTokenFromArray(userId: string, token: string): Promise<User> {
+    const update = { $pull: { tokens: token } };
+    const user = await this.userModel.findByIdAndUpdate(userId, update, { new: true }).exec();
+    return user;
+  }
+
   async findUsersById(
     usersId: string[],
     fieldsToSelect: string[],
@@ -86,8 +97,8 @@ export class UserRepository implements IUserRepository {
   //   await this.update(user);
   // }
   getUserData(user:User): UserData{
-    const {id, email, name, lastname} = user;
-    const userData: UserData = {  id, email, name, lastname };
+    const {email, name, lastname} = user;
+    const userData: UserData = { email, name, lastname };
     return userData
   }
 }

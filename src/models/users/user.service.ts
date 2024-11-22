@@ -14,6 +14,17 @@ export class UserService {
     private readonly responseHelper: ResponseHelper,
   ) {}
 
+
+  async addToken(token: string, mail: string): Promise<boolean> {
+    try {
+      await this.userRepository.addToken(mail,token);
+      return true
+    } catch (error) {
+      console.error('Error adding token:', error);
+      return false
+    }
+  }
+
   async update(user: User): Promise<User> {
     return this.userRepository.update(user)
   }
@@ -63,11 +74,6 @@ export class UserService {
     }
   }
 
-  async findById(id: string): Promise<UserDTO | null> {
-    const user = await this.userRepository.findById(id);
-    if (!user) return null;
-    return this.userRepository.getUserData(user);
-  }
 
   async create(
  user : CreateUserDto,
@@ -75,9 +81,6 @@ export class UserService {
     return this.userRepository.create(user);
   }
 
-  // async updateUserRequests(email: string, requestId: string) {
-  //   await this.userRepository.createRequest(email, requestId);
-  // }
 
   async getUsers(ids: string[]) {
     const users = this.userRepository.findUsersById(ids, [

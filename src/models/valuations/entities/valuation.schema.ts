@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Puntaje } from './puntaje.enums';
-import { TripDocument } from '@/trips/trip.schema';
-import { UserDocument } from '@/users/user.schema';
+import { Trip, TripDocument } from '@/trips/trip.schema';
+import { User, UserDocument } from '@/users/user.schema';
 
 export type ValuationDocument = Valuation & Document;
 
@@ -10,23 +10,40 @@ export type ValuationDocument = Valuation & Document;
 // @Prop : Define una propiedad en el documento
 export class Valuation {
 
-  @Prop({ required: false })
+  @Prop({ required: false, type: MongooseSchema.Types.ObjectId })
   id: string;
   
-  @Prop({ required: true })
-  email: string;
+  @Prop({ required:true, type: String, ref: 'Trips' })
+  trip: string|Trip;
 
-  @Prop({ required:true, type: MongooseSchema.Types.ObjectId, ref: 'Trips' })
-  tripId: string|TripDocument;
-
-  @Prop({ required:true, type: MongooseSchema.Types.ObjectId, ref: 'User' })
-  userId: string|UserDocument;
+  @Prop({ required:true, type: String, ref: 'User' })
+  user: string|User;
 
   @Prop()
   detalle: string;
 
   @Prop({ required: true, type: Number})
   puntaje: Puntaje;
+
+  getMail(): string  {
+    if (typeof this.user === 'string') {
+        return this.user;
+    } else {
+        return (this.user.email)
+    }
+  
+  }
+
+  getTripId(): string {
+    if (typeof this.trip === 'string') {
+        return this.trip;
+    } else {
+        return (this.trip.id)
+    }
+  }
+
+
+
 }
 
 export const ValuationSchema = SchemaFactory.createForClass(Valuation); // Asigna nuestra Catclase a una colección MongoDB del mismo nombre, pero con una “s” adicional al final, por lo que el nombre final de la colección mongo será cats
