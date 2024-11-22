@@ -2,6 +2,7 @@ import { ClientSession } from "mongoose";
 import { NewTripDTO } from "../dto/new-trip.dto";
 import { TripStatus } from "../enums/state.enum";
 import { Trip, TripDocument } from "../trip.schema";
+import { User } from "../../users/user.schema"; // Adjust the import path as necessary
 
 export interface ITripRepository {
   //getSession(): Promise<ClientSession>;
@@ -15,5 +16,6 @@ export interface ITripRepository {
   update(trip: Trip) : Promise<Trip>;
   updateStatus(tripId: string, newStatus: TripStatus): Promise<Trip>;
   passengersByTrip(tripId: string): Promise<string[]>;
+  getAllDrivers(): Promise<User[]>;
 }
   // findByIdAndDriver(driver: string, id: string): Promise<Trip>;}
