@@ -11,12 +11,10 @@ import { TripMongodbRepository } from './repository/trip.mongodb.repository';
 import { ITRIP_REPOSITORY } from './repository/constants/trip.repository.constant';
 import { UserModule } from '../users/user.module';
 import { LocationModule } from '../locations/location.module';
+import { VehiclesModule } from '../vehicles/vehicles.module';
 import { ITRIP_RESUME_REPOSITORY } from './resumes/repository/constants/trip.resume.repository.constant';
-import { VehiclesModule } from '@/vehicles/vehicles.module';
-import { TripResumeService } from './resumes/tripResume.service';
-import { FuelsModule } from '../fuels/fuels.module';
-import { NotificationsModule } from 'src/notifications/notifications.module';
-
+// import { ITripRepository } from './interface/trip.repository.interface';
+// import { ITripResumeRepository } from './resumes/interface/trip.resume.repository.interface';
 
 @Module({
   imports: [
@@ -28,13 +26,11 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
     CommonModule,
     UserModule,
     VehiclesModule,
-    LocationModule,
-    FuelsModule,
-    NotificationsModule
+    LocationModule
   ],
   controllers: [TripController],
   providers: [
-    TripService, TripResumeService,
+    TripService, TripMongodbRepository, TripResumeRepository,
     {
       provide: ITRIP_REPOSITORY,
       useClass: TripMongodbRepository,
@@ -46,9 +42,10 @@ import { NotificationsModule } from 'src/notifications/notifications.module';
   ],
   exports: [
     TripService,
-    TripResumeService,
-    ITRIP_RESUME_REPOSITORY,
-    ITRIP_REPOSITORY
+    TripMongodbRepository,
+    TripResumeRepository,
+    ITRIP_REPOSITORY,
+    ITRIP_RESUME_REPOSITORY
   ],
 })
 export class TripModule {}

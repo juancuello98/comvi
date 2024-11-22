@@ -12,7 +12,7 @@ export class StadisticsService {
     
   }
 
-  async getDriver(tokens: string[],  message: { title: string; body: string; data?: { [key: string]: string } } ) {
+  async getDriver_VS_Passengers( ) {
     try {
         const drivers = await this.tripService.findAllDrivers();
         const passengers = await this.tripService.findAllDrivers();

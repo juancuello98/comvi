@@ -213,7 +213,7 @@ export class AuthService {
   }
 
   async loginWithCredentials(user: UserData, token: string){
-    const payload = { user, notifiicationToken: token };
+    const payload = { user, token };
 
     return {
       token: this.jwtTokenService.sign(payload),

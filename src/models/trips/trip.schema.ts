@@ -4,7 +4,7 @@ import { TripStatus } from './enums/state.enum';
 import { Vehicle } from '@/vehicles/vehicles.schema';
 import { User } from '@/users/user.schema';
 import { Location } from '@/locations/location-schema';
-import { Request } from '@/requests/request.schema';
+// import { Request } from '@/requests/request.schema';
 import { Valuation } from '@/valuations/entities/valuation.schema';
 import { TripResume } from './resumes/trip.resume.schema';
 // import { Booking } from '@/bookings/booking.schema'; // Juancito despues agrega esto

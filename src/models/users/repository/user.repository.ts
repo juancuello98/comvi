@@ -14,6 +14,12 @@ export class UserRepository implements IUserRepository {
     return user;
   }
 
+  
+  async countUsers(): Promise<number> {
+    const user = await this.userModel.countDocuments().exec();
+    return user;
+  }
+
   turnIntoUser(user: any): User {
      const {  email, name, lastname, password,} = user;
      const us = new User();

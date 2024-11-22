@@ -37,6 +37,7 @@ export class TripMongodbRepository implements ITripRepository {
   async findByDriver(driverEmail: string): Promise<Trip[]> {
     const trips = await this.tripModel
       .find({ driverEmail })
+      .find({ driverEmail })
       .sort({ createdTimestamp: 'desc' })
       .select('-__v -id')
       .populate({
@@ -166,6 +167,7 @@ export class TripMongodbRepository implements ITripRepository {
                 path: 'passengers', 
                 select: '-__v -id -password -status -verificationCode -resetPasswordToken'
             })
+      
            .populate({
                 path: 'bookings', 
                 select: '-__v -id' 
@@ -294,6 +296,12 @@ export class TripMongodbRepository implements ITripRepository {
       foreignField: 'email',
       select: '-__v -id -password -status -verificationCode -resetPasswordToken' 
   })
+  .populate({
+    path: 'vehicle', 
+    localField: 'vehicle',
+    foreignField: 'patentPlate',
+    select: '-__v -id' 
+    })
   .populate({
     path: 'vehicle', 
     localField: 'vehicle',

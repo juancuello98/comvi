@@ -39,11 +39,6 @@ export class TripService {
   ) { }
   
 
-  
-  async findAllDrivers(): Promise<User[]>{
-    return this.tripRepository.getAllDrivers();
-  }
-
   canHaveValuations(trip: Trip): boolean {
     return trip.status === TripStatus.FINISHED;
   }
@@ -551,5 +546,9 @@ export class TripService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async findAllDrivers(): Promise<User[]> {
+    return this.tripRepository.getAllDrivers();
   }
 }

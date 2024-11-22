@@ -7,13 +7,13 @@ export interface IUserRepository {
     updateUser(id: string, user: Partial<UserDocument>): Promise<User>;
     deleteUser(id: string): Promise<boolean>;
     getAllUsers(): Promise<User[]>;
-    // getUserData(user: UserDocument): UserData;
     findByUsername(username: string): Promise<User>;
     changePassword(id: string, newPassword: string): Promise<boolean>;
     findById(id: string): Promise<User>;
     create(user: any): Promise<User>;
     update(user: UserDocument): Promise<User>;
     findUsersById(usersId: string[], fieldsToSelect: string[]): Promise<User[]>;
+    countUsers(): Promise<number>;
 }
 
 export interface UserData {
