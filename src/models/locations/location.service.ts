@@ -51,6 +51,8 @@ export class LocationService {
     // Convertir a kilómetros
     const distanceKilometers = geolib.convertDistance(distanceMeters, 'km');
 
+    // to do calcularlo por ruta y fiajrse que estaciones pasan por ahi para sacar promedio de precios
+
     return distanceKilometers;
   }
 

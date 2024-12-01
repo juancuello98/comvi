@@ -16,7 +16,7 @@ import { Location } from '@/locations/location-schema';
 import { VehiclesService } from '@/vehicles/vehicles.service';
 import { UserService } from '@/users/user.service';
 import { TripResumeService } from './resumes/tripResume.service';
-import { NotificationsService } from '../../notifications/notifications.service';
+// import { NotificationsService } from '../../notifications/notifications.service';
 import { Product } from '../fuels/schemas/ProductSchemas';
 import { FuelService } from '../fuels/fuels.service';
 import { ExistingtTripDTO } from './dto/existing-trip.dto';
@@ -35,7 +35,7 @@ export class TripService {
     private readonly responseHelper: ResponseHelper,
     private readonly locationService: LocationService,
     private readonly fuelsService: FuelService,
-    private readonly notificationsService: NotificationsService,
+    // private readonly notificationsService: NotificationsService,
   ) { }
   
 

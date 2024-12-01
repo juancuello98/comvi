@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, Types,  Model, Schema as MongooseSchema, model } from 'mongoose';
 import { PasswordToken } from './passwordToken.schema';
+import { Person, PersonDocument } from '../person/schema/person.schema';
+
 
 export type UserDocument = User & Document;
 
@@ -8,24 +10,19 @@ export type UserDocument = User & Document;
  * Representa un usuario en la base de datos.
  */
 @Schema({ _id: false })
-export class User {
+export class User extends Person {
 
-  /**
-   * Apellido del usuario.
-   */
-  @Prop({ required: true })
-  lastname: string;
-
-  /**
-   * Nombre del usuario.
-   */
-  @Prop({ required: true })
-  name: string;
   /**
    * Correo electrónico único del usuario.
    */
   @Prop({ type: String, unique: true, required: true, index: true })
   email: string;
+
+  /**
+   * Avatar de la persona.
+   */
+  @Prop({ required: true })
+  avatar: string;
 
   /**
    * Contraseña del usuario.
@@ -51,8 +48,8 @@ export class User {
   @Prop({ type: PasswordToken })
   resetPasswordToken: PasswordToken;
 
-  @Prop({ type: Types.ObjectId, ref: 'Role' })
-  role: Types.ObjectId;
+  @Prop({ type: String, enum: ['admin', 'user'], default: 'user' })	
+  role: string;
 
   @Prop({ type: [String], default: [] })
   tokkens: string[]
@@ -64,3 +61,12 @@ export class User {
  * Esquema de Mongoose para el usuario.
  */
 export const UserSchema = SchemaFactory.createForClass(User);
+
+// UserSchema.pre<UserDocument>('save', async function (next) {
+//   const personModel = model(Person.name) as Model<PersonDocument>;
+//   const personExists = await personModel.exists({ dni: this.dni });
+//   if (!personExists) {
+//     await personModel.create({ dni: this.dni, name: this.name, birthday: this.birthday , lastname: this.lastname, picture: this.picture });
+//   }
+//   next();
+// }); a corregir

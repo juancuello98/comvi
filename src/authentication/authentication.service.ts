@@ -29,7 +29,9 @@ export class AuthService {
     private jwtTokenService: JwtService,
     private userRepository: UserRepository,
     private responseHelper: ResponseHelper,
-  ) {}
+  ) {
+
+  }
 
   generateRandomString(num) {
     return Math.random()
@@ -62,7 +64,7 @@ export class AuthService {
 
   async register(registerData: Readonly<NewUserDTO>): Promise<ResponseDTO> {
     try{
-    const { lastname, name, password: plainPassword, email } = registerData;
+    const { lastname, name, password: plainPassword, email, birthday, dni,  picture, avatar} = registerData;
     const userExists = await this.userRepository.findByEmail(email);
 
     if (userExists) {
@@ -91,6 +93,10 @@ export class AuthService {
       password,
       lastname,
       status,
+      dni,
+      birthday,
+      picture,
+      avatar,
       verificationCode
     }
     const newUser = await this.userRepository.create(
@@ -163,11 +169,11 @@ export class AuthService {
 
       const userData = this.userRepository.getUserData(user);
       
-      const messaging = admin.messaging();
+      // const messaging = admin.messaging();
 
-      const tokken = "";
+      // const tokken = "";
 
-      const token = await this.loginWithCredentials(userData,tokken);
+      const token = await this.loginWithCredentials(userData);
 
 
       return this.responseHelper.makeResponse(
@@ -212,8 +218,8 @@ export class AuthService {
     }
   }
 
-  async loginWithCredentials(user: UserData, token: string){
-    const payload = { user, token };
+  async loginWithCredentials(user: UserData){
+    const payload = { user };
 
     return {
       token: this.jwtTokenService.sign(payload),

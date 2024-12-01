@@ -15,6 +15,7 @@ import { RequestModule } from '@/requests/request.module';
 import { FuelsModule } from './models/fuels/fuels.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { StadisticsModule } from './stadistics/stadistics.module';
+import { PersonModule } from './models/person/person.module';
 
 @Module({
   imports: [
@@ -32,7 +33,8 @@ import { StadisticsModule } from './stadistics/stadistics.module';
     ValuationsModule,
     FuelsModule,
     NotificationsModule,
-    StadisticsModule
+    StadisticsModule,
+    PersonModule
   ],
   controllers: [AppController],
   providers: [AppService],

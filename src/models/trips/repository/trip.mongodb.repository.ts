@@ -37,7 +37,6 @@ export class TripMongodbRepository implements ITripRepository {
   async findByDriver(driverEmail: string): Promise<Trip[]> {
     const trips = await this.tripModel
       .find({ driverEmail })
-      .find({ driverEmail })
       .sort({ createdTimestamp: 'desc' })
       .select('-__v -id')
       .populate({

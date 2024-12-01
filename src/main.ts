@@ -19,13 +19,10 @@ async function bootstrap() {
   });
 
    // Inicializa Firebase
-   admin.initializeApp({
-    credential: admin.credential.cert(process.env.FIREBASE_SERVICE_ACCOUNT),
-  });
-
-
-  mongoose.set('strictPopulate', false);
-  
+  //  admin.initializeApp({
+  //   credential: admin.credential.cert(process.env.FIREBASE_SERVICE_ACCOUNT),
+  // });
+ 
   const config = new DocumentBuilder()
     .setTitle('COMVI - API')
     .setDescription('Proyecto Final ISI UTN')

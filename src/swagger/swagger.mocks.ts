@@ -293,7 +293,11 @@ export const exRegisterUser = {
   lastname: "Gonzales",
   name: "Maria",
   email: "admin@gmail.com",
-  password: "admin123"
+  password: "admin123",
+  dni: 12345678,
+  birthday: "2024-09-02T14:00:00Z",
+  avatar: "https://www.google.com",	
+  picture: "https://www.google.com",
 }
 
 

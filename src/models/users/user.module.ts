@@ -7,11 +7,13 @@ import { UserRepository } from './repository/user.repository';
 import { User, UserSchema } from './user.schema';
 import { UserService } from './user.service';
 import { IUSER_REPOSITORY } from './repository/constants/user.repository.constant';
+import { PersonModule } from '../person/person.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     CommonModule,
+    PersonModule
   ],
   controllers: [UserController],
   providers: [UserService, UserRepository,  {

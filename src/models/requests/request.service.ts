@@ -1,6 +1,6 @@
 import { HttpStatus, Inject, Injectable, Logger, Res } from '@nestjs/common';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
-import { RequestDocument,Request } from './request.schema';
+import { Request } from './request.schema';
 import { ResponseHelper } from '../../common/helpers/http/response.helper';
 import { StatusRequest } from './enums/status.enum';
 import { ChangeStatusOfRequestDTO } from './dto/change-status-request.dto';

@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { FuelService } from './fuels.service';
-import { CreateFuelDto } from './dto/create-fuel.dto';
-import { UpdateFuelDto } from './dto/update-fuel.dto';
+// import { CreateFuelDto } from './dto/create-fuel.dto';
+// import { UpdateFuelDto } from './dto/update-fuel.dto';
 import { get } from 'axios';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 

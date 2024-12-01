@@ -7,6 +7,7 @@ import { Location } from '@/locations/location-schema';
 // import { Request } from '@/requests/request.schema';
 import { Valuation } from '@/valuations/entities/valuation.schema';
 import { TripResume } from './resumes/trip.resume.schema';
+import { Price_x_Packages } from '../packages/price_packages';
 // import { Booking } from '@/bookings/booking.schema'; // Juancito despues agrega esto
 
 // import { Booking } from '@/bookings/booking.schema'; // Juancito despues agrega esto
@@ -108,6 +109,12 @@ export class Trip {
    */
   @Prop({ default: 0 })
   estimatedCosts: number;
+
+  @Prop({ default: 0 })
+  priceForPassenger: number;
+
+  @Prop({ default: 0 })
+  priceForPackages: Price_x_Packages[];
 
   /**
    * @property {number} kilometers - Distancia total del viaje en kilómetros.

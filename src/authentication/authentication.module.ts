@@ -9,10 +9,15 @@ import { JwtStrategy } from './jwt/jwt.strategy';
 import { UserModule } from 'src/models/users/user.module';
 import { MailModule } from 'src/mail/config.module';
 import { CommonModule } from '@/common/common.module';
+import { PersonModule } from 'src/models/person/person.module';
+// import { MongooseModule } from '@nestjs/mongoose';
+// import { Person, PersonSchema } from 'src/models/person/schema/person.schema';
 
 @Module({
   imports: [
+    // MongooseModule.forFeature([{ name: Person.name, schema: PersonSchema }]),
     UserModule,
+    PersonModule,
     MailModule,
     PassportModule,
     CommonModule,
