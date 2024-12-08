@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 
@@ -16,6 +16,7 @@ import { FuelsModule } from './models/fuels/fuels.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { StadisticsModule } from './stadistics/stadistics.module';
 import { PersonModule } from './models/person/person.module';
+import { ResponseMiddleware } from './response.middleware';
 
 @Module({
   imports: [
@@ -39,4 +40,9 @@ import { PersonModule } from './models/person/person.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(ResponseMiddleware).forRoutes('/')
+  }
+}
