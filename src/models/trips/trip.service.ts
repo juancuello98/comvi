@@ -21,6 +21,10 @@ import { Product } from '../fuels/schemas/ProductSchemas';
 import { FuelService } from '../fuels/fuels.service';
 import { ExistingtTripDTO } from './dto/existing-trip.dto';
 import { User } from '@/users/user.schema';
+import { TravellingService } from 'src/travelling/travelling.service';
+import { distance } from '@turf/turf';
+import { ObjectId } from 'mongodb';
+import { compare } from 'bcrypt';
 
 @Injectable()
 export class TripService {
@@ -34,7 +38,8 @@ export class TripService {
     private readonly vehicleService: VehiclesService,
     private readonly responseHelper: ResponseHelper,
     private readonly locationService: LocationService,
-    private readonly fuelsService: FuelService,
+    // private readonly fuelsService: FuelService,
+    private readonly travellingService: TravellingService,
     // private readonly notificationsService: NotificationsService,
   ) { }
   
@@ -178,7 +183,7 @@ export class TripService {
     }
   }
 
-  async create(trip: NewTripDTO): Promise<Trip> {
+  async create(trip: NewTripDTO): Promise<{ trip: Trip, rutaConEstaciones: any }> {
     try {
       let response;
       let message = 'Trip was created succesfully.';
@@ -243,8 +248,9 @@ export class TripService {
         newTrip.vehicle = trip.vehicle;
         newTrip.tripResumeId = null;
         newTrip.status = status;
-        const calculatedKilometers = this.locationService.getDisntance(origin, destination);
-        newTrip.kilometers = calculatedKilometers;
+        const result = await this.travellingService.calcularRutaConEstaciones({lat: parseFloat(origin.latitude), lng: parseFloat(origin.longitude)}, {lat: parseFloat(destination.latitude), lng: parseFloat(destination.longitude)}, vehicle.consumption, vehicle.getFuelsString(), 5);
+        newTrip.route = result.ruta.id;// result.tripRoute.id;
+        newTrip.kilometers = result.ruta.distance;
                 // Inicialización de `bookings` como un array vacío, si se espera un array de strings o IDs
                 newTrip.bookings = []; // Cambia a `MongooseSchema.Types.ObjectId[]` si necesitas que almacene IDs de `Booking`
         
@@ -255,7 +261,7 @@ export class TripService {
                 newTrip.tripsRequests = [];
         const tripCreated = await this.tripRepository.create(newTrip);
 
-      return tripCreated;
+      return {trip:tripCreated, rutaConEstaciones:result};
 
     } catch (error) {
       this.logger.error('Error in create: ', error.message);
@@ -263,17 +269,22 @@ export class TripService {
     }
   }
 
-  async getTripCost(TripDTO: ExistingtTripDTO): Promise<{ fuelType: string, cost: number }[]> {
-    const trip = await this.tripRepository.findById(TripDTO.id);
+  async getTripCost(TripID: string): Promise<any> {
+    console.log('TripID:', TripID);
+    // const id = new ObjectId(TripID);
+    // console.log('ID:', id);
+    const trip = await this.tripRepository.findById(TripID);
     console.log('Trip:', trip);
     let vehicle = trip.getVehicle();
+    console.log('Vehicle: ', vehicle);
     if(!vehicle) vehicle = await this.vehicleService.findByPatent(trip.vehicle);
-    const fuels = vehicle.fuels.map(fuel => {
-      if (typeof(fuel) === 'string') return fuel; 
-      else return (fuel as Product).idproducto;
-    });
-      return this.fuelsService.calcularCosto(trip.kilometers, vehicle.consumption,fuels);
-    }
+    console.log('Vehicle: ', vehicle);
+    // const fuels = vehicle.fuels.map(fuel => {
+    //   if (typeof(fuel) === 'string') return fuel; 
+    //   else return (fuel as Product).idproducto;
+    // });
+    console.log(vehicle.getFuelsString())
+    await this.travellingService.calcularRutaConEstaciones({lat: parseFloat(trip.origin.latitude), lng: parseFloat(trip.origin.longitude)}, {lat: parseFloat(trip.destination.latitude), lng: parseFloat(trip.destination.longitude)}, vehicle.consumption, vehicle.getFuelsString(), 5);    }
     
   async createToController(trip: NewTripDTO): Promise<ResponseDTO> {
     try {
@@ -369,10 +380,11 @@ export class TripService {
         newTrip.status = TripStatus.OPEN;
         newTrip.vehicle = trip.vehicle ; // ID del vehículo (asegúrate de que sea un ObjectId válido)
         newTrip.tripResumeId = null; // Si es opcional, puede estar en null
-        newTrip.tripResumeId = null;
         newTrip.status = status;
-        const calculatedKilometers = this.locationService.getDisntance(origin, destination);
-        newTrip.kilometers = calculatedKilometers;
+        // const result = await this.travellingService.calcularRutaConEstaciones({lat: parseFloat(origin.latitude), lng: parseFloat(origin.longitude)}, {lat: parseFloat(destination.latitude), lng: parseFloat(destination.longitude)}, vehicle.consumption, vehicle.getFuelsString(), 5);
+        // console.log('Result:', result);
+        newTrip.kilometers = 0;
+        newTrip.route = 0; //result.tripRoute
         
         // Inicialización de `bookings` como un array vacío, si se espera un array de strings o IDs
         newTrip.bookings = []; // Cambia a `MongooseSchema.Types.ObjectId[]` si necesitas que almacene IDs de `Booking`
@@ -387,6 +399,7 @@ export class TripService {
       return this.responseHelper.makeResponse(
         false,
         message,
+        // {...tripCreated, result},
         tripCreated,
         HttpStatus.CREATED,
       );

@@ -9,5 +9,5 @@ export interface IVehicleRepository {
   findByUser(email: string): Promise<Vehicle[]> 
   findByUser(email: string): Promise<Vehicle[]> 
   delete(patent: string): Promise<void>;
-  getDocument(vehicle: Vehicle): Vehicle;
+  // getDocument(vehicle: Vehicle): Vehicle;
   }

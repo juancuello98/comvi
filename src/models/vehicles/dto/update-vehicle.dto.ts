@@ -1,5 +1,5 @@
 import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { ProductIdNumber } from '../enums/fuel-type.enum';
+import { ProductIdNumber } from '../../fuels/enums/fuel-type.enum';
 
 export class UpdateVehicleDto {
     @IsNotEmpty()

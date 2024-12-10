@@ -93,7 +93,7 @@ export class TripMongodbRepository implements ITripRepository {
   }
 
   async find(field: any): Promise<Trip[]> {
-    const trips =  await this.tripModel.find(field).select('-__v -id').exec();
+    const trips =  await this.tripModel.find(field).select('-__v').exec();
     const result = trips.map(trip => this.getTrip(trip));
     return result;
   }
@@ -149,7 +149,7 @@ export class TripMongodbRepository implements ITripRepository {
   }
 
   async findById(id: string): Promise<Trip> {
-    const trip = await this.tripModel.findById(id).select('-__v -id') 
+    const trip = await this.tripModel.findById(id).select('-__v') 
     .populate({
       path: 'driver', 
       localField: 'driver',

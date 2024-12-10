@@ -115,9 +115,10 @@ export class TripController {
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @Post('getTripCOST')
-  async getTripCost(@Request() req, @Body() trip: ExistingtTripDTO): Promise<{ fuelType: string, cost: number }[]> {
-    const resp = await this.tripsService.getTripCost(trip);
+  @Post('getTripCOST/:id')
+  async getTripCost(@Param('id') id: string): Promise<any> {
+    console.log('TripId: ', id);
+    const resp = await this.tripsService.getTripCost(id);
     return resp;
   }
 }

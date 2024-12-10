@@ -9,8 +9,8 @@ export class PriceHistory {
   @Prop({ type: String, ref: 'Product', required: true })
   productoId: string;
   
-  @Prop({ required: true })
-  fecha_vigencia: string;
+  @Prop({ type:Date,required: true, unique: true })
+  fecha_vigencia: Date;
   
   @Prop({
     type: [
@@ -39,3 +39,4 @@ export class PriceHistory {
 }
 
 export const PriceHistorySchema = SchemaFactory.createForClass(PriceHistory);
+PriceHistorySchema.index({ productoId: 1, fecha_vigencia: 1 }, { unique: true })

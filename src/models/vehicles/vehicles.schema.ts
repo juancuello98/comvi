@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Product } from '../fuels/schemas/ProductSchemas';
+import { ProductIdNumber } from '../fuels/enums/fuel-type.enum';
 
 export type VehicleDocument = Vehicle & Document;
 
@@ -33,9 +34,40 @@ export class Vehicle {
 
   @Prop({ required: true, type: [String], ref: 'Product' })
   fuels: Product[] | string[];
+  
+  getFuelsString(): ProductIdNumber[] {
+    let s: ProductIdNumber[] = [];
+      this.fuels.map((f: unknown) => {
+        if (typeof f === 'object') {
+          let id =(f as Product).idproducto as ProductIdNumber 
+          s.push(id);
+        } else {
+          let id = f as ProductIdNumber;
+          s.push(id);
+        }
+      });
+      return s;
+    }
+  
 
 }
 
+
+
+
 export const VehicleSchema = SchemaFactory.createForClass(Vehicle);
 
-// Al desactivar el _id, ahora usarás patentPlate como la clave primaria.
+VehicleSchema.methods.getFuelsString = function (): ProductIdNumber[] {
+  let s: ProductIdNumber[] = [];
+  this.fuels.map((f: unknown) => {
+    if (typeof f === 'object') {
+      let id = (f as Product).idproducto as ProductIdNumber;
+      s.push(id);
+    } else {
+      let id = f as ProductIdNumber;
+      s.push(id);
+    }
+  });
+  return s;
+};
+

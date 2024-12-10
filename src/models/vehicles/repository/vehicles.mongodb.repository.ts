@@ -10,20 +10,6 @@ export class VehicleMongodbRepository implements IVehicleRepository {
     constructor(
         @InjectModel(Vehicle.name) private readonly vehiclesModel: Model<VehicleDocument>,
     ) { }
-    getDocument(vehicle: VehicleDocument): Vehicle {
-        
-        return{ 
-            patentPlate: vehicle.patentPlate,
-            brand: vehicle.brand,
-            model: vehicle.model,
-            year: vehicle.year,
-            user: vehicle.user, 
-            pics: vehicle.pics,
-            color: vehicle.color,
-            fuels: vehicle.fuels,
-            consumption: vehicle.consumption
-        }
-    }
 
     async create(createVehicleDto: CreateVehicleDto, email: string): Promise<Vehicle> {
         try {

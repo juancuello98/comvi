@@ -375,7 +375,7 @@ export const exValidatePasswordTokenResponse = {
 }
 
 export const exLogin = {
-    token: 'maria@gmail.com',
+    email: 'maria@gmail.com',
     password: 'admin123'
   }
 

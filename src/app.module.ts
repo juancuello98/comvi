@@ -16,6 +16,9 @@ import { FuelsModule } from './models/fuels/fuels.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { StadisticsModule } from './stadistics/stadistics.module';
 import { PersonModule } from './models/person/person.module';
+import { trace } from 'console';
+import { TravellingModule } from './travelling/travelling.module';
+import { GoogleMapModule } from './google-map-module/google-map.module';
 
 @Module({
   imports: [
@@ -31,10 +34,12 @@ import { PersonModule } from './models/person/person.module';
     VehiclesModule,
     RequestModule,
     ValuationsModule,
-    FuelsModule,
     NotificationsModule,
     StadisticsModule,
-    PersonModule
+    PersonModule,
+    FuelsModule,
+    TravellingModule,
+    GoogleMapModule
   ],
   controllers: [AppController],
   providers: [AppService],

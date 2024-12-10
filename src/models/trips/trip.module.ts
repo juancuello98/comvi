@@ -15,6 +15,7 @@ import { VehiclesModule } from '../vehicles/vehicles.module';
 import { ITRIP_RESUME_REPOSITORY } from './resumes/repository/constants/trip.resume.repository.constant';
 import { TripResumeService } from './resumes/tripResume.service';
 import { FuelsModule } from '../fuels/fuels.module';
+import { TravellingModule } from 'src/travelling/travelling.module';
 // import { ITripRepository } from './interface/trip.repository.interface';
 // import { ITripResumeRepository } from './resumes/interface/trip.resume.repository.interface';
 
@@ -29,7 +30,8 @@ import { FuelsModule } from '../fuels/fuels.module';
     UserModule,
     VehiclesModule,
     LocationModule,
-    FuelsModule
+    FuelsModule,
+    TravellingModule
   ],
   controllers: [TripController],
   providers: [

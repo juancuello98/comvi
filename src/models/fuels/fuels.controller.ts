@@ -25,23 +25,9 @@ export class FuelsController {
   
   @Get()
   @ApiOperation({ summary: 'Update fuels prices' })
-  ActulizarCombustibles() {
+  async ActulizarCombustibles() {
     return this.fuelsService.downloadAndSaveCSV();
   }
   
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.fuelsService.findOne(+id);
-  // }
-
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateFuelDto: UpdateFuelDto) {
-  //   return this.fuelsService.update(+id, updateFuelDto);
-  // }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.fuelsService.remove(+id);
-  // }
 }

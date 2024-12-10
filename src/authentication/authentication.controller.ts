@@ -27,7 +27,7 @@ export class AuthController {
   ) { }
 
   @Post('register')
-  @ApiOperation({ summary: 'Register a new user' })
+  @ApiOperation({ summary: 'Register a new useeeeeeeer' })
   @ApiBody({
     type: NewUserDTO, examples: {
       example1: {
@@ -103,7 +103,6 @@ export class AuthController {
     return this.authService.login(user);
   }
 
-  @Post('/passwordtoken/validate')
   @ApiOperation({ summary: 'Validate password' })
   @ApiBody({
     type: PasswordTokenDTO, examples: {
@@ -114,14 +113,16 @@ export class AuthController {
       }
     }
   }) // Información del cuerpo de la solicitud
-  @ApiResponse({ status: 200, description: 'Validation was succesfully.', example:exValidatePasswordToken })
-  
+  @ApiResponse({ status: 200, description: 'Validation was succesfully.', example:exValidatePasswordToken }) 
   @HttpCode(200)
+  
+  @Post('/passwordtoken/validate')
   validatePasswordToken( @Body() token: PasswordTokenDTO) :  Promise< ResponseDTO > {
     return this.authService.validatePasswordToken(token);
   }
 
-  @Post('/requestresetpassword')
+  
+  // #region Request Reset Password
   @ApiOperation({ summary: 'Send the code to reset the password of the user' })
   @ApiBody({
     type: RequestResetPasswordDTO, examples: {
@@ -134,6 +135,9 @@ export class AuthController {
   }) // Información del cuerpo de la solicitud
   @ApiResponse({ status: 200, description: 'Validation was succesfully.', example:exRequestResetPasswordResponse })
   @HttpCode(200)
+  //#endregion
+
+  @Post('/requestresetpassword')
   requestResetPassword( @Body() reqDTO: RequestResetPasswordDTO) :  Promise< ResponseDTO > {
     const {email} = reqDTO;
     return this.authService.requestResetPassword(email);

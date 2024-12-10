@@ -15,6 +15,7 @@ import { IPRICEHISTORY_REPOSITORY } from './repository/constants/priceHistory.re
 import { FuelsStation } from './schemas/FuelsStationSchemas';
 import { Product } from './schemas/ProductSchemas';
 import { PriceHistory } from './schemas/PriceHistorySchemas';
+import { Polygon, MultiPolygon } from 'geojson';
 
 dotenv.config();
 
@@ -30,93 +31,120 @@ export class FuelService {
   async downloadAndSaveCSV() {
     const url = process.env.URLFuelStations;
     const response = await axios.get(url, { responseType: 'stream' });
-    
+  
     let empresas: Map<string, FuelsStation> = new Map();
     let productos: Map<string, Product> = new Map();
     let precios: Map<string, PriceHistory> = new Map();
+  
+    response.data
+  .pipe(csv())
+  .on('data', (row: any) => {
+    try {
+      const {
+        idempresa,
+        cuit,
+        empresa,
+        direccion,
+        localidad,
+        provincia,
+        region,
+        idproducto,
+        producto,
+        idtipohorario,
+        tipohorario,
+        precio,
+        fecha_vigencia,
+        idempresabandera,
+        empresabandera,
+        latitud,
+        longitud,
+      } = row;
 
-    response.data .pipe(csv())
-        .on('data', (row: any) => {
-          const {
-            idempresa,
-            cuit,
-            empresa,
-            direccion,
-            localidad,
-            provincia,
-            region,
-            idproducto,
-            producto,
-            idtipohorario,
-            tipohorario,
-            precio,
-            fecha_vigencia,
-            idempresabandera,
-            empresabandera,
-            latitud,
-            longitud,
-            geojson,
-          } = row;
-          let productoEncontrado;
-          if (!empresas.get(idempresa)) {
-            const com = new FuelsStation();
-            com.stationId = idempresa;
-            com.cuit = cuit;
-            com.empresa = empresa;
-            com.direccion = direccion;
-            com.localidad = localidad;
-            com.provincia = provincia;
-            com.region = region;
-            com.idempresabandera = idempresabandera;
-            com.empresabandera = empresabandera;
-            com.latitud = latitud;
-            com.longitud = longitud;
-            com.geojson = geojson;
-            com.productos = [];
-            empresas.set(idempresa, com) 
-          }
-          productoEncontrado = false;
-          productoEncontrado = empresas.get(idempresa)?.productos.find(x=> x === idproducto);
-          if (!productoEncontrado) {
-          const newProduct = new Product();
-          newProduct.idproducto = idproducto;
-          newProduct.producto = producto;
-          empresas.get(idempresa).productos.push(idproducto);
-          productos.set(idproducto, newProduct);}
+      if (!idempresa || !latitud || !longitud) {
+        console.warn(`Datos faltantes en la fila: ${JSON.stringify(row)}`);
+        return;
+      }
 
-          if (!precios.get(idproducto)) {
-          const newPrice = new PriceHistory();
-          newPrice.productoId = idproducto;
-          newPrice.fecha_vigencia = fecha_vigencia;
-          newPrice.precios = [];
-          precios.set(idproducto, newPrice);
-          }
-          let ex = precios.get(idproducto)
-          if(!ex){
-            console.log('No se encontro el producto');
-          }
-          precios.get(idproducto).precios.push(
-            {
-              empresaId: idempresa,                
-              idtipohorario,
-              tipohorario,
-              precio: parseFloat(precio),
-          });
+      // Procesar estación
+      let station = empresas.get(idempresa);
+      if (!station) {
+        station = new FuelsStation();
+        station.stationId = idempresa;
+        station.cuit = cuit;
+        station.empresa = empresa;
+        station.direccion = direccion;
+        station.localidad = localidad;
+        station.provincia = provincia;
+        station.region = region;
+        station.idempresabandera = idempresabandera;
+        station.empresabandera = empresabandera;
+        station.latitud = parseFloat(latitud);
+        station.longitud = parseFloat(longitud);
+        station.geojson = {
+          type: 'Point',
+          coordinates: [parseFloat(longitud), parseFloat(latitud)],
+        };
+        station.productos = [];
+        empresas.set(idempresa, station);
+      }
 
-        })
-        .on('end', async () => { 
-          
-          precios = this.calcularPromedios(precios);
-          await this.FuelsStationRepository.addCompanies(Array.from(empresas.values()));
-          await this.productRepository.addProducts(Array.from(productos.values()));
-          await this.priceHistoryRepository.addPriceHistories(Array.from(precios.values()));
+      // Procesar productos
+      if (!station.productos.includes(idproducto)) {
+        station.productos.push(idproducto);
+        productos.set(idproducto, { idproducto, producto });
+      }
 
-          console.log('Datos insertados en MongoDB correctamente.');
-        })
-        .on('error', (error) => {
-          console.error(error);
-        });
-    };
+      // Procesar precios
+      const priceKey = `${idproducto}_${fecha_vigencia}`;
+      let price = precios.get(priceKey);
+      if (!price) {
+        price = new PriceHistory();
+        price.productoId = idproducto;
+        price.fecha_vigencia = fecha_vigencia;
+        price.precios = [];
+        price.precio_promedioDía = 0;
+        price.precio_promedioNoche = 0;
+        price.precio_promedio = 0;
+        precios.set(priceKey, price);
+      }
+      price.precios.push({
+        empresaId: idempresa,
+        idtipohorario,
+        tipohorario,
+        precio: parseFloat(precio),
+      });
+    } catch (error) {
+      console.error(`Error procesando fila: ${JSON.stringify(row)}`, error);
+    }
+  })
+  .on('end', async () => {
+    try {
+      precios = this.calcularPromedios(precios);
+      await this.FuelsStationRepository.addCompanies(Array.from(empresas.values()));
+      await this.productRepository.addProducts(Array.from(productos.values()));
+
+      // Insertar todos los precios históricos por fecha y producto
+      for (const price of precios.values()) {
+        await this.priceHistoryRepository.addPriceHistories([price]);
+      }
+
+      console.log('Datos insertados en MongoDB correctamente.');
+    } catch (error) {
+      console.error('Error insertando datos en MongoDB:', error);
+    }
+  })
+  .on('error', (error) => {
+    console.error('Error leyendo el archivo CSV:', error);
+  });
+
+  }
+
+  async findByBuffer(geometry:Polygon|MultiPolygon) : Promise<FuelsStation[]> {
+    // Implement the logic to find fuel stations by buffer
+    const stations = await this.FuelsStationRepository.findByBuffer(geometry);
+    return stations;
+  }
+  
   
   calcularPromedios( precios: Map<string, PriceHistory>): Map<string, PriceHistory> {
         let countDiu =0;

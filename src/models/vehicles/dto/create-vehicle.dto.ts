@@ -6,7 +6,7 @@ import {
   IsNumber,
   IsEnum,
 } from 'class-validator';
-import { ProductIdNumber } from '../enums/fuel-type.enum'; // Adjust the import path as necessary
+import { ProductIdNumber } from '../../fuels/enums/fuel-type.enum'; // Adjust the import path as necessary
 
 export class CreateVehicleDto {
   @IsNotEmpty()
