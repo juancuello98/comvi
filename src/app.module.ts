@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 
@@ -16,9 +16,11 @@ import { FuelsModule } from './models/fuels/fuels.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { StadisticsModule } from './stadistics/stadistics.module';
 import { PersonModule } from './models/person/person.module';
-import { trace } from 'console';
+// import { trace } from 'console';
 import { TravellingModule } from './travelling/travelling.module';
 import { GoogleMapModule } from './google-map-module/google-map.module';
+
+import { ResponseMiddleware } from './response.middleware';
 
 @Module({
   imports: [
@@ -44,4 +46,9 @@ import { GoogleMapModule } from './google-map-module/google-map.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(ResponseMiddleware).forRoutes('/')
+  }
+}

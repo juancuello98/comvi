@@ -1,6 +1,6 @@
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { IPriceHistoryRepository } from "../interfaces/PriceHistory.repository.interface";
+import { IPriceHistoryRepository } from "../interfaces/priceHistory.repository.interface";
 import { PriceHistory, PriceHistoryDocument } from "../schemas/PriceHistorySchemas";   
 
 export class PriceHistoryMongodbRepository implements IPriceHistoryRepository {

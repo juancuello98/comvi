@@ -1,6 +1,6 @@
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { IProductRepository } from "../interfaces/Product.repository.interface";
+import { IProductRepository } from "../interfaces/product.repository.interface";
 import { Product, ProductDocument } from "../schemas/ProductSchemas";   
 
 export class ProductMongodbRepository implements IProductRepository {

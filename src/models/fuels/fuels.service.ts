@@ -1,12 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import * as dotenv from 'dotenv';
-import * as fs from 'fs';
 import csv from 'csv-parser';
 import axios from 'axios';
 import { IFuelsStationRepository } from './interfaces/fuelsStation.repository.interface';
-import { IProductHashRepository } from './interfaces/productHash.repository.interface';
 import { IProductRepository } from './interfaces/product.repository.interface';
 import { IPriceHistoryRepository } from './interfaces/priceHistory.repository.interface';
 import { IFUELSSTATION_REPOSITORY } from './repository/constants/fuelsStation.repository.constant';

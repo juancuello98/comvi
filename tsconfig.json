@@ -28,9 +28,11 @@
     "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
+    "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": false,
-    // "resolveJsonModule": true,
-    // "strict": true,
+    "resolveJsonModule": true,
+    "strict": false
+    
+    
   }
 }
