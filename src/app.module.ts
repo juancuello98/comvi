@@ -10,7 +10,6 @@ import { AppService } from './app.service';
 import { TripModule } from './models/trips/trip.module';
 import { CommonModule } from './common/common.module';
 import { VehiclesModule } from './models/vehicles/vehicles.module';
-//import { RequestModule } from './models/requests/request.module';
 import { ValuationsModule } from './models/valuations/valuations.module';
 
 @Module({
@@ -25,10 +24,10 @@ import { ValuationsModule } from './models/valuations/valuations.module';
     TripModule,
     CommonModule,
     VehiclesModule,
-    //RequestModule,
     ValuationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
+
 export class AppModule {}
