@@ -1,3 +1,3 @@
 export const jwtConstants = {
-  secret: process.env.JWT_SECRET
+  secret: 'comvi-secret-key-super-secure-jwt-token',
 };
