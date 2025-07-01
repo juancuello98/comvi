@@ -43,7 +43,8 @@ export class AuthService {
     const token = new PasswordToken();
     token.created = new Date();
     token.expire = new Date(token.created.getTime() + 2 * 60 * 60000);
-    token.code = this.generateRandomString(6);
+    token.code = await this.createVerififyEmailCode();
+    token.validated = false;
     return token;
   }
 
@@ -187,97 +188,212 @@ export class AuthService {
 
   //TODO: Refactor de todo lo que es reestrablecer contraseña
 
-  // async sendEmailPasswordToken(email: string, name: string, token: string) {
-  //   const mail = await this.mailService.sendCodePasswordToken(
-  //     email,
-  //     name,
-  //     token,
-  //   );
-  //   this.logger.log(
-  //     'Se envió el mail de repureracion de contraseña. A:  ' + mail,
-  //   );
-  // }
+  async sendEmailPasswordToken(email: string, name: string, token: string) {
+    await this.mailService.sendCodePasswordToken(
+      email,
+      name,
+      token,
+    );
+    this.logger.log(
+      'Se envió el mail de recuperación de contraseña a: ' + email,
+    );
+  }
 
-  // async requestResetPassword(userEmail: string): Promise<boolean | any> {
-  //   const email = userEmail;
-  //   const findUser = await this.userService.findByEmail(email);
+  async requestResetPassword(userEmail: string): Promise<ResponseDTO> {
+    const email = userEmail;
+    const findUser = await this.userService.findByEmail(email);
 
-  //   if (!findUser) {
-  //     this.logger.log('El usuario no existe: ' + email);
-  //     return new HttpException('USER_NOT_FOUND', 404);
-  //   }
+    if (!findUser) {
+      this.logger.log('El usuario no existe: ' + email);
+      return {
+        hasError: true,
+        message: 'User not found',
+        data: null,
+        status: HttpStatus.NOT_FOUND
+      };
+    }
 
-  //   findUser.resetPasswordToken = await this.GenerateToken();
+    findUser.resetPasswordToken = await this.GenerateToken();
 
-  //   const updated = await this.userService.update(findUser);
+    const updated = await this.userService.update(findUser);
 
-  //   this.logger.log(
-  //     'Se le actualizó el código de recuperación de contraseña a ' +
-  //       updated.email +
-  //       ' codigo ' +
-  //       updated.resetPasswordToken.code,
-  //   );
+    if (!updated || !updated.resetPasswordToken || !updated.resetPasswordToken.code) {
+      this.logger.error('Error: No se pudo generar el token de reset password para: ' + email);
+      return {
+        hasError: true,
+        message: 'Error generating reset password token',
+        data: null,
+        status: HttpStatus.INTERNAL_SERVER_ERROR
+      };
+    }
 
-  //   await this.sendEmailPasswordToken(
-  //     findUser.email,
-  //     findUser.name,
-  //     findUser.resetPasswordToken.code,
-  //   );
+    this.logger.log(
+      'Se le actualizó el código de recuperación de contraseña a ' +
+        updated.email +
+        ' codigo ' +
+        updated.resetPasswordToken.code,
+    );
 
-  //   this.logger.log(
-  //     'Se le envió un mail con el código de recuperación de contraseña a: ' +
-  //       email,
-  //   );
+    await this.sendEmailPasswordToken(
+      findUser.email,
+      findUser.name,
+      findUser.resetPasswordToken.code,
+    );
 
-  //   return {
-  //     success: true,
-  //     statusCode: 200,
-  //   };
-  // }
+    this.logger.log(
+      'Se le envió un mail con el código de recuperación de contraseña a: ' +
+        email,
+    );
 
-  // async resetPassword(
-  //   resetPasswordDTO: ResetPasswordDTO,
-  // ): Promise<boolean | any> {
-  //   const { email } = resetPasswordDTO;
-  //   const { password } = resetPasswordDTO;
-  //   const findUser = await this.userService.findByEmail(email);
+    return {
+      hasError: false,
+      message: 'Reset password email sent successfully',
+      data: { email: updated.email },
+      status: HttpStatus.OK
+    };
+  }
 
-  //   if (!findUser) {
-  //     this.logger.log('El usuario no existe: ' + email);
-  //     return new HttpException('USER_NOT_FOUND', 404);
-  //   }
+  async resetPassword(
+    resetPasswordDTO: ResetPasswordDTO,
+  ): Promise<ResponseDTO> {
+    const { email } = resetPasswordDTO;
+    const { password } = resetPasswordDTO;
+    
+    const findUser = await this.userService.findByEmail(email);
 
-  //   findUser.resetPasswordToken = null;
+    if (!findUser) {
+      this.logger.log('El usuario no existe: ' + email);
+      return {
+        hasError: true,
+        message: 'User not found',
+        data: null,
+        status: HttpStatus.NOT_FOUND
+      };
+    }
 
-  //   findUser.password = await this.hashPassword(password);
+    if (!findUser.resetPasswordToken) {
+      this.logger.log('El usuario no tiene código de recuperación: ' + email);
+      return {
+        hasError: true,
+        message: 'User has no reset password code',
+        data: null,
+        status: HttpStatus.BAD_REQUEST
+      };
+    }
 
-  //   const updated = await this.userService.update(findUser);
+    if (!findUser.resetPasswordToken.validated) {
+      this.logger.log('El usuario no ha validado su código de recuperación: ' + email);
+      return {
+        hasError: true,
+        message: 'User has not validated his verification code',
+        data: null,
+        status: HttpStatus.BAD_REQUEST
+      };
+    }
 
-  //   this.logger.log('Se le actualizó la contraseña a: ' + updated.email); //JSON.stringify(updated) subir json?
+    findUser.password = await this.hashPassword(password);
+    findUser.resetPasswordToken = null;
 
-  //   return {
-  //     success: true,
-  //     statusCode: 200,
-  //   };
-  // }
+    const updated = await this.userService.update(findUser);
+
+    this.logger.log('Se le actualizó la contraseña a: ' + updated.email);
+
+    return {
+      hasError: false,
+      message: 'Password reset successfully',
+      data: { email: updated.email },
+      status: HttpStatus.OK
+    };
+  }
+
+  async changePassword(
+    email: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<boolean> {
+    const findUser = await this.userService.findByEmail(email);
+
+    if (!findUser) {
+      this.logger.log('El usuario no existe: ' + email);
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    const doesPasswordMatch = await this.doesPasswordMatch(
+      currentPassword,
+      findUser.password,
+    );
+
+    if (!doesPasswordMatch) {
+      this.logger.log('La contraseña actual no coincide: ' + email);
+      throw new HttpException('Current password does not match', HttpStatus.BAD_REQUEST);
+    }
+
+    findUser.password = await this.hashPassword(newPassword);
+    const updated = await this.userService.update(findUser);
+
+    this.logger.log('Se le actualizó la contraseña a: ' + updated.email);
+
+    return true;
+  }
 
   async validatePasswordToken(
     passwordTokenDTO: PasswordTokenDTO,
-  ): Promise<UserValidatedDTO | any> {
+  ): Promise<ResponseDTO> {
     const { email, passwordToken } = passwordTokenDTO;
     const user = await this.userService.findByEmail(email);
 
     if (!user) {
       this.logger.log('El usuario no existe: ' + email);
-      return new HttpException('USER_NOT_FOUND', 404);
+      return {
+        hasError: true,
+        message: 'User not found',
+        data: null,
+        status: HttpStatus.NOT_FOUND
+      };
     }
 
-    const { id } = user;
-    const validate =
-      (await this.IsExpired(user.resetPasswordToken)) &&
-      (await this.compareResetPasswordCode(passwordToken, user));
-    const result = { id, email, validate };
+    if (!user.resetPasswordToken) {
+      this.logger.log('El usuario no tiene código de recuperación: ' + email);
+      return {
+        hasError: true,
+        message: 'User has no reset password code',
+        data: null,
+        status: HttpStatus.BAD_REQUEST
+      };
+    }
 
-    return result;
+    const isNotExpired = await this.IsExpired(user.resetPasswordToken);
+    const codeMatches = await this.compareResetPasswordCode(passwordToken, user);
+    const validated = isNotExpired && codeMatches;
+
+    if (!validated) {
+      this.logger.log('Código de verificación inválido o expirado: ' + email);
+      return {
+        hasError: true,
+        message: 'Invalid or expired verification code',
+        data: null,
+        status: HttpStatus.BAD_REQUEST
+      };
+    }
+
+    user.resetPasswordToken.validated = true;
+    await this.userService.update(user);
+
+    const accessToken = this.jwtTokenService.sign(
+      { 
+        email: user.email, 
+        purpose: 'password_reset'
+      },
+      { expiresIn: '15m' }
+    );
+
+    this.logger.log('Código validado y token de acceso generado para: ' + email);
+
+    return {
+      hasError: false,
+      message: 'Code validated and access token generated',
+      data: { accessToken, email },
+      status: HttpStatus.OK
+    };
   }
 }

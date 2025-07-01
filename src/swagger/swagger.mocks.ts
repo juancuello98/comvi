@@ -31,6 +31,44 @@ export const exRegisterUserResponse = {
     token : "example"
   }
 
+// Reset Password Examples
+export const exRequestResetPassword = {
+  email: "usuario@ejemplo.com"
+}
+
+export const exRequestResetPasswordResponse = {
+  hasError: false,
+  message: "Reset password email sent successfully",
+  data: { email: "usuario@ejemplo.com" },
+  status: 200
+}
+
+export const exPasswordToken = {
+  email: "usuario@ejemplo.com",
+  passwordToken: "1234"
+}
+
+export const exPasswordTokenResponse = {
+  hasError: false,
+  message: "Code validated and access token generated",
+  data: {
+    accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzdWFyaW9AZWplbXBsby5jb20iLCJwdXJwb3NlIjoicGFzc3dvcmRfcmVzZXQiLCJleHAiOjE3MzU2NzIwMDB9.example",
+    email: "usuario@ejemplo.com"
+  },
+  status: 200
+}
+
+export const exResetPassword = {
+  password: "nuevaContraseña123"
+}
+
+export const exResetPasswordResponse = {
+  hasError: false,
+  message: "Password reset successfully",
+  data: { email: "usuario@ejemplo.com" },
+  status: 200
+}
+
   export const exUserData = {
     name : 'nameOfUser',
     lastname: 'lastnameOfUser',
