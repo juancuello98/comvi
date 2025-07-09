@@ -37,7 +37,7 @@ export class TripController {
   @ApiResponse({ status: 201, description: 'Trip was created succesfully.', example:
     exNewTripResponse
    })
-  @Post('/publish')
+  @Post('/create')
   async create(@Request() req, @Body() trip: NewTripDTO): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req)
     return await this.tripsService.create({ ...trip, driver });
