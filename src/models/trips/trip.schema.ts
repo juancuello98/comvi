@@ -84,15 +84,15 @@ export class Trip {
   status: TripStatus;
 
   /**
-   * @property {string[]} passengers - IDs de los usuarios que participan como pasajeros en el viaje.
+   * @property {string[]} acceptedRequests - IDs de las solicitudes aceptadas que participan como pasajeros en el viaje.
    */
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Booking' })
-  bookings: MongooseSchema.Types.ObjectId[];
+  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'Request', default: [] })
+  acceptedRequests: MongooseSchema.Types.ObjectId[];
 
   /**
    * @property {string[]} packages - IDs de los packages que van en el viaje.
    */
-  @Prop()
+  @Prop({ default: [] })
   packages: string[];
 
   /**
@@ -116,13 +116,13 @@ export class Trip {
   /**
    * @property {string[]} tripsRequests - IDs de las solicitudes asociadas al viaje.
    */
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Requests' })
+  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'Requests' })
   tripsRequests: MongooseSchema.Types.ObjectId[];
 
   /**
    * @property {string[]} valuations - IDs de las valuaciones asociadas al viaje.
    */
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Valuations' })
+  @Prop({ type: [MongooseSchema.Types.ObjectId], ref: 'Valuations' })
   valuations: MongooseSchema.Types.ObjectId[];
 
   /**

@@ -1,4 +1,5 @@
-import { Controller, Post, Body, UseGuards, HttpCode } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpCode, Req } from '@nestjs/common';
+import { Request } from 'express';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { AuthService } from './authentication.service';
@@ -9,7 +10,25 @@ import { UserVerificationDTO } from 'src/models/users/dto/user-verification.dto'
 
 import { UserDTO } from 'src/models/users/interfaces/user-details.interface';
 import { UserValidatedDTO } from 'src/models/users/interfaces/user-validated.interface';
-import { exLogin, exLoginResponse, exRegisterUser, exRegisterUserResponse, exValidateToken, exValidateTokenResponde } from '../swagger/swagger.mocks';
+import { RequestResetPasswordDTO } from './dto/request-reset-password-dto';
+import { PasswordTokenDTO } from './dto/token-password.dto';
+import { ResetPasswordDTO } from './dto/reset-password-dto';
+import { JwtAuthGuard } from './jwt/jwt-auth.guard';
+import { ResponseDTO } from '@/common/interfaces/responses.interface';
+import { 
+  exLogin, 
+  exLoginResponse, 
+  exRegisterUser, 
+  exRegisterUserResponse, 
+  exValidateToken, 
+  exValidateTokenResponde,
+  exRequestResetPassword,
+  exRequestResetPasswordResponse,
+  exPasswordToken,
+  exPasswordTokenResponse,
+  exResetPassword,
+  exResetPasswordResponse
+} from '../swagger/swagger.mocks';
 
 @ApiTags('auth')
 
@@ -76,23 +95,79 @@ export class AuthController {
     return this.authService.login(user);
   }
 
-  // TODO: Refactor todo lo que es recuperar contraseña
-  // @Post('/passwordtoken/validate')
-  // @HttpCode(200)
-  // validatePasswordToken(@Body() token: PasswordTokenDTO) :  Promise< UserValidated | any > {
-  //   return this.authService.validatePasswordToken(token);
-  // }
+  @Post('/passwordtoken/validate')
+  @ApiOperation({ summary: 'Validate verification code and generate access token' })
+  @ApiBody({
+    type: PasswordTokenDTO,
+    examples: {
+      example1: {
+        summary: 'Validate verification code',
+        description: 'Enter the verification code received by email',
+        value: exPasswordToken
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Code validated and access token generated',
+    example: exPasswordTokenResponse
+  })
+  @ApiResponse({ status: 400, description: 'Invalid or expired verification code' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @HttpCode(200)
+  validatePasswordToken(@Body() token: PasswordTokenDTO): Promise<ResponseDTO> {
+    return this.authService.validatePasswordToken(token);
+  }
 
-  // @Post('/requestresetpassword')
-  // @HttpCode(200)
-  // requestResetPassword(@Body() req: RequestResetPasswordDTO) :  Promise< boolean | any > {
-  //   const {email} = req;
-  //   return this.authService.requestResetPassword(email);
-  // }
+  @Post('/requestresetpassword')
+  @ApiOperation({ summary: 'Request password reset' })
+  @ApiBody({
+    type: RequestResetPasswordDTO,
+    examples: {
+      example1: {
+        summary: 'Request password reset',
+        description: 'Send verification code to user email',
+        value: exRequestResetPassword
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Reset password email sent successfully',
+    example: exRequestResetPasswordResponse
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @HttpCode(200)
+  requestResetPassword(@Body() req: RequestResetPasswordDTO): Promise<ResponseDTO> {
+    const { email } = req;
+    return this.authService.requestResetPassword(email);
+  }
 
-  // @Post('/resetpassword')
-  // @HttpCode(200)
-  // resetPassword(@Body() resetData: ResetPasswordDTO) :  Promise< boolean | any > {
-  //   return this.authService.resetPassword(resetData);
-  // }
+  @Post('/resetpassword')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Reset password with access token' })
+  @ApiBody({
+    type: ResetPasswordDTO,
+    examples: {
+      example1: {
+        summary: 'Reset password',
+        description: 'Enter new password',
+        value: exResetPassword
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Password reset successfully',
+    example: exResetPasswordResponse
+  })
+  @ApiResponse({ status: 400, description: 'Invalid access token or validation required' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid token' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @HttpCode(200)
+  resetPassword(@Body() resetData: ResetPasswordDTO, @Req() request: Request): Promise<ResponseDTO> {
+    const user = request.user as any;
+    resetData.email = user.email;
+    return this.authService.resetPassword(resetData);
+  }
 }
