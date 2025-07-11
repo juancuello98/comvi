@@ -8,6 +8,7 @@ export interface ITripRepository {
   findByIdWithDriver(id: string): Promise<Trip> ;
   findById(id: string): Promise<Trip> ;
   findNonDriverTrips(email: string) : Promise<Trip[]>;
+  findByPassenger(passengerEmail: string): Promise<Trip[]>;
   create(trip: NewTripDTO): Promise<Trip>;
   update(trip: Trip) : Promise<Trip>;
   updateStatus(tripId: string, newStatus: TripStatus): Promise<Trip>;
