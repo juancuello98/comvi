@@ -15,6 +15,11 @@ import { ITRIP_REPOSITORY } from './repository/constants/trip.repository.constan
 import { ResponseHelper } from '@/common/helpers/http/response.helper';
 import { LocationService } from '../locations/location.service';
 import { Location } from '@/locations/location-schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Request, RequestDocument } from '../requests/request.schema';
+import { StatusRequest } from '../requests/enums/status.enum';
+
 
 @Injectable()
 export class TripService {
@@ -26,26 +31,25 @@ export class TripService {
     private readonly tripResumeRepository: TripResumeRepository,
     private readonly responseHelper: ResponseHelper,
     private readonly locationService: LocationService,
+    @InjectModel(Request.name) private readonly requestModel: Model<RequestDocument>,
+
   ) { }
 
   async findByDriver(driver: string): Promise<ResponseDTO> {
     const trips = await this.tripRepository.findByDriver(driver);
 
     if (!trips.length) {
-      this.logger.log(`Trips of user ${driver} not founded.`);
       return this.responseHelper.makeResponse(
         false,
-        'Not found trips.',
-        null,
-        HttpStatus.NOT_FOUND,
+        'No published trips found.',
+        [],
+        HttpStatus.OK,
       );
     }
 
-    this.logger.log(`Trips of user ${driver} founded.`);
-
     return this.responseHelper.makeResponse(
       false,
-      'Trip founded.',
+      'Published trips found successfully.',
       trips,
       HttpStatus.OK,
     );
@@ -74,15 +78,35 @@ export class TripService {
     if (!items.length)
       return this.responseHelper.makeResponse(
         false,
-        'Not found trips.',
-        null,
-        HttpStatus.NOT_FOUND,
+        'No trips available.',
+        [],
+        HttpStatus.OK,
       );
 
     return this.responseHelper.makeResponse(
       false,
-      'Trips founded.',
+      'Trips found successfully.',
       items,
+      HttpStatus.OK,
+    );
+  }
+
+  async findByPassenger(passengerEmail: string): Promise<ResponseDTO> {
+    const trips = await this.tripRepository.findByPassenger(passengerEmail);
+    
+    if (!trips.length) {
+      return this.responseHelper.makeResponse(
+        false,
+        'No trips found where you are a passenger.',
+        [],
+        HttpStatus.OK,
+      );
+    }
+
+    return this.responseHelper.makeResponse(
+      false,
+      'Trips where you are a passenger found successfully.',
+      trips,
       HttpStatus.OK,
     );
   }
@@ -121,7 +145,17 @@ export class TripService {
       const status = TripStatus.OPEN;
       const placesAvailable = trip.peopleQuantity;
       const createdTimestamp = new Date().toISOString();
-      const input = Object.assign(trip, { id, origin, destination, status, placesAvailable, createdTimestamp });
+      const input = Object.assign(trip, { 
+        id, 
+        origin, 
+        destination, 
+        status, 
+        placesAvailable, 
+        createdTimestamp,
+        acceptedRequests: [],
+        tripsRequests: [],
+        valuations: []
+      });
 
       const newTrip = await this.tripRepository.create(input);
       const message = 'Trip was created succesfully.';
@@ -155,11 +189,27 @@ export class TripService {
         null,
         HttpStatus.NOT_FOUND,
       );
+
+    try {
+      const allRequests = await this.requestModel.find({
+        tripId: id,
+        status: { $in: [StatusRequest.ON_HOLD, StatusRequest.ACCEPTED] }
+      }).exec();
+
+      if (allRequests.length > 0) {
+        await this.requestModel.updateMany(
+          { tripId: id, status: { $in: [StatusRequest.ON_HOLD, StatusRequest.ACCEPTED] } },
+          { status: StatusRequest.REJECTED }
+        ).exec();
+      }
+    } catch (error) {
+      this.logger.error(`Error rejecting requests for trip ${id}: ${error.message}`);
+    }
     
-      return this.responseHelper.makeResponse(false,'Trip was cancelled.',null,HttpStatus.OK)
+    return this.responseHelper.makeResponse(false,'Trip was cancelled.',null,HttpStatus.OK)
   }
 
-  async init(id: string, driver: string): Promise<ResponseDTO> { //TODO: Refactorizar esto
+  async init(id: string, driver: string): Promise<ResponseDTO> {
     const date = new Date().toISOString();
     const trip = await this.tripRepository.findByIdAndDriver(driver, id);
 
@@ -173,31 +223,27 @@ export class TripService {
     }
     
     if (
-      trip.status !== TripStatus.OPEN || trip.bookings.length
+      trip.status !== TripStatus.OPEN || (trip.acceptedRequests && trip.acceptedRequests.length)
     ) {
       return this.responseHelper.makeResponse(
         false,
-        `Incorrect trip status ${trip.status} or not contain bookings or packages.`,
+        `Incorrect trip status ${trip.status} or not contain accepted requests or packages.`,
         null,
         HttpStatus.OK,
       );
     }
 
     const resume = await this.tripResumeRepository.create({
-      passengers: trip.bookings
+      passengers: trip.acceptedRequests || []
     });
 
     const resumeId = resume.id;
-
-    this.logger.log(`Trip resume created with id ${resumeId}`);
 
     trip.tripResumeId = resumeId;
     trip.status = TripStatus.IN_PROGRESS;
     trip.startedTimestamp = date;
 
     const updated = await this.tripRepository.update(trip);
-
-    this.logger.log(`Trip updated with status ${updated.status}`);
 
     return this.responseHelper.makeResponse(
       false,
@@ -208,8 +254,6 @@ export class TripService {
   }
 
   async finish(id: string, driver: string): Promise<ResponseDTO> {
-    this.logger.log('Initialize process to finish trip...');
-
     const trip = await this.tripRepository.findByIdAndDriver(driver, id);
 
     if (!trip || trip.status !== TripStatus.IN_PROGRESS)
@@ -224,13 +268,9 @@ export class TripService {
 
     const status = (await this.tripRepository.update(trip)).status;
 
-    this.logger.log(`Trip status updated to ${status}`);
-
     const resume = await this.tripResumeRepository.findById(trip.tripResumeId);
     resume.endedTimestamp = new Date().toISOString();
     const resumeId = (await this.tripResumeRepository.update(resume)).id;
-
-    this.logger.log(`Trip resume ${resumeId} updated.`);
 
     return this.responseHelper.makeResponse(
       false,
@@ -243,12 +283,16 @@ export class TripService {
   async listOfPassengers(id: string): Promise<ResponseDTO> {
     try {
       const passengers = await this.tripRepository.passengersByTrip(id);
-      if(!passengers) return this.responseHelper.makeResponse(
-        false,
-        'Not found passengers in the trip.',
-        passengers,
-        HttpStatus.NOT_FOUND,
-      );
+      
+      if (!passengers || passengers.length === 0) {
+        return this.responseHelper.makeResponse(
+          false,
+          'Not found passengers in the trip.',
+          null,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      
       return this.responseHelper.makeResponse(
         false,
         'Passengers founded by trip.',
@@ -256,10 +300,10 @@ export class TripService {
         HttpStatus.OK,
       );
     } catch (error) {
-      console.error('Error: ', error);
+      this.logger.error(`Error in listOfPassengers: ${error.message}`);
       return this.responseHelper.makeResponse(
         true,
-        'Error in listWithPassengers.',
+        'Error retrieving passengers for the trip.',
         null,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );

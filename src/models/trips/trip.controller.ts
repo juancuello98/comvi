@@ -13,7 +13,7 @@ import { JwtAuthGuard } from 'src/authentication/jwt/jwt-auth.guard';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { TripService } from './trip.service';
 import { RequestHelper } from '@/common/helpers/http/request.helper';
-import { exListMyTrips, exListOfPassengersNotFound, exListOfTripsResponse, exNewTrip, exNewTripResponse, exTripByIdResponse } from 'src/swagger/swagger.mocks';
+import { exListMyTrips, exListMyPassengerTrips, exListOfPassengersNotFound, exListOfPassengersFound, exListOfTripsResponse, exNewTrip, exNewTripResponse, exTripByIdResponse } from 'src/swagger/swagger.mocks';
 
 @ApiTags('trips')
 @Controller('trips')
@@ -53,21 +53,11 @@ export class TripController {
     return this.tripsService.findNonDriverTrips(driver);
   }
 
-  @ApiOperation({ summary: 'Get trip by id.' })
-  @ApiResponse({ status: 200, description: 'Successfully found trips', example:
-    exTripByIdResponse
-   })
-  @Get('/list/:id')
-  findOne(@Param('id') id: string) {
-    return this.tripsService.findById(id);
-  }
-
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get list of passengers.' }) //TODO: Terminar esto
-   @ApiResponse({ status: 200, description: 'Not found passengers in the trip.', example:
-    exListOfPassengersNotFound
-   })
+  @ApiOperation({ summary: 'Get list of passengers for a specific trip.' })
+  @ApiResponse({ status: 200, description: 'Passengers found successfully.', example: exListOfPassengersFound })
+  @ApiResponse({ status: 404, description: 'No passengers found in the trip.', example: exListOfPassengersNotFound })
   @Get('/list/passengers/:id')
   listOfPassengers(@Param('id') id: string) {
     return this.tripsService.listOfPassengers(id);
@@ -75,14 +65,33 @@ export class TripController {
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get list of my trips.' }) 
+  @ApiOperation({ summary: 'Get list of my published trips.' }) 
   @ApiResponse({ status: 200, description: 'Trips founded by user.', example:
     exListMyTrips
    })
-  @Get('/mytrips')
+  @Get('/list/published')
   findMyTrips(@Request() req) {
     const driver = this.requestHelper.getPayload(req);
     return this.tripsService.findByDriver(driver);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get list of trips where I am a passenger.' }) 
+  @ApiResponse({ status: 200, description: 'Trips where user is a passenger found successfully.', example: exListMyPassengerTrips })
+  @Get('/list/passenger')
+  findMyPassengerTrips(@Request() req) {
+    const passengerEmail = this.requestHelper.getPayload(req);
+    return this.tripsService.findByPassenger(passengerEmail);
+  }
+
+  @ApiOperation({ summary: 'Get trip by id.' })
+  @ApiResponse({ status: 200, description: 'Successfully found trips', example:
+    exTripByIdResponse
+   })
+  @Get('/list/:id')
+  findOne(@Param('id') id: string) {
+    return this.tripsService.findById(id);
   }
 
   @UseGuards(JwtAuthGuard)

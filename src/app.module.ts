@@ -11,6 +11,7 @@ import { TripModule } from './models/trips/trip.module';
 import { CommonModule } from './common/common.module';
 import { VehiclesModule } from './models/vehicles/vehicles.module';
 import { ValuationsModule } from './models/valuations/valuations.module';
+import { RequestModule } from './models/requests/request.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ValuationsModule } from './models/valuations/valuations.module';
     CommonModule,
     VehiclesModule,
     ValuationsModule,
+    RequestModule,
   ],
   controllers: [AppController],
   providers: [AppService],
