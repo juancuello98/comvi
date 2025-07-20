@@ -150,9 +150,10 @@ export class TripMongodbRepository implements ITripRepository {
     .create(trip);
   }
 
-  async update(trip: TripDocument) : Promise<Trip> {
-    const tripUpdated = await trip.updateOne();
-    return tripUpdated;
+  async update(trip: TripDocument): Promise<Trip> {
+    const { _id, ...rest } = trip.toObject ? trip.toObject() : trip;
+    await this.tripModel.updateOne({ _id }, { $set: rest }).exec();
+    return await this.tripModel.findById(_id).exec();
   }
 
   async updateStatus(id: string, newStatus: TripStatus) {
@@ -181,7 +182,7 @@ export class TripMongodbRepository implements ITripRepository {
       id,
     };
 
-    const hasUserTrip = await this.tripModel.findOne(filter).lean().exec();
+    const hasUserTrip = await this.tripModel.findOne(filter).exec();
 
     return hasUserTrip;
   }

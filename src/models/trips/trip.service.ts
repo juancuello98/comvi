@@ -223,7 +223,7 @@ export class TripService {
     }
     
     if (
-      trip.status !== TripStatus.OPEN || (trip.acceptedRequests && trip.acceptedRequests.length)
+      trip.status !== TripStatus.OPEN || !trip.acceptedRequests || trip.acceptedRequests.length === 0
     ) {
       return this.responseHelper.makeResponse(
         false,
@@ -234,7 +234,8 @@ export class TripService {
     }
 
     const resume = await this.tripResumeRepository.create({
-      passengers: trip.acceptedRequests || []
+      passengers: trip.acceptedRequests || [],
+      startedTimestamp: date
     });
 
     const resumeId = resume.id;
