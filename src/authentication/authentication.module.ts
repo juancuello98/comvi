@@ -8,9 +8,11 @@ import { jwtConstants } from './jwt/jwt.constant';
 import { JwtStrategy } from './jwt/jwt.strategy';
 import { UserModule } from 'src/models/users/user.module';
 import { MailModule } from 'src/mail/config.module';
+import { CommonModule } from '@/common/common.module';
 
 @Module({
   imports: [
+    CommonModule,
     UserModule,
     MailModule,
     PassportModule,

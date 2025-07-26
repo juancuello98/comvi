@@ -29,12 +29,17 @@ import {
   exResetPassword,
   exResetPasswordResponse
 } from '../swagger/swagger.mocks';
+import { ResponseHelper } from '@/helpers/http/response.helper';
+import { ResentVerificationCodeDTO } from './dto/resent.verification.code.dto';
 
 @ApiTags('auth')
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly responseHelper: ResponseHelper
+  ) { }
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
@@ -169,5 +174,10 @@ export class AuthController {
     const user = request.user as any;
     resetData.email = user.email;
     return this.authService.resetPassword(resetData);
+  }
+
+  @Post('/resentverification')
+  resentVerificationCode(@Body() resentData: ResentVerificationCodeDTO){
+    return this.authService.resentVerificationEmail(resentData.email);
   }
 }

@@ -20,6 +20,8 @@ import { UserDocument } from 'src/models/users/user.schema';
 import { MailService } from 'src/mail/config.service';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { ResponseDTO } from '@/common/interfaces/responses.interface';
+import { helpers } from 'handlebars';
+import { ResponseHelper } from '@/helpers/http/response.helper';
 
 @Injectable()
 export class AuthService {
@@ -29,6 +31,7 @@ export class AuthService {
     private mailService: MailService,
     private jwtTokenService: JwtService,
     private userService: UserService,
+    private responseHelper: ResponseHelper
   ) {}
 
   generateRandomString(num) {
@@ -64,6 +67,16 @@ export class AuthService {
   async register(registerData: Readonly<NewUserDTO>): Promise<UserDTO | any> {
     const { lastname, name, password: plainPassword, email } = registerData;
     const userExists = await this.userService.findByEmail(email);
+    const isVerified = userExists.status === VERIFICATION_CODE_STATUS.VALIDATED;
+    if(!isVerified) {
+      const message = `USER_NOT_VALIDATED ${email}.`;
+      this.logger.log(message);
+
+      throw new HttpException(
+        message,
+        HttpStatus.CONFLICT,
+      );
+    }
 
     if (userExists) {
       const message = `User already exists with this email ${email}.`;
@@ -99,7 +112,20 @@ export class AuthService {
     return this.userService.getUser(newUser);
   }
 
-  async createVerififyEmailCode(): Promise<string> {
+  async resentVerificationEmail(email: string){
+    const userExists = await this.userService.findByEmail(email);
+    if (!userExists) {
+      this.logger.log(`User not found with email: ${email}`);
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    const verificationCode = this.createVerififyEmailCode();
+    userExists.verificationCode = verificationCode;
+    await this.userService.update(userExists);
+    await this.mailService.sendCode(email, userExists.name, verificationCode);
+    return this.responseHelper.makeResponse(false,'Verification email resent successfully.',null,HttpStatus.OK);
+  }
+
+  createVerififyEmailCode(): string {
     return Math.floor(Math.random() * (9999 - 1000 + 1) + 1000).toString();
   }
 
