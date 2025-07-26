@@ -67,18 +67,18 @@ export class AuthService {
   async register(registerData: Readonly<NewUserDTO>): Promise<UserDTO | any> {
     const { lastname, name, password: plainPassword, email } = registerData;
     const userExists = await this.userService.findByEmail(email);
-    const isVerified = userExists.status === VERIFICATION_CODE_STATUS.VALIDATED;
-    if(!isVerified) {
-      const message = `USER_NOT_VALIDATED ${email}.`;
-      this.logger.log(message);
-
-      throw new HttpException(
-        message,
-        HttpStatus.CONFLICT,
-      );
-    }
-
+    const isVerified = userExists?.status === VERIFICATION_CODE_STATUS.VALIDATED;
+   
     if (userExists) {
+      if(!isVerified) {
+        const message = `USER_NOT_VALIDATED ${email}.`;
+        this.logger.log(message);
+  
+        throw new HttpException(
+          message,
+          HttpStatus.CONFLICT,
+        );
+      }
       const message = `User already exists with this email ${email}.`;
       this.logger.log(message);
 
@@ -113,6 +113,7 @@ export class AuthService {
   }
 
   async resentVerificationEmail(email: string){
+    this.logger.log(`Resending verification email to: ${email}`);
     const userExists = await this.userService.findByEmail(email);
     if (!userExists) {
       this.logger.log(`User not found with email: ${email}`);
