@@ -19,6 +19,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Request, RequestDocument } from '../requests/request.schema';
 import { StatusRequest } from '../requests/enums/status.enum';
+import { UserService } from '@/users/user.service';
 
 
 @Injectable()
@@ -31,9 +32,28 @@ export class TripService {
     private readonly tripResumeRepository: TripResumeRepository,
     private readonly responseHelper: ResponseHelper,
     private readonly locationService: LocationService,
+    private readonly userService: UserService,
     @InjectModel(Request.name) private readonly requestModel: Model<RequestDocument>,
 
   ) { }
+
+  async find(field: Record<string, any>) : Promise<ResponseDTO> {
+    const trips = await this.tripRepository.find(field);
+    if (!trips.length) {
+      return this.responseHelper.makeResponse(
+        false,
+        'No trips found.',
+        [],
+        HttpStatus.OK,
+      );
+    }
+    return this.responseHelper.makeResponse(
+      false,
+      'Trips found successfully.',
+      trips,
+      HttpStatus.OK,
+    );
+  }
 
   async findByDriver(driver: string): Promise<ResponseDTO> {
     const trips = await this.tripRepository.findByDriver(driver);
@@ -125,7 +145,10 @@ export class TripService {
         return this.responseHelper.makeResponse(false, message, {}, status);
       }
 
-      return this.responseHelper.makeResponse(false, message,trip, status);
+      const driver = await this.userService.findByEmail(trip.driver);
+      const tripFounded = {...trip, driver}
+
+      return this.responseHelper.makeResponse(false, message,tripFounded, status);
     } catch (error) {
       console.error('Error: ', error);
       return this.responseHelper.makeResponse(

@@ -8,5 +8,6 @@ export interface IVehicleRepository {
   findByPatent(patent: string): Promise<Vehicle> 
   findByUser(email: string): Promise<Vehicle[]> 
   findByUser(email: string): Promise<Vehicle[]> 
+  findById(id: string): Promise<Vehicle>
   delete(patent: string): Promise<void>;
   }

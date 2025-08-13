@@ -4,13 +4,10 @@ import {
   IsNumber,
   IsBoolean,
   IsString,
-  IsOptional,
-  IsInt,
-  IsDate,
+  IsOptional
 } from 'class-validator';
 import { ExistingtTripDTO } from './existing-trip.dto';
 import { Location } from '@/locations/location-schema';
-import { TripStatus } from '../enums/state.enum';
 
 export class NewTripDTO extends PartialType(ExistingtTripDTO) {
   @IsOptional()

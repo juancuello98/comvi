@@ -159,14 +159,35 @@ export class AuthService {
   }
 
   async login({ email, password }: LoginDTO): Promise<Record<string, string>> {
-    const user = await this.validate(email, password);
 
-    if (!user)
-      throw new HttpException('Invalid credentials.', HttpStatus.UNAUTHORIZED);
+    const user = await this.userService.findByEmail(email);
 
-    const token = this.loginWithCredentials(user);
+    if (!user || user?.status !== VERIFICATION_CODE_STATUS.VALIDATED) {
+      const message = 'User not found or email not validated.';
+      this.logger.log(message);
+      throw new HttpException(
+        message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
 
-    return token;
+    const doesPasswordMatch = await this.doesPasswordMatch(
+      password,
+      user.password,
+    );
+
+    if (!doesPasswordMatch) {
+      const message = 'Invalid Credentials';
+      this.logger.log(message);
+      throw new HttpException(
+        message,
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const userValidated = this.userService.getUser(user)
+    const token = this.loginWithCredentials(userValidated);
+    return  token;
   }
 
   async loginWithCredentials(user: UserDTO) {
@@ -256,9 +277,7 @@ export class AuthService {
 
     this.logger.log(
       'Se le actualizó el código de recuperación de contraseña a ' +
-        updated.email +
-        ' codigo ' +
-        updated.resetPasswordToken.code,
+        updated.email
     );
 
     await this.sendEmailPasswordToken(

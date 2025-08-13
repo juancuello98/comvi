@@ -30,7 +30,14 @@ export class TripMongodbRepository implements ITripRepository {
   }
 
   async find(field: any): Promise<Trip[]> {
-    return await this.tripModel.find(field).select('-__v -_id').exec();
+    return await this.tripModel.find(field)
+    .populate('vehicle')
+    .populate('origin')
+    .populate('destination')
+    .populate('requests')
+    .populate('driver', 'email name lastname')
+    .sort({ createdTimestamp: 'desc' })
+    .select('-__v -_id').exec();
   }
 
   async findByIdWithDriver(id: any): Promise<any> {
@@ -47,6 +54,20 @@ export class TripMongodbRepository implements ITripRepository {
   }
 
   async findById(id: string): Promise<Trip> {
+    const trip = await this.tripModel.findOne({id})
+    .select('-__v -_id')
+    .populate('vehicle')
+    .populate('origin')
+    .populate('destination')
+    .populate('requests')
+    .populate('driver', 'email name lastname')
+    .select('-__v -_id')
+    .exec();
+
+    return trip;
+  }
+
+  async findByIdWithRequests(id: string): Promise<Trip> {
     const trip = await this.tripModel.findOne({id})
     .select('-__v -_id')
     .populate('vehicle')

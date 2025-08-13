@@ -69,6 +69,25 @@ export class VehiclesService {
     }
   }
 
+  async findById(id: any): Promise<ResponseDTO> {
+    try {
+      const vehicle = await this.vehicleRepository.findById(id)
+    return {
+      hasError: false,
+      message: vehicle ? 'Vehicle founded.' : 'Vehicle not founded.',
+      data: vehicle,
+     status: HttpStatus.OK,
+    };
+    } catch (error) {
+      return {
+        hasError: true,
+        message: 'Find vehicle was failed.',
+        data: error instanceof MongoDuplicateKeyError ? error.message : null,
+       status: HttpStatus.INTERNAL_SERVER_ERROR,
+      };
+    }
+  }
+
   async findByUser(email: string): Promise<ResponseDTO> {
     const vehicles = await this.vehicleRepository.findByUser(email);
     return {
