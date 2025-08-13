@@ -1,6 +1,6 @@
 {
   "name": "cmv-backend-app",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "description": "",
   "author": "",
   "private": true,
@@ -19,7 +19,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "release": "standard-version"
+    "release": "node scripts/release"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",
