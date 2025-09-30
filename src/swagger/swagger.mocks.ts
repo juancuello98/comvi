@@ -102,7 +102,8 @@ export const exResetPasswordResponse = {
       allowPassenger: true,
       peopleQuantity: 3,
       vehicle: "63614cd9207a33961a281f40",
-      startedTimestamp: "2024-09-02T14:00:00Z"
+      startedTimestamp: "2024-09-02T14:00:00Z",
+      estimatedCost: 1500.50
   }
 
   export const exNewTripResponse = {
@@ -119,6 +120,7 @@ export const exResetPasswordResponse = {
       startedTimestamp: "2024-09-02T14:00:00Z",
       status: "OPEN",
       packages: [],
+      estimatedCost: 1500.50,
       createdTimestamp: "2024-09-03T02:22:10.992Z",
       _id: "66d672d288105491d615eea5",
       __v: 0
@@ -172,6 +174,7 @@ export const exListOfTripsResponse = {
       "startedTimestamp": "2024-09-02T14:00:00Z",
       "status": "OPEN",
       "packages": [],
+      "estimatedCost": 1500.50,
       "createdTimestamp": "2024-09-03T02:22:10.992Z"
     },
     {

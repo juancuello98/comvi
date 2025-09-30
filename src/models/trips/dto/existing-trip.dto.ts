@@ -24,4 +24,5 @@ export class TripDTO {
   valuations: string[];
   vehicle: string;
   driver: string;
+  estimatedCost?: number;
 }
