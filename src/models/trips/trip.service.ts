@@ -25,6 +25,22 @@ import { StatusRequest } from '../requests/enums/status.enum';
 export class TripService {
   private readonly logger = new Logger(TripService.name);
 
+  private mapTripResponse(trip: any): any {
+    if (!trip) return trip;
+    
+    const tripObject = trip.toObject ? trip.toObject() : trip;
+    
+    const { estimatedCosts, ...rest } = tripObject;
+    return {
+      ...rest,
+      estimatedCost: estimatedCosts
+    };
+  }
+
+  private mapTripsResponse(trips: any[]): any[] {
+    return trips.map(trip => this.mapTripResponse(trip));
+  }
+
   constructor(
     @Inject(ITRIP_REPOSITORY)
     private readonly tripRepository: ITripRepository,
@@ -47,10 +63,11 @@ export class TripService {
       );
     }
 
+    const mappedTrips = this.mapTripsResponse(trips);
     return this.responseHelper.makeResponse(
       false,
       'Published trips found successfully.',
-      trips,
+      mappedTrips,
       HttpStatus.OK,
     );
   }
@@ -65,10 +82,11 @@ export class TripService {
         HttpStatus.NOT_FOUND,
       );
 
+    const mappedTrips = this.mapTripsResponse(trips);
     return this.responseHelper.makeResponse(
       false,
       'Trip founded.',
-      trips,
+      mappedTrips,
       HttpStatus.OK,
     );
   }
@@ -83,10 +101,11 @@ export class TripService {
         HttpStatus.OK,
       );
 
+    const mappedItems = this.mapTripsResponse(items);
     return this.responseHelper.makeResponse(
       false,
       'Trips found successfully.',
-      items,
+      mappedItems,
       HttpStatus.OK,
     );
   }
@@ -103,10 +122,11 @@ export class TripService {
       );
     }
 
+    const mappedTrips = this.mapTripsResponse(trips);
     return this.responseHelper.makeResponse(
       false,
       'Trips where you are a passenger found successfully.',
-      trips,
+      mappedTrips,
       HttpStatus.OK,
     );
   }
@@ -125,7 +145,8 @@ export class TripService {
         return this.responseHelper.makeResponse(false, message, {}, status);
       }
 
-      return this.responseHelper.makeResponse(false, message,trip, status);
+      const mappedTrip = this.mapTripResponse(trip);
+      return this.responseHelper.makeResponse(false, message, mappedTrip, status);
     } catch (error) {
       console.error('Error: ', error);
       return this.responseHelper.makeResponse(
@@ -154,15 +175,17 @@ export class TripService {
         createdTimestamp,
         acceptedRequests: [],
         tripsRequests: [],
-        valuations: []
+        valuations: [],
+        estimatedCosts: trip.estimatedCost
       });
 
       const newTrip = await this.tripRepository.create(input);
+      const mappedTrip = this.mapTripResponse(newTrip);
       const message = 'Trip was created succesfully.';
       return this.responseHelper.makeResponse(
         false,
         message,
-        newTrip,
+        mappedTrip,
         HttpStatus.CREATED,
       );
     } catch (error) {

@@ -48,7 +48,6 @@ export class TripMongodbRepository implements ITripRepository {
 
   async findById(id: string): Promise<Trip> {
     const trip = await this.tripModel.findOne({id})
-    .select('-__v -_id')
     .populate('vehicle')
     .populate('origin')
     .populate('destination')
