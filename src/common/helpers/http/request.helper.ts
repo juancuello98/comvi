@@ -41,6 +41,7 @@ export class RequestHelper {
       return email;
     } catch (error) {
       console.error(error);
+      throw error;
     }
   };
 }

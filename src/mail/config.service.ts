@@ -1,11 +1,33 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer';
-
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import * as nodemailer from 'nodemailer';
+interface MailOptions extends nodemailer.SendMailOptions {
+  template?: string;
+  context?: Record<string, any>;
+}
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
 
-  constructor(private mailerService: MailerService) {}
+    constructor(
+    @Inject('MAILER_TRANSPORT') private readonly transporter: nodemailer.Transporter,
+  ) {}
+
+  async sendMail(body: any): Promise<void> {
+    try {
+      const mailOptions : MailOptions = {
+        from: '"COMVI" <noreply@comvi.com>',
+        to: body.to,
+        subject: body.subject,
+        template: body.template,
+        context: body.context,
+      };
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Email enviado a ${body.to}`);
+    } catch (error) {
+      console.error('Error al enviar el correo:', error);
+      throw error;
+    }
+  }
 
   async sendCode(email: string, name: string, token: string) {
 
@@ -20,7 +42,7 @@ export class MailService {
         token,
       },
     };
-    await this.mailerService.sendMail(mailBody);
+    await this.sendMail(mailBody);
     return mailBody;
   }
 
@@ -46,7 +68,7 @@ export class MailService {
         description: description,
       },
     };
-    await this.mailerService.sendMail(mailBody);
+    await this.sendMail(mailBody);
     this.logger.log('Email enviado a:', email); // 2 logger?
     return mailBody;
   }
@@ -74,7 +96,7 @@ export class MailService {
         description: description,
       },
     };
-    await this.mailerService.sendMail(mailBody);
+    await this.sendMail(mailBody);
     this.logger.log('Email enviado a:', email); // 2 logger?
     return mailBody;
   }
@@ -93,7 +115,7 @@ export class MailService {
         token,
       },
     };
-    await this.mailerService.sendMail(mailBody);
+    await this.sendMail(mailBody);
     this.logger.log('Email enviado a:', email); // 2 logger?
     return mailBody;
   }

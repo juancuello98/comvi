@@ -10,6 +10,10 @@ export class VehicleMongodbRepository implements IVehicleRepository {
     constructor(
         @InjectModel(Vehicle.name) private readonly vehiclesModel: Model<VehicleDocument>,
     ) { }
+    
+    findById(id: string): Promise<Vehicle> {
+        throw new Error("Method not implemented.");
+    }
 
     async create(createVehicleDto: CreateVehicleDto, email: string): Promise<Vehicle> {
         try {

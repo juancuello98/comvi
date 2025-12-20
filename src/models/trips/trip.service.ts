@@ -162,8 +162,8 @@ export class TripService {
 
   async create(trip: NewTripDTO): Promise<ResponseDTO> {
     try {
-      const origin = (await this.locationService.create((trip.origin as Location))).id;
-      const destination = (await this.locationService.create(trip.destination as Location)).id;
+      const origin = (await this.locationService.create((trip.origin as Location)))._id;
+      const destination = (await this.locationService.create(trip.destination as Location))._id;
       const id = uuidv4();
       const status = TripStatus.OPEN;
       const placesAvailable = trip.peopleQuantity;
@@ -261,9 +261,9 @@ export class TripService {
       startedTimestamp: date
     });
 
-    const resumeId = resume.id;
+    //const resumeId = resume._id;
 
-    trip.tripResumeId = resumeId;
+    //trip.tripResumeId = resumeId;
     trip.status = TripStatus.IN_PROGRESS;
     trip.startedTimestamp = date;
 
@@ -294,7 +294,7 @@ export class TripService {
 
     const resume = await this.tripResumeRepository.findById(trip.tripResumeId);
     resume.endedTimestamp = new Date().toISOString();
-    const resumeId = (await this.tripResumeRepository.update(resume)).id;
+    const resumeId = (await this.tripResumeRepository.update(resume))._id;
 
     return this.responseHelper.makeResponse(
       false,

@@ -1,34 +1,43 @@
-import { MailerModule } from '@nestjs-modules/mailer';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { Global, Module } from '@nestjs/common';
 import { MailService } from './config.service';
 import { join } from 'path';
+import * as nodemailer from 'nodemailer';
+import * as hbs from 'nodemailer-express-handlebars';
 
 @Global()
 @Module({
-  imports: [
-    MailerModule.forRoot({
-      transport: {
-        host: process.env.TRANSPORT_HOST || 'smtp.gmail.com',
-        secure: true,
-        auth: {
-          user: process.env.AUTH_USER,
-          pass: process.env.AUTH_PASS,
-        },
+  providers: [
+    {
+      provide: 'MAILER_TRANSPORT',
+      useFactory: () => {
+        const transporter = nodemailer.createTransport({
+          host: process.env.TRANSPORT_HOST || 'smtp.gmail.com',
+          secure: true,
+          auth: {
+            user: process.env.AUTH_USER,
+            pass: process.env.AUTH_PASS,
+          },
+        });
+
+        // Configurar el adaptador de plantillas
+        transporter.use(
+          'compile',
+          hbs({
+            viewEngine: {
+              extname: '.hbs',
+              layoutsDir: join(__dirname, 'templates'),
+              defaultLayout: false,
+            },
+            viewPath: join(__dirname, 'templates'),
+            extName: '.hbs',
+          }),
+        );
+
+        return transporter;
       },
-      defaults: {
-        from: '"COMVI" <noreply@comvi.com>',
-      },
-      template: {
-        dir: join(__dirname, 'templates'),
-        adapter: new HandlebarsAdapter(),
-        options: {
-          strict: true,
-        },
-      },
-    }),
+    },
+    MailService,
   ],
-  providers: [MailService],
   exports: [MailService],
 })
 export class MailModule {}
