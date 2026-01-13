@@ -27,7 +27,9 @@ import {
   exPasswordToken,
   exPasswordTokenResponse,
   exResetPassword,
-  exResetPasswordResponse
+  exResetPasswordResponse,
+  exResentVerificationCode,
+  exResentVerificationCodeResponse
 } from '../swagger/swagger.mocks';
 import { ResponseHelper } from '@/helpers/http/response.helper';
 import { ResentVerificationCodeDTO } from './dto/resent.verification.code.dto';
@@ -177,6 +179,25 @@ export class AuthController {
   }
 
   @Post('/resentverification')
+  @ApiOperation({ summary: 'Resend email verification code' })
+  @ApiBody({
+    type: ResentVerificationCodeDTO,
+    examples: {
+      example1: {
+        summary: 'Resend verification code',
+        description: 'Request to resend the verification code to the user email',
+        value: exResentVerificationCode
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Verification code sent successfully.',
+    example: exResentVerificationCodeResponse
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 400, description: 'User already verified' })
+  @HttpCode(200)
   resentVerificationCode(@Body() resentData: ResentVerificationCodeDTO){
     return this.authService.resentVerificationEmail(resentData.email);
   }

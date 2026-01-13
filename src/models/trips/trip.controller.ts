@@ -7,13 +7,27 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { JwtAuthGuard } from 'src/authentication/jwt/jwt-auth.guard';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { TripService } from './trip.service';
 import { RequestHelper } from '@/common/helpers/http/request.helper';
-import { exListMyTrips, exListMyPassengerTrips, exListOfPassengersNotFound, exListOfPassengersFound, exListOfTripsResponse, exNewTrip, exNewTripResponse, exTripByIdResponse } from 'src/swagger/swagger.mocks';
+import { 
+  exListMyTrips, 
+  exListMyPassengerTrips, 
+  exListOfPassengersNotFound, 
+  exListOfPassengersFound, 
+  exListOfTripsResponse, 
+  exNewTrip, 
+  exNewTripResponse, 
+  exTripByIdResponse,
+  exCancelTripResponse,
+  exInitTripResponse,
+  exFinishTripResponse,
+  exTripNotFoundResponse,
+  exUnauthorizedTripResponse
+} from 'src/swagger/swagger.mocks';
 
 @ApiTags('trips')
 @Controller('trips')
@@ -56,6 +70,7 @@ export class TripController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get list of passengers for a specific trip.' })
+  @ApiParam({ name: 'id', description: 'Trip ID', example: '1e43e5eb-9d18-486c-96f7-a36997063110' })
   @ApiResponse({ status: 200, description: 'Passengers found successfully.', example: exListOfPassengersFound })
   @ApiResponse({ status: 404, description: 'No passengers found in the trip.', example: exListOfPassengersNotFound })
   @Get('/list/passengers/:id')
@@ -86,9 +101,11 @@ export class TripController {
   }
 
   @ApiOperation({ summary: 'Get trip by id.' })
+  @ApiParam({ name: 'id', description: 'Trip ID', example: '1e43e5eb-9d18-486c-96f7-a36997063110' })
   @ApiResponse({ status: 200, description: 'Successfully found trips', example:
     exTripByIdResponse
    })
+  @ApiResponse({ status: 404, description: 'Trip not found.', example: exTripNotFoundResponse })
   @Get('/list/:id')
   findOne(@Param('id') id: string) {
     return this.tripsService.findById(id);
@@ -96,6 +113,11 @@ export class TripController {
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cancel a trip' })
+  @ApiParam({ name: 'id', description: 'Trip ID to cancel', example: '1e43e5eb-9d18-486c-96f7-a36997063110' })
+  @ApiResponse({ status: 200, description: 'Trip cancelled successfully.', example: exCancelTripResponse })
+  @ApiResponse({ status: 404, description: 'Trip not found.', example: exTripNotFoundResponse })
+  @ApiResponse({ status: 401, description: 'Unauthorized.', example: exUnauthorizedTripResponse })
   @Post('/cancel/:id')
   async cancel(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req);
@@ -105,6 +127,11 @@ export class TripController {
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Start a trip' })
+  @ApiParam({ name: 'id', description: 'Trip ID to start', example: '1e43e5eb-9d18-486c-96f7-a36997063110' })
+  @ApiResponse({ status: 200, description: 'Trip started successfully.', example: exInitTripResponse })
+  @ApiResponse({ status: 404, description: 'Trip not found.', example: exTripNotFoundResponse })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Only the driver can start the trip.', example: exUnauthorizedTripResponse })
   @Post('/init/:id')
   async init(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req);
@@ -114,6 +141,11 @@ export class TripController {
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Finish a trip' })
+  @ApiParam({ name: 'id', description: 'Trip ID to finish', example: '1e43e5eb-9d18-486c-96f7-a36997063110' })
+  @ApiResponse({ status: 200, description: 'Trip finished successfully.', example: exFinishTripResponse })
+  @ApiResponse({ status: 404, description: 'Trip not found.', example: exTripNotFoundResponse })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Only the driver can finish the trip.', example: exUnauthorizedTripResponse })
   @Post('/finish/:id')
   async finish(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req);

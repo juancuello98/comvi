@@ -644,3 +644,150 @@ export const exListMyRequestsEmpty = {
   data: null,
   status: 404
 };
+
+// Trip Action Examples
+export const exCancelTripResponse = {
+  hasError: false,
+  message: 'Trip cancelled successfully.',
+  data: {
+    id: '1e43e5eb-9d18-486c-96f7-a36997063110',
+    status: 'CANCELLED'
+  },
+  status: 200
+};
+
+export const exInitTripResponse = {
+  hasError: false,
+  message: 'Trip started successfully.',
+  data: {
+    id: '1e43e5eb-9d18-486c-96f7-a36997063110',
+    status: 'IN_PROGRESS'
+  },
+  status: 200
+};
+
+export const exFinishTripResponse = {
+  hasError: false,
+  message: 'Trip finished successfully.',
+  data: {
+    id: '1e43e5eb-9d18-486c-96f7-a36997063110',
+    status: 'FINISHED'
+  },
+  status: 200
+};
+
+export const exTripNotFoundResponse = {
+  hasError: true,
+  message: 'Trip not found.',
+  status: 404
+};
+
+export const exUnauthorizedTripResponse = {
+  hasError: true,
+  message: 'You are not authorized to perform this action.',
+  status: 401
+};
+
+// Request Action Examples
+export const exAcceptRequestResponse = {
+  hasError: false,
+  message: 'Request accepted successfully.',
+  data: {
+    _id: '66e1234567890abcdef12345',
+    status: 'ACCEPTED'
+  },
+  status: 200
+};
+
+export const exRejectRequestResponse = {
+  hasError: false,
+  message: 'Request rejected successfully.',
+  data: {
+    _id: '66e1234567890abcdef12345',
+    status: 'REJECTED'
+  },
+  status: 200
+};
+
+export const exCancelRequestResponse = {
+  hasError: false,
+  message: 'Request cancelled successfully.',
+  data: {
+    _id: '66e1234567890abcdef12345',
+    status: 'CANCELLED'
+  },
+  status: 200
+};
+
+export const exRequestNotFoundResponse = {
+  hasError: true,
+  message: 'Request not found.',
+  status: 404
+};
+
+export const exReceivedRequestsResponse = {
+  hasError: false,
+  message: 'Requests received for your trips.',
+  data: [
+    {
+      tripId: '1e43e5eb-9d18-486c-96f7-a36997063110',
+      tripDescription: 'Transporte de mercancías desde City Bell hasta Villa del Parque',
+      requests: [
+        {
+          _id: '66e1234567890abcdef12345',
+          email: 'pasajero@ejemplo.com',
+          description: 'Me gustaría unirme al viaje',
+          hasEquipment: false,
+          hasPartner: false,
+          totalPassenger: 1,
+          status: 'ON_HOLD',
+          createdTimestamp: '2024-09-10T12:00:00.000Z',
+          passengerName: 'Juan Pérez'
+        }
+      ]
+    }
+  ],
+  status: 200
+};
+
+export const exNoReceivedRequestsResponse = {
+  hasError: false,
+  message: 'No requests received for your trips.',
+  data: [],
+  status: 200
+};
+
+// Auth Examples
+export const exResentVerificationCode = {
+  email: 'usuario@ejemplo.com'
+};
+
+export const exResentVerificationCodeResponse = {
+  hasError: false,
+  message: 'Verification code sent successfully.',
+  data: { email: 'usuario@ejemplo.com' },
+  status: 200
+};
+
+// Valuation Examples
+export const exNewValuation = {
+  tripId: '1e43e5eb-9d18-486c-96f7-a36997063110',
+  rating: 5,
+  comment: 'Excelente conductor, muy puntual y amable.',
+  valuatedUserEmail: 'conductor@ejemplo.com'
+};
+
+export const exNewValuationResponse = {
+  hasError: false,
+  message: 'Valuation created successfully.',
+  data: {
+    _id: '66e1234567890abcdef99999',
+    tripId: '1e43e5eb-9d18-486c-96f7-a36997063110',
+    rating: 5,
+    comment: 'Excelente conductor, muy puntual y amable.',
+    valuatedUserEmail: 'conductor@ejemplo.com',
+    valuatorEmail: 'pasajero@ejemplo.com',
+    createdTimestamp: '2024-09-10T14:00:00.000Z'
+  },
+  status: 201
+};

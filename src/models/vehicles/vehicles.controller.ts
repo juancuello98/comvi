@@ -15,7 +15,7 @@ import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { RequestHelper } from 'src/common/helpers/http/request.helper';
 import { Request } from 'express';
 import { JwtAuthGuard } from '@/auth/jwt/jwt-auth.guard';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { exDeleteVehicleResponse, exFindVehicleByPatent, exMyVehiclesResponse, exNewVehicle, exNewVehicleResponse, exUpdateVehicle, exUpdateVehicleResponse } from 'src/swagger/swagger.mocks';
 
 
@@ -64,9 +64,11 @@ export class VehiclesController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Find vehicle by patent plate.' })
+  @ApiParam({ name: 'patent', description: 'Vehicle patent plate', example: 'AE234KL' })
   @ApiResponse({ status: 200, description: 'Vehicle founded successfully.', example:
     exFindVehicleByPatent
    })
+  @ApiResponse({ status: 404, description: 'Vehicle not found.' })
   @Get(':patent')
   findOne(@Param('patent') patent: string) {
     return this.vehiclesService.findByPatent(patent);
@@ -75,6 +77,7 @@ export class VehiclesController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update vehicle by patent plate.' })
+  @ApiParam({ name: 'patent', description: 'Vehicle patent plate to update', example: 'AE234KL' })
   @ApiBody({
     type: CreateVehicleDto, examples: {
       example1: {
@@ -87,6 +90,7 @@ export class VehiclesController {
   @ApiResponse({ status: 200, description: 'Vehicle updated successfully.', example:
     exUpdateVehicleResponse
    })
+  @ApiResponse({ status: 404, description: 'Vehicle not found.' })
   @Patch(':patent')
   update(@Param('patent') patent: string ,@Body() updateVehicleDto: UpdateVehicleDto) {
     return this.vehiclesService.update(patent, updateVehicleDto);
@@ -95,9 +99,11 @@ export class VehiclesController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete vehicle by patent plate.' })
+  @ApiParam({ name: 'patent', description: 'Vehicle patent plate to delete', example: 'AE234KL' })
   @ApiResponse({ status: 200, description: 'Vehicle deleted successfully.', example:
     exDeleteVehicleResponse
   })
+  @ApiResponse({ status: 404, description: 'Vehicle not found.' })
   @Delete(':patent')
   remove(@Param('patent') patent: string) {
     return this.vehiclesService.delete(patent);
