@@ -96,10 +96,11 @@ export class TripController {
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cancel a trip and notify passengers.' })
   @Post('/cancel/:id')
   async cancel(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req);
-    const resp = await this.tripsService.cancel(id);
+    const resp = await this.tripsService.cancel(id, driver);
     return resp;
   }
 

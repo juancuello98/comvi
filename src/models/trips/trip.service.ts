@@ -19,6 +19,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Request, RequestDocument } from '../requests/request.schema';
 import { StatusRequest } from '../requests/enums/status.enum';
+import { User, UserDocument } from '../users/user.schema';
+import { MailService } from 'src/mail/config.service';
 
 
 @Injectable()
@@ -48,7 +50,8 @@ export class TripService {
     private readonly responseHelper: ResponseHelper,
     private readonly locationService: LocationService,
     @InjectModel(Request.name) private readonly requestModel: Model<RequestDocument>,
-
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    private readonly mailService: MailService,
   ) { }
 
   async findByDriver(driver: string): Promise<ResponseDTO> {
@@ -202,34 +205,82 @@ export class TripService {
     return this.tripRepository.update(trip);
   }
 
-  async cancel(id: string): Promise<ResponseDTO> {
-    const trip = await this.tripRepository.updateStatus(id, TripStatus.CANCELED);
+  async cancel(id: string, driverEmail: string): Promise<ResponseDTO> {
+    const trip = await this.tripRepository.findByIdAndDriver(driverEmail, id);
 
-    if (!trip || trip.status !== TripStatus.CANCELED)
+    if (!trip) {
       return this.responseHelper.makeResponse(
         false,
-        `Not found trip or update failed.`,
+        `Not found trip ${id} for user ${driverEmail}.`,
         null,
         HttpStatus.NOT_FOUND,
       );
+    }
 
+    // Guardar las solicitudes aceptadas antes de cancelar para enviar emails
+    const acceptedRequests = await this.requestModel.find({
+      tripId: id,
+      status: StatusRequest.ACCEPTED
+    }).exec();
+
+    // Actualizar estado del viaje
+    const updatedTrip = await this.tripRepository.updateStatus(id, TripStatus.CANCELED);
+
+    if (!updatedTrip || updatedTrip.status !== TripStatus.CANCELED) {
+      return this.responseHelper.makeResponse(
+        false,
+        `Failed to cancel trip.`,
+        null,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    // Rechazar todas las solicitudes pendientes y aceptadas
     try {
-      const allRequests = await this.requestModel.find({
-        tripId: id,
-        status: { $in: [StatusRequest.ON_HOLD, StatusRequest.ACCEPTED] }
-      }).exec();
-
-      if (allRequests.length > 0) {
-        await this.requestModel.updateMany(
-          { tripId: id, status: { $in: [StatusRequest.ON_HOLD, StatusRequest.ACCEPTED] } },
-          { status: StatusRequest.REJECTED }
-        ).exec();
-      }
+      await this.requestModel.updateMany(
+        { tripId: id, status: { $in: [StatusRequest.ON_HOLD, StatusRequest.ACCEPTED] } },
+        { status: StatusRequest.REJECTED }
+      ).exec();
     } catch (error) {
       this.logger.error(`Error rejecting requests for trip ${id}: ${error.message}`);
     }
-    
-    return this.responseHelper.makeResponse(false,'Trip was cancelled.',null,HttpStatus.OK)
+
+    // Enviar email de notificación a los pasajeros que tenían solicitud aceptada
+    if (acceptedRequests.length > 0) {
+      try {
+        const driver = await this.userModel.findOne({ email: driverEmail }).exec();
+        const origin = await this.locationService.findById(trip.origin.toString());
+        const destination = await this.locationService.findById(trip.destination.toString());
+
+        const driverName = driver ? `${driver.name} ${driver.lastname}` : 'El conductor';
+        const originName = origin?.locality || origin?.format_address || 'Origen';
+        const destName = destination?.locality || destination?.format_address || 'Destino';
+        const tripDate = trip.startedTimestamp || '';
+
+        for (const request of acceptedRequests) {
+          try {
+            const passenger = await this.userModel.findOne({ email: request.email }).exec();
+            if (passenger) {
+              await this.mailService.sendTripCancelledNotification(
+                request.email,
+                passenger.name,
+                driverName,
+                originName,
+                destName,
+                tripDate
+              );
+              this.logger.log(`Trip cancelled notification sent to ${request.email}`);
+            }
+          } catch (emailError) {
+            this.logger.error(`Error sending cancellation email to ${request.email}: ${emailError.message}`);
+          }
+        }
+      } catch (error) {
+        this.logger.error(`Error preparing cancellation emails: ${error.message}`);
+      }
+    }
+
+    return this.responseHelper.makeResponse(false, 'Trip was cancelled.', null, HttpStatus.OK);
   }
 
   async init(id: string, driver: string): Promise<ResponseDTO> {
@@ -288,7 +339,8 @@ export class TripService {
         HttpStatus.NOT_FOUND,
       );
 
-    trip.status = TripStatus.FINISHED;
+    // Cambiar a PENDING_VALORATION para permitir que los usuarios valoren
+    trip.status = TripStatus.PENDING_VALORATION;
 
     const status = (await this.tripRepository.update(trip)).status;
 
@@ -298,7 +350,7 @@ export class TripService {
 
     return this.responseHelper.makeResponse(
       false,
-      `Trip successfully finished : ${id}`,
+      `Trip successfully finished. Pending valuations.`,
       trip,
       HttpStatus.OK,
     );

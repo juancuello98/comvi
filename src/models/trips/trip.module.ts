@@ -13,6 +13,7 @@ import { ITRIP_REPOSITORY } from './repository/constants/trip.repository.constan
 import { UserModule } from '../users/user.module';
 import { LocationModule } from '../locations/location.module';
 import { Request, RequestSchema } from '../requests/request.schema';
+import { MailModule } from 'src/mail/config.module';
 
 
 @Module({
@@ -25,7 +26,8 @@ import { Request, RequestSchema } from '../requests/request.schema';
     ]),
     CommonModule,
     UserModule,
-    LocationModule
+    LocationModule,
+    MailModule,
   ],
   controllers: [TripController],
   providers: [TripService, TripResumeRepository, {

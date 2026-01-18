@@ -66,10 +66,10 @@ export class TripMongodbRepository implements ITripRepository {
           // Obtener los emails únicos de los usuarios
           const userEmails = [...new Set(acceptedRequests.map(request => request.email))];
           
-          // Obtener la información de los usuarios
+          // Obtener la información de los usuarios (incluyendo rating)
           const users = await this.userModel
             .find({ email: { $in: userEmails } })
-            .select('name lastname email')
+            .select('name lastname email averageRating totalReviews')
             .exec();
 
           // Crear un mapa de usuarios por email para acceso rápido
@@ -87,7 +87,9 @@ export class TripMongodbRepository implements ITripRepository {
               hasEquipment: request.hasEquipment,
               hasPartner: request.hasPartner,
               createdTimestamp: request.createdTimestamp,
-              status: request.status
+              status: request.status,
+              averageRating: user ? user.averageRating || 0 : 0,
+              totalReviews: user ? user.totalReviews || 0 : 0,
             };
           });
 
@@ -201,7 +203,7 @@ export class TripMongodbRepository implements ITripRepository {
       const passengerEmails = acceptedRequests.map(request => request.email);
       const passengers = await this.userModel
         .find({ email: { $in: passengerEmails } })
-        .select('name lastname email')
+        .select('name lastname email averageRating totalReviews')
         .exec();
 
       return passengers;
