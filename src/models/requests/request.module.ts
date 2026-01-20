@@ -6,7 +6,6 @@ import { Trip, TripSchema } from '../trips/trip.schema';
 import { RequestController } from './request.controller';
 import { Request, RequestSchema } from './request.schema';
 import { RequestService } from './request.service';
-import { Booking, BookingSchema } from '../trips/booking.schema';
 import { UserModule } from '../users/user.module';
 import { TripModule } from '../trips/trip.module';
 import { Location, LocationSchema } from '../locations/location-schema';
@@ -16,7 +15,6 @@ import { Location, LocationSchema } from '../locations/location-schema';
     { name: Request.name, schema: RequestSchema },
     { name: Trip.name, schema: TripSchema },
     { name: User.name, schema: UserSchema },
-    { name: Booking.name, schema: BookingSchema },
     { name: Location.name, schema: LocationSchema },
   ]),
   CommonModule,

@@ -5,7 +5,6 @@ import { User, UserSchema } from '../users/user.schema';
 import { TripController } from './trip.controller';
 import { TripResume, TripResumeSchema } from './resumes/trip.resume.schema';
 import { Trip, TripSchema } from './trip.schema';
-import { Booking, BookingSchema } from './booking.schema';
 import { TripService } from './trip.service';
 import { TripResumeRepository } from './resumes/trip.resume.repository';
 import { TripMongodbRepository } from './repository/trip.mongodb.repository';
