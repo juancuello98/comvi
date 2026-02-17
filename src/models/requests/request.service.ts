@@ -24,19 +24,18 @@ export class RequestService {
     @InjectModel(Request.name) private readonly requestModel: Model<RequestDocument>,
     @InjectModel(Trip.name) private readonly tripModel: Model<TripDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-
     @InjectModel(Location.name) private readonly locationModel: Model<LocationDocument>,
     private mailService: MailService,
     private userService: UserService,
     private tripService: TripService,
-    private readonly responseHelper : ResponseHelper
-  ){}
+    private readonly responseHelper: ResponseHelper
+  ) {}
 
   async send(req: ExtendedRequestDTO): Promise<ResponseDTO> {
     try {
       this.logger.log(`Processing request from ${req.email} for trip ${req.tripId}`);
 
-      const trip = await this.tripModel.findOne({ id: req.tripId }).exec();
+      const trip = await this.tripModel.findOne({ id: req.tripId }).lean().exec();
       
       if (!trip) {
         return this.responseHelper.makeResponse(
@@ -72,7 +71,7 @@ export class RequestService {
         email: req.email,
         tripId: req.tripId,
         status: { $in: [StatusRequest.ON_HOLD, StatusRequest.ACCEPTED] }
-      }).exec();
+      }).lean().exec();
 
       if (existingRequest) {
         return this.responseHelper.makeResponse(
@@ -517,6 +516,127 @@ export class RequestService {
       return this.responseHelper.makeResponse(
         true,
         'Error retrieving requests for trips',
+        null,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // ============================================
+  // BUSINESS LOGIC METHODS
+  // ============================================
+
+  /**
+   * Buscar solicitudes pendientes de un viaje
+   */
+  async findPendingByTrip(tripId: string): Promise<ResponseDTO> {
+    try {
+      const requests = await this.requestModel
+        .find({ tripId, status: StatusRequest.ON_HOLD })
+        .sort({ createdAt: 1 })
+        .lean() // Retornar objetos planos
+        .exec();
+
+      return this.responseHelper.makeResponse(
+        false,
+        `Found ${requests.length} pending requests for trip ${tripId}`,
+        requests,
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      this.logger.error(`Error finding pending requests: ${error.message}`);
+      return this.responseHelper.makeResponse(
+        true,
+        'Error finding pending requests',
+        null,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Buscar solicitudes pendientes más antiguas que X horas (para auto-expirar)
+   */
+  async findExpired(hoursOld: number = 48): Promise<ResponseDTO> {
+    try {
+      const cutoffDate = new Date();
+      cutoffDate.setHours(cutoffDate.getHours() - hoursOld);
+
+      const expiredRequests = await this.requestModel
+        .find({
+          status: StatusRequest.ON_HOLD,
+          createdAt: { $lt: cutoffDate },
+        })
+        .lean() // Retornar objetos planos
+        .exec();
+
+      this.logger.log(`Found ${expiredRequests.length} expired requests older than ${hoursOld} hours`);
+
+      return this.responseHelper.makeResponse(
+        false,
+        `Found ${expiredRequests.length} expired requests`,
+        expiredRequests,
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      this.logger.error(`Error finding expired requests: ${error.message}`);
+      return this.responseHelper.makeResponse(
+        true,
+        'Error finding expired requests',
+        null,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Verificar si una solicitud está pendiente
+   */
+  isRequestPending(request: any): boolean {
+    return request.status === StatusRequest.ON_HOLD;
+  }
+
+  /**
+   * Verificar si una solicitud fue aceptada
+   */
+  isRequestAccepted(request: any): boolean {
+    return request.status === StatusRequest.ACCEPTED;
+  }
+
+  /**
+   * Auto-expirar solicitudes pendientes antiguas
+   */
+  async autoExpireRequests(hoursOld: number = 48): Promise<ResponseDTO> {
+    try {
+      const cutoffDate = new Date();
+      cutoffDate.setHours(cutoffDate.getHours() - hoursOld);
+
+      const result = await this.requestModel
+        .updateMany(
+          {
+            status: StatusRequest.ON_HOLD,
+            createdAt: { $lt: cutoffDate },
+          },
+          {
+            status: StatusRequest.REJECTED,
+            rejectionReason: `Automatically expired after ${hoursOld} hours`,
+          }
+        )
+        .exec();
+
+      this.logger.log(`Auto-expired ${result.modifiedCount} requests`);
+
+      return this.responseHelper.makeResponse(
+        false,
+        `Successfully expired ${result.modifiedCount} old pending requests`,
+        { expiredCount: result.modifiedCount },
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      this.logger.error(`Error auto-expiring requests: ${error.message}`);
+      return this.responseHelper.makeResponse(
+        true,
+        'Error auto-expiring requests',
         null,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );

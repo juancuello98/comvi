@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import { IncomingHttpHeaders } from 'http';
-import jwtDecode from 'jwt-decode';
-import { Document } from 'mongoose';
+import { jwtDecode } from 'jwt-decode';
 
 interface ComviHeader extends IncomingHttpHeaders {
   authorization?: string;
@@ -35,7 +34,7 @@ export class RequestHelper {
         if (!token) {
           throw new Error('Authentication token is missing. Please provide a valid token to access this resource.');
         }
-        const payload: Payload = jwtDecode(token);
+        const payload: Payload = jwtDecode<Payload>(token);
         email = payload.user.email;
       }
       return email;

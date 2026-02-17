@@ -162,8 +162,10 @@ export class TripService {
 
   async create(trip: NewTripDTO): Promise<ResponseDTO> {
     try {
-      const origin = (await this.locationService.create((trip.origin as Location)))._id;
-      const destination = (await this.locationService.create(trip.destination as Location))._id;
+      const originLocation = await this.locationService.create((trip.origin as Location));
+      const destinationLocation = await this.locationService.create(trip.destination as Location);
+      const origin = (originLocation as any)._id;
+      const destination = (destinationLocation as any)._id;
       const id = uuidv4();
       const status = TripStatus.OPEN;
       const placesAvailable = trip.peopleQuantity;
@@ -332,5 +334,274 @@ export class TripService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  // ============================================
+  // BUSINESS LOGIC METHODS
+  // ============================================
+
+  /**
+   * Buscar viajes cercanos a una ubicación por coordenadas
+   */
+  async findNearbyTrips(
+    longitude: number,
+    latitude: number,
+    maxDistanceKm: number = 50
+  ): Promise<ResponseDTO> {
+    try {
+      this.logger.log(`Searching trips near [${longitude}, ${latitude}] within ${maxDistanceKm}km`);
+
+      const trips = await this.tripRepository.find({
+        'origin.location': {
+          $near: {
+            $geometry: {
+              type: 'Point',
+              coordinates: [longitude, latitude],
+            },
+            $maxDistance: maxDistanceKm * 1000, // Convertir a metros
+          },
+        },
+        status: TripStatus.OPEN,
+        departureDate: { $gte: new Date() },
+      });
+
+      if (!trips.length) {
+        return this.responseHelper.makeResponse(
+          false,
+          'No nearby trips found.',
+          [],
+          HttpStatus.OK,
+        );
+      }
+
+      return this.responseHelper.makeResponse(
+        false,
+        `Found ${trips.length} nearby trips.`,
+        trips,
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      this.logger.error(`Error finding nearby trips: ${error.message}`);
+      return this.responseHelper.makeResponse(
+        true,
+        'Error searching nearby trips.',
+        null,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Buscar viajes disponibles por ruta (provincia origen-destino)
+   */
+  async findAvailableByRoute(
+    originProvince: string,
+    destinationProvince: string,
+    fromDate?: Date
+  ): Promise<ResponseDTO> {
+    try {
+      this.logger.log(`Searching trips from ${originProvince} to ${destinationProvince}`);
+
+      const query: any = {
+        'origin.province': originProvince,
+        'destination.province': destinationProvince,
+        status: TripStatus.OPEN,
+        placesAvailable: { $gt: 0 },
+      };
+
+      if (fromDate) {
+        query.departureDate = { $gte: fromDate };
+      }
+
+      const trips = await this.tripRepository.find(query);
+
+      if (!trips.length) {
+        return this.responseHelper.makeResponse(
+          false,
+          'No available trips found for this route.',
+          [],
+          HttpStatus.OK,
+        );
+      }
+
+      // Ordenar por fecha de salida
+      trips.sort((a, b) => new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime());
+
+      return this.responseHelper.makeResponse(
+        false,
+        `Found ${trips.length} available trips.`,
+        trips,
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      this.logger.error(`Error finding trips by route: ${error.message}`);
+      return this.responseHelper.makeResponse(
+        true,
+        'Error searching trips by route.',
+        null,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Búsqueda full-text de viajes
+   */
+  async searchTrips(searchTerm: string): Promise<ResponseDTO> {
+    try {
+      this.logger.log(`Full-text search for: ${searchTerm}`);
+
+      const trips = await this.tripRepository.find({
+        $text: { $search: searchTerm },
+        status: TripStatus.OPEN,
+      });
+
+      if (!trips.length) {
+        return this.responseHelper.makeResponse(
+          false,
+          'No trips found matching your search.',
+          [],
+          HttpStatus.OK,
+        );
+      }
+
+      return this.responseHelper.makeResponse(
+        false,
+        `Found ${trips.length} trips matching your search.`,
+        trips,
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      this.logger.error(`Error in full-text search: ${error.message}`);
+      return this.responseHelper.makeResponse(
+        true,
+        'Error searching trips.',
+        null,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Verificar si un viaje puede aceptar más pasajeros
+   */
+  canAcceptPassengers(trip: Trip, count: number = 1): boolean {
+    return trip.placesAvailable >= count && trip.status === TripStatus.OPEN;
+  }
+
+  /**
+   * Reservar asientos en un viaje
+   */
+  async reserveSeats(tripId: string, count: number = 1): Promise<ResponseDTO> {
+    try {
+      const trip = await this.tripRepository.findById(tripId);
+
+      if (!trip) {
+        return this.responseHelper.makeResponse(
+          false,
+          'Trip not found.',
+          null,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      if (!this.canAcceptPassengers(trip, count)) {
+        return this.responseHelper.makeResponse(
+          false,
+          'No hay suficientes lugares disponibles o el viaje no está abierto.',
+          null,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      trip.placesAvailable -= count;
+      const updatedTrip = await this.tripRepository.update(trip);
+
+      this.logger.log(`Reserved ${count} seat(s) in trip ${tripId}`);
+
+      return this.responseHelper.makeResponse(
+        false,
+        `Successfully reserved ${count} seat(s).`,
+        updatedTrip,
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      this.logger.error(`Error reserving seats: ${error.message}`);
+      return this.responseHelper.makeResponse(
+        true,
+        'Error reserving seats.',
+        null,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Liberar asientos de un viaje
+   */
+  async releaseSeats(tripId: string, count: number = 1): Promise<ResponseDTO> {
+    try {
+      const trip = await this.tripRepository.findById(tripId);
+
+      if (!trip) {
+        return this.responseHelper.makeResponse(
+          false,
+          'Trip not found.',
+          null,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      trip.placesAvailable = Math.min(trip.placesAvailable + count, trip.peopleQuantity);
+      const updatedTrip = await this.tripRepository.update(trip);
+
+      this.logger.log(`Released ${count} seat(s) in trip ${tripId}`);
+
+      return this.responseHelper.makeResponse(
+        false,
+        `Successfully released ${count} seat(s).`,
+        updatedTrip,
+        HttpStatus.OK,
+      );
+    } catch (error) {
+      this.logger.error(`Error releasing seats: ${error.message}`);
+      return this.responseHelper.makeResponse(
+        true,
+        'Error releasing seats.',
+        null,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Calcular el porcentaje de ocupación de un viaje
+   */
+  calculateOccupancyPercentage(trip: Trip): number {
+    if (trip.peopleQuantity === 0) return 0;
+    const occupied = trip.peopleQuantity - trip.placesAvailable;
+    return Math.round((occupied / trip.peopleQuantity) * 100);
+  }
+
+  /**
+   * Verificar si un viaje está lleno
+   */
+  isTripFull(trip: Trip): boolean {
+    return trip.placesAvailable === 0;
+  }
+
+  /**
+   * Verificar si un viaje ya pasó su fecha de salida
+   */
+  isTripPast(trip: Trip): boolean {
+    return trip.departureDate && new Date() > new Date(trip.departureDate);
+  }
+
+  /**
+   * Obtener la ruta formateada del viaje
+   */
+  getTripRoute(trip: Trip): string {
+    if (!trip.origin || !trip.destination) return '';
+    return `${trip.origin.locality} → ${trip.destination.locality}`;
   }
 }

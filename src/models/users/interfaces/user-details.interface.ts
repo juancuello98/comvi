@@ -1,5 +1,7 @@
+import { Types } from "mongoose";
+
 export interface UserDTO {
-  id: string;
+  _id: string | Types.ObjectId;
   name: string;
   lastname: string;
   email: string;

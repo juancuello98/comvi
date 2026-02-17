@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class NewLocationDTO {
   @IsString()
@@ -21,13 +22,19 @@ export class NewLocationDTO {
   @IsNotEmpty()
   format_address: string;
 
-  @IsString()
+  /**
+   * Latitud - acepta string o number, se convierte a number.
+   */
+  @Transform(({ value }) => typeof value === 'string' ? parseFloat(value) : value)
   @IsNotEmpty()
-  latitude: string;
+  latitude: string | number;
 
-  @IsString()
+  /**
+   * Longitud - acepta string o number, se convierte a number.
+   */
+  @Transform(({ value }) => typeof value === 'string' ? parseFloat(value) : value)
   @IsNotEmpty()
-  longitude: string;
+  longitude: string | number;
 
   @IsString()
   @IsNotEmpty()

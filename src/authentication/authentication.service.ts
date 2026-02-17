@@ -20,7 +20,6 @@ import { UserDocument } from 'src/models/users/user.schema';
 import { MailService } from 'src/mail/config.service';
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { ResponseDTO } from '@/common/interfaces/responses.interface';
-import { helpers } from 'handlebars';
 import { ResponseHelper } from '@/helpers/http/response.helper';
 
 @Injectable()
@@ -109,7 +108,7 @@ export class AuthService {
       user
     );
 
-    return this.userService.getUser(newUser);
+    return this.userService.getUser(newUser as any);``
   }
 
   async resentVerificationEmail(email: string){
@@ -121,7 +120,7 @@ export class AuthService {
     }
     const verificationCode = this.createVerififyEmailCode();
     userExists.verificationCode = verificationCode;
-    await this.userService.update(userExists);
+    await this.userService.update(userExists as any);
     await this.mailService.sendCode(email, userExists.name, verificationCode);
     return this.responseHelper.makeResponse(false,'Verification email resent successfully.',null,HttpStatus.OK);
   }
@@ -155,7 +154,7 @@ export class AuthService {
       return null;
     }
 
-    return this.userService.getUser(user);
+    return this.userService.getUser(user as any);
   }
 
   async login({ email, password }: LoginDTO): Promise<Record<string, string>> {
@@ -185,7 +184,7 @@ export class AuthService {
       );
     }
 
-    const userValidated = this.userService.getUser(user)
+    const userValidated = this.userService.getUser(user as any)
     const token = this.loginWithCredentials(userValidated);
     return  token;
   }
@@ -213,7 +212,7 @@ export class AuthService {
 
       user.status = VERIFICATION_CODE_STATUS.VALIDATED;
 
-      await this.userService.update(user);
+      await this.userService.update(user as any);
 
       const response : ResponseDTO = {
         hasError: false,
@@ -263,7 +262,7 @@ export class AuthService {
 
     findUser.resetPasswordToken = await this.GenerateToken();
 
-    const updated = await this.userService.update(findUser);
+    const updated = await this.userService.update(findUser as any);
 
     if (!updated || !updated.resetPasswordToken || !updated.resetPasswordToken.code) {
       this.logger.error('Error: No se pudo generar el token de reset password para: ' + email);
@@ -340,7 +339,7 @@ export class AuthService {
     findUser.password = await this.hashPassword(password);
     findUser.resetPasswordToken = null;
 
-    const updated = await this.userService.update(findUser);
+    const updated = await this.userService.update(findUser as any);
 
     this.logger.log('Se le actualizó la contraseña a: ' + updated.email);
 
@@ -375,7 +374,7 @@ export class AuthService {
     }
 
     findUser.password = await this.hashPassword(newPassword);
-    const updated = await this.userService.update(findUser);
+    const updated = await this.userService.update(findUser as any);
 
     this.logger.log('Se le actualizó la contraseña a: ' + updated.email);
 
@@ -409,7 +408,7 @@ export class AuthService {
     }
 
     const isNotExpired = await this.IsExpired(user.resetPasswordToken);
-    const codeMatches = await this.compareResetPasswordCode(passwordToken, user);
+    const codeMatches = await this.compareResetPasswordCode(passwordToken, user as any);
     const validated = isNotExpired && codeMatches;
 
     if (!validated) {

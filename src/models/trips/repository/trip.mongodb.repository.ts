@@ -14,9 +14,41 @@ export class TripMongodbRepository implements ITripRepository {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(Request.name) private readonly requestModel: Model<RequestDocument>,
   ) {}
+  async update(trip: Trip): Promise<Trip> {
+    const updatedTrip = await this.tripModel
+      .findOneAndUpdate(
+        { id: trip.id },
+        trip,
+        { new: true } // Retornar el documento actualizado
+      )
+      .lean() // Retornar objeto plano
+      .exec();
+    
+    if (!updatedTrip) {
+      throw new Error(`Trip with id ${trip.id} not found`);
+    }
+    
+    return updatedTrip as Trip;
+  }
+
+  async updateStatus(tripId: string, newStatus: TripStatus): Promise<Trip> {
+    const updatedTrip = await this.tripModel
+      .findOneAndUpdate(
+        { id: tripId },
+        { status: newStatus },
+        { new: true } // Retornar el documento actualizado
+      )
+      .lean() // Retornar objeto plano
+      .exec();
+    
+    if (!updatedTrip) {
+      throw new Error(`Trip with id ${tripId} not found`);
+    }
+    
+    return updatedTrip as Trip;
+  }
 
   async findByDriver(driver: string): Promise<Trip[]> {
-
     const trips = await this.tripModel
       .find({ driver })
       .sort({ createdTimestamp: 'desc' })
@@ -24,20 +56,23 @@ export class TripMongodbRepository implements ITripRepository {
       .populate('vehicle')
       .populate('origin')
       .populate('destination')
-      .select('-__v -_id')
+      .lean() // Retornar objeto plano
       .exec();
-    return trips;
+    return trips as Trip[];
   }
 
   async find(field: any): Promise<Trip[]> {
-    return await this.tripModel.find(field)
-    .populate('vehicle')
-    .populate('origin')
-    .populate('destination')
-    .populate('requests')
-    .populate('driver', 'email name lastname')
-    .sort({ createdTimestamp: 'desc' })
-    .select('-__v -_id').exec();
+    const trips = await this.tripModel.find(field)
+      .populate('vehicle')
+      .populate('origin')
+      .populate('destination')
+      .populate('requests')
+      .populate('driver', 'email name lastname')
+      .sort({ createdTimestamp: 'desc' })
+      .select('-__v -_id')
+      .lean() // Retornar objeto plano
+      .exec();
+    return trips as Trip[];
   }
 
   async findByIdWithDriver(id: any): Promise<any> {
@@ -55,33 +90,34 @@ export class TripMongodbRepository implements ITripRepository {
 
   async findById(id: string): Promise<Trip> {
     const trip = await this.tripModel.findOne({id})
-    .select('-__v -_id')
-    .populate('vehicle')
-    .populate('origin')
-    .populate('destination')
-    .populate('requests')
-    .populate('driver', 'email name lastname')
-    .select('-__v -_id')
-    .exec();
+      .select('-__v -_id')
+      .populate('vehicle')
+      .populate('origin')
+      .populate('destination')
+      .populate('requests')
+      .populate('driver', 'email name lastname')
+      .lean() // Retornar objeto plano
+      .exec();
 
-    return trip;
+    return trip as Trip;
   }
 
   async findByIdWithRequests(id: string): Promise<Trip> {
     const trip = await this.tripModel.findOne({id})
-    .select('-__v -_id')
-    .populate('vehicle')
-    .populate('origin')
-    .populate('destination')
-    .select('-__v -_id')
-    .exec();
+      .select('-__v -_id')
+      .populate('vehicle')
+      .populate('origin')
+      .populate('destination')
+      .lean() // Retornar objeto plano
+      .exec();
 
     if (trip && trip.acceptedRequests && trip.acceptedRequests.length > 0) {
       try {
         // Obtener las requests aceptadas con toda la información
         const acceptedRequests = await this.requestModel
-          .find({ _id: { $in: trip.acceptedRequests } })
+          .find({ _id: { $in: trip.acceptedRequests as any } })
           .select('email totalPassenger hasEquipment hasPartner createdTimestamp status')
+          .lean() // Retornar objetos planos
           .exec();
 
         if (acceptedRequests.length > 0) {
@@ -92,6 +128,7 @@ export class TripMongodbRepository implements ITripRepository {
           const users = await this.userModel
             .find({ email: { $in: userEmails } })
             .select('name lastname email')
+            .lean() // Retornar objetos planos
             .exec();
 
           // Crear un mapa de usuarios por email para acceso rápido
@@ -115,7 +152,7 @@ export class TripMongodbRepository implements ITripRepository {
 
           // Crear un nuevo objeto trip con los datos modificados
           const tripWithPassengers = {
-            ...trip.toObject(),
+            ...trip,
             acceptedRequests: passengers
           } as any;
           
@@ -127,18 +164,19 @@ export class TripMongodbRepository implements ITripRepository {
       }
     }
 
-    return trip;
+    return trip as Trip;
   }
 
-  async findNonDriverTrips(email: string) {
-    return await this.tripModel
-    .find({ driver: { $ne: email } })
-    .select('-__v -_id')
-    .populate('vehicle')
-    .populate('origin')
-    .populate('destination')
-    .select('-__v -_id')
-    .exec();
+  async findNonDriverTrips(email: string): Promise<Trip[]> {
+    const trips = await this.tripModel
+      .find({ driver: { $ne: email } })
+      .select('-__v -_id')
+      .populate('vehicle')
+      .populate('origin')
+      .populate('destination')
+      .lean() // Retornar objetos planos
+      .exec();
+    return trips as Trip[];
   }
 
   async findByPassenger(passengerEmail: string): Promise<Trip[]> {
@@ -146,6 +184,7 @@ export class TripMongodbRepository implements ITripRepository {
     const acceptedRequests = await this.requestModel
       .find({ email: passengerEmail, status: 'ACCEPTED' })
       .select('tripId')
+      .lean() // Retornar objetos planos
       .exec();
     
     if (!acceptedRequests.length) {
@@ -154,76 +193,59 @@ export class TripMongodbRepository implements ITripRepository {
 
     const tripIds = acceptedRequests.map(request => request.tripId);
 
-    return await this.tripModel
+    const trips = await this.tripModel
       .find({ id: { $in: tripIds } })
       .select('-__v -_id')
       .populate('vehicle')
       .populate('origin')
       .populate('destination')
       .populate('acceptedRequests')
-      .select('-__v -_id')
       .sort({ createdTimestamp: 'desc' })
+      .lean() // Retornar objetos planos
       .exec();
+      
+    return trips as Trip[];
   }
 
-  async create(trip: NewTripDTO) {
-    return await this.tripModel
-    .create(trip);
-  }
-
-  async update(trip: TripDocument): Promise<Trip> {
-    const { _id, ...rest } = trip.toObject ? trip.toObject() : trip;
-    await this.tripModel.updateOne({ _id }, { $set: rest }).exec();
-    return await this.tripModel.findById(_id).exec();
-  }
-
-  async updateStatus(id: string, newStatus: TripStatus) {
-    try {
-      // Solo actualizar el status, sin tocar otros campos
-      const result = await this.tripModel.updateOne(
-        { id: id },
-        { $set: { status: newStatus } }
-      ).exec();
-
-      if (result.matchedCount === 0) {
-        throw new Error('Trip not found');
-      }
-
-      // Retornar el trip actualizado
-      const updatedTrip = await this.tripModel.findOne({ id: id }).exec();
-      return updatedTrip;
-    } catch (error) {
-      throw new Error(`Failed to update trip status: ${error.message}`);
+  async create(trip: NewTripDTO): Promise<Trip> {
+    const createdTrip = await this.tripModel.create(trip as any);
+    if (!createdTrip) {
+      throw new Error('Failed to create trip');
     }
+    const tripDoc = Array.isArray(createdTrip) ? createdTrip[0] : createdTrip;
+    return tripDoc.toObject() as Trip;
   }
 
-  async findByIdAndDriver(driver: string, id: string): Promise<any> {
+  async findByIdAndDriver(driver: string, id: string): Promise<Trip> {
     const filter = {
       driver,
       id,
     };
 
-    const hasUserTrip = await this.tripModel.findOne(filter).exec();
+    const trip = await this.tripModel
+      .findOne(filter)
+      .lean() // Retornar objeto plano
+      .exec();
 
-    return hasUserTrip;
+    return trip as Trip;
   }
 
-  async passengersByTrip(
-    id: string,
-  ): Promise<any> {
+  async passengersByTrip(id: string): Promise<any[]> {
     try {
       const acceptedRequests = await this.requestModel
         .find({ tripId: id, status: 'ACCEPTED' })
+        .lean() // Retornar objetos planos
         .exec();
 
       if (!acceptedRequests.length) {
-        return null;
+        return [];
       }
 
       const passengerEmails = acceptedRequests.map(request => request.email);
       const passengers = await this.userModel
         .find({ email: { $in: passengerEmails } })
         .select('name lastname email')
+        .lean() // Retornar objetos planos
         .exec();
 
       return passengers;

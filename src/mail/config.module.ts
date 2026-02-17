@@ -2,14 +2,20 @@ import { Global, Module } from '@nestjs/common';
 import { MailService } from './config.service';
 import { join } from 'path';
 import * as nodemailer from 'nodemailer';
-import * as hbs from 'nodemailer-express-handlebars';
+
+// Dynamic import for ESM module
+const loadHbs = async () => {
+  const module = await import('nodemailer-express-handlebars');
+  return module.default;
+};
 
 @Global()
 @Module({
   providers: [
     {
       provide: 'MAILER_TRANSPORT',
-      useFactory: () => {
+      useFactory: async () => {
+        const hbs = await loadHbs();
         const transporter = nodemailer.createTransport({
           host: process.env.TRANSPORT_HOST || 'smtp.gmail.com',
           secure: true,
