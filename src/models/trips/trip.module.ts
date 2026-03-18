@@ -5,7 +5,6 @@ import { User, UserSchema } from '../users/user.schema';
 import { TripController } from './trip.controller';
 import { TripResume, TripResumeSchema } from './resumes/trip.resume.schema';
 import { Trip, TripSchema } from './trip.schema';
-import { Booking, BookingSchema } from './booking.schema';
 import { TripService } from './trip.service';
 import { TripResumeRepository } from './resumes/trip.resume.repository';
 import { TripMongodbRepository } from './repository/trip.mongodb.repository';
@@ -13,6 +12,7 @@ import { ITRIP_REPOSITORY } from './repository/constants/trip.repository.constan
 import { UserModule } from '../users/user.module';
 import { LocationModule } from '../locations/location.module';
 import { Request, RequestSchema } from '../requests/request.schema';
+import { MailModule } from 'src/mail/config.module';
 
 
 @Module({
@@ -25,7 +25,8 @@ import { Request, RequestSchema } from '../requests/request.schema';
     ]),
     CommonModule,
     UserModule,
-    LocationModule
+    LocationModule,
+    MailModule,
   ],
   controllers: [TripController],
   providers: [TripService, TripResumeRepository, {

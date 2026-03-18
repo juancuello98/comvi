@@ -28,7 +28,6 @@ export class UserController {
   @ApiBearerAuth()
   @Get('myData')
   async findOne(@Req() request: Request): Promise<ResponseDTO> {
-    console.log(request.headers.authorization)
     const email = this.requestHelper.getPayload(request);
     const user = await this.usersService.getUserData(email);
     return user;

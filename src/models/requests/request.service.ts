@@ -99,6 +99,29 @@ export class RequestService {
 
       this.logger.log(`Request created successfully with ID: ${requestCreated._id}`);
 
+      // Enviar email de notificación al conductor
+      try {
+        const passenger = await this.userModel.findOne({ email: req.email }).exec();
+        const driver = await this.userModel.findOne({ email: trip.driver }).exec();
+        const origin = await this.locationModel.findById(trip.origin).exec();
+        const destination = await this.locationModel.findById(trip.destination).exec();
+
+        if (passenger && driver && origin && destination) {
+          await this.mailService.sendNewRequestNotification(
+            trip.driver,
+            driver.name,
+            `${passenger.name} ${passenger.lastname}`,
+            origin.locality || origin.format_address,
+            destination.locality || destination.format_address,
+            trip.startedTimestamp || ''
+          );
+          this.logger.log(`New request notification sent to driver ${trip.driver}`);
+        }
+      } catch (emailError) {
+        this.logger.error(`Error sending new request notification: ${emailError.message}`);
+        // No fallamos la operación por error de email
+      }
+
       return this.responseHelper.makeResponse(
         false,
         'Request sent successfully',
@@ -276,6 +299,29 @@ export class RequestService {
 
       this.logger.log(`Request ${requestId} accepted successfully`);
 
+      // Enviar email de notificación al pasajero
+      try {
+        const passenger = await this.userModel.findOne({ email: request.email }).exec();
+        const driver = await this.userModel.findOne({ email: driverEmail }).exec();
+        const origin = await this.locationModel.findById(trip.origin).exec();
+        const destination = await this.locationModel.findById(trip.destination).exec();
+
+        if (passenger && driver && origin && destination) {
+          await this.mailService.sendAcceptedRequestNotification(
+            request.email,
+            passenger.name,
+            `${driver.name} ${driver.lastname}`,
+            origin.locality || origin.format_address,
+            destination.locality || destination.format_address,
+            trip.description || ''
+          );
+          this.logger.log(`Acceptance email sent to ${request.email}`);
+        }
+      } catch (emailError) {
+        this.logger.error(`Error sending acceptance email: ${emailError.message}`);
+        // No fallamos la operación por error de email
+      }
+
       return this.responseHelper.makeResponse(
         false,
         'Request accepted successfully',
@@ -349,6 +395,29 @@ export class RequestService {
       await request.save();
 
       this.logger.log(`Request ${requestId} rejected successfully`);
+
+      // Enviar email de notificación al pasajero
+      try {
+        const passenger = await this.userModel.findOne({ email: request.email }).exec();
+        const driver = await this.userModel.findOne({ email: driverEmail }).exec();
+        const origin = await this.locationModel.findById(trip.origin).exec();
+        const destination = await this.locationModel.findById(trip.destination).exec();
+
+        if (passenger && driver && origin && destination) {
+          await this.mailService.sendRejectedRequestNotification(
+            request.email,
+            passenger.name,
+            `${driver.name} ${driver.lastname}`,
+            origin.locality || origin.format_address,
+            destination.locality || destination.format_address,
+            trip.description || ''
+          );
+          this.logger.log(`Rejection email sent to ${request.email}`);
+        }
+      } catch (emailError) {
+        this.logger.error(`Error sending rejection email: ${emailError.message}`);
+        // No fallamos la operación por error de email
+      }
 
       return this.responseHelper.makeResponse(
         false,

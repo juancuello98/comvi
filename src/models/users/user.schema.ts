@@ -1,7 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { Request } from '../requests/request.schema';
-import { Trip } from '../trips/trip.schema';
 import { PasswordToken } from './passwordToken.schema';
 
 export type UserDocument = User & Document;
@@ -51,6 +49,18 @@ export class User {
    */
   @Prop()
   resetPasswordToken: PasswordToken;
+
+  /**
+   * Rating promedio del usuario (1-5 estrellas).
+   */
+  @Prop({ type: Number, default: 0 })
+  averageRating: number;
+
+  /**
+   * Cantidad total de valoraciones recibidas.
+   */
+  @Prop({ type: Number, default: 0 })
+  totalReviews: number;
 }
 
 /**
