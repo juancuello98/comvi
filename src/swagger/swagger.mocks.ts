@@ -416,7 +416,8 @@ export const exNewTrip =
       allowPassenger: true,
       peopleQuantity: 3,
       vehicle: "63614cd9207a33961a281f40",
-      startedTimestamp: "2024-09-02T14:00:00Z"
+      startedTimestamp: "2024-09-02T14:00:00Z",
+      estimatedCost: 1500.50
   }
 
 export const exNewTripResponse = {
@@ -439,6 +440,7 @@ export const exNewTripResponse = {
       startedTimestamp: "2024-09-02T14:00:00Z",
       status: "OPEN",
       packages: [],
+      estimatedCost: 1500.50,
       createdTimestamp: "2024-09-03T02:22:10.992Z",
       _id: "66d672d288105491d615eea5",
       __v: 0
@@ -1042,6 +1044,26 @@ export const exListOfPassengersNotFound = {
   "message": "Not found passengers in the trip.",
   "data": null,
   "status": 404
+}
+
+export const exListOfPassengersFound = {
+  "hasError": false,
+  "message": "Passengers founded by trip.",
+  "data": [
+    {
+      "_id": "66d672d288105491d615eea7",
+      "name": "Juan",
+      "lastname": "Pérez",
+      "email": "juan.perez@ejemplo.com"
+    },
+    {
+      "_id": "66d672d288105491d615eea8",
+      "name": "María",
+      "lastname": "González",
+      "email": "maria.gonzalez@ejemplo.com"
+    }
+  ],
+  "status": 200
 }
 
 export const exListMyTrips = {

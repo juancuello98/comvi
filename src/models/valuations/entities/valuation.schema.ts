@@ -19,6 +19,15 @@ export class Valuation {
   @Prop({ required:true, type: String, ref: 'User' })
   user: string|User;
 
+  /**
+   * Puntaje de la valoración (1-5 estrellas).
+   */
+  @Prop({ required: true, type: Number, min: 1, max: 5 })
+  puntaje: number;
+
+  /**
+   * Comentario/descripción opcional de la valoración.
+   */
   @Prop()
   detalle: string;
 

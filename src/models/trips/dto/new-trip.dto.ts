@@ -5,8 +5,6 @@ import {
   IsBoolean,
   IsString,
   IsOptional,
-  IsInt,
-  IsDate,
 } from 'class-validator';
 import { ExistingtTripDTO } from './existing-trip.dto';
 import { Location } from '@/locations/location-schema';
@@ -44,4 +42,8 @@ export class NewTripDTO extends PartialType(ExistingtTripDTO) {
   @IsString()
   @IsNotEmpty()
   startedTimestamp: string;
+
+  @IsNumber()
+  @IsOptional()
+  estimatedCost?: number;
 }

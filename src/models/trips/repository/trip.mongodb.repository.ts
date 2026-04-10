@@ -352,19 +352,18 @@ export class TripMongodbRepository implements ITripRepository {
 
   async updateStatus(id: string, newStatus: TripStatus) : Promise<Trip> {	
     try {
-      // Buscar el viaje por su ID
-      const trip = await this.tripModel.findOne({id});
+      // Solo actualizar el status, sin tocar otros campos
+      const result = await this.tripModel.updateOne(
+        { id: id },
+        { $set: { status: newStatus } }
+      ).exec();
 
-      if (!trip) {
+      if (result.matchedCount === 0) {
         throw new Error('Trip not found');
       }
 
-      // Actualizar el campo status
-      trip.status = newStatus;
-
-      // Guardar los cambios en la base de datos
-      const updatedTrip = await trip.save();
-
+      // Retornar el trip actualizado
+      const updatedTrip = await this.tripModel.findOne({ id: id }).exec();
       return updatedTrip;
     } catch (error) {
       throw new Error(`Failed to update trip status: ${error.message}`);
@@ -376,10 +375,21 @@ export class TripMongodbRepository implements ITripRepository {
     id: string,
   ): Promise<any> {
     try {
-      const trip = await this.tripModel.findOne({ id })
-      .populate({path:'passengers', select: '+name +lastname +email'})
-      .exec()
-    
+      const acceptedRequests = await this.requestModel
+        .find({ tripId: id, status: 'ACCEPTED' })
+        .exec();
+
+      if (!acceptedRequests.length) {
+        return null;
+      }
+
+      const passengerEmails = acceptedRequests.map(request => request.email);
+      const passengers = await this.userModel
+        .find({ email: { $in: passengerEmails } })
+        .select('name lastname email averageRating totalReviews')
+        .exec();
+
+      return passengers;
     } catch (error) {
       throw new Error('Error finding passengers: ' + error.message);
     }

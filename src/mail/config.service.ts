@@ -168,7 +168,61 @@ export class MailService {
       },
     };
     await this.mailerService.sendMail(mailBody);
-    this.logger.log('Email enviado a:', email); // 2 logger?
+    this.logger.log('Email enviado a:', email);
+    return mailBody;
+  }
+
+  async sendNewRequestNotification(
+    driverEmail: string,
+    driverName: string,
+    passengerName: string,
+    origin: string,
+    destiny: string,
+    tripDate: string,
+  ) {
+    const url = process.env.URL_BUTTON;
+    const mailBody = {
+      to: driverEmail,
+      subject: '¡Nueva solicitud para tu viaje!',
+      template: 'new_request',
+      context: {
+        driverName: driverName,
+        passengerName: passengerName,
+        origin: origin,
+        destiny: destiny,
+        tripDate: tripDate,
+        url,
+      },
+    };
+    await this.mailerService.sendMail(mailBody);
+    this.logger.log('New request notification sent to:', driverEmail);
+    return mailBody;
+  }
+
+  async sendTripCancelledNotification(
+    passengerEmail: string,
+    passengerName: string,
+    driverName: string,
+    origin: string,
+    destiny: string,
+    tripDate: string,
+  ) {
+    const url = process.env.URL_BUTTON;
+    const mailBody = {
+      to: passengerEmail,
+      subject: 'El viaje ha sido cancelado',
+      template: 'trip_cancelled',
+      context: {
+        passengerName: passengerName,
+        driverName: driverName,
+        origin: origin,
+        destiny: destiny,
+        tripDate: tripDate,
+        url,
+      },
+    };
+    await this.mailerService.sendMail(mailBody);
+    this.logger.log('Trip cancelled notification sent to:', passengerEmail);
     return mailBody;
   }
 

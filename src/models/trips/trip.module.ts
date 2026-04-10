@@ -25,6 +25,7 @@ import { TravellingModule } from 'src/travelling/travelling.module';
       { name: User.name, schema: UserSchema },
       { name: Trip.name, schema: TripSchema },
       { name: TripResume.name, schema: TripResumeSchema },
+      { name: Request.name, schema: RequestSchema },
     ]),
     CommonModule,
     UserModule,

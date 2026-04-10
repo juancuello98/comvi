@@ -38,7 +38,7 @@ export class TripController {
   @ApiResponse({ status: 201, description: 'Trip was created succesfully.', example:
     exNewTripResponse
    })
-  @Post('/publish')
+  @Post('/create')
   async create(@Request() req, @Body() trip: NewTripDTO): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req)
     trip.driver = driver;
@@ -54,6 +54,38 @@ export class TripController {
     return this.tripsService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get list of passengers for a specific trip.' })
+  @ApiResponse({ status: 200, description: 'Passengers found successfully.', example: exListOfPassengersFound })
+  @ApiResponse({ status: 404, description: 'No passengers found in the trip.', example: exListOfPassengersNotFound })
+  @Get('/list/passengers/:id')
+  listOfPassengers(@Param('id') id: string) {
+    return this.tripsService.listOfPassengers(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get list of my published trips.' }) 
+  @ApiResponse({ status: 200, description: 'Trips founded by user.', example:
+    exListMyTrips
+   })
+  @Get('/list/published')
+  findMyTrips(@Request() req) {
+    const driver = this.requestHelper.getPayload(req);
+    return this.tripsService.findByDriver(driver);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get list of trips where I am a passenger.' }) 
+  @ApiResponse({ status: 200, description: 'Trips where user is a passenger found successfully.', example: exListMyPassengerTrips })
+  @Get('/list/passenger')
+  findMyPassengerTrips(@Request() req) {
+    const passengerEmail = this.requestHelper.getPayload(req);
+    return this.tripsService.findByPassenger(passengerEmail);
+  }
+
   @ApiOperation({ summary: 'Get trip by id.' })
   @ApiResponse({ status: 200, description: 'Successfully found trips', example:
     exTripByIdResponse
@@ -65,29 +97,7 @@ export class TripController {
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get list of passengers.' }) //TODO: Terminar esto
-   @ApiResponse({ status: 200, description: 'Not found passengers in the trip.', example:
-    exListOfPassengersNotFound
-   })
-  @Get('/list/passengers/:id')
-  listOfPassengers(@Param('id') id: string) {
-    return this.tripsService.listOfPassengers(id);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get list of my trips.' }) 
-  @ApiResponse({ status: 200, description: 'Trips founded by user.', example:
-    exListMyTrips
-   })
-  @Get('/mytrips')
-  findMyTrips(@Request() req) {
-    const driver = this.requestHelper.getPayload(req);
-    return this.tripsService.findByDriver(driver);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cancel a trip and notify passengers.' })
   @Post('/cancel/:id')
   async cancel(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
     // const driver = this.requestHelper.getPayload(req);

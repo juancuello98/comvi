@@ -45,7 +45,8 @@ export class AuthService {
     const token = new PasswordToken();
     token.created = new Date();
     token.expire = new Date(token.created.getTime() + 2 * 60 * 60000);
-    token.code = this.generateRandomString(6);
+    token.code = await this.createVerififyEmailCode();
+    token.validated = false;
     return token;
   }
 

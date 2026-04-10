@@ -30,6 +30,22 @@ import { compare } from 'bcrypt';
 export class TripService {
   private readonly logger = new Logger(TripService.name);
 
+  private mapTripResponse(trip: any): any {
+    if (!trip) return trip;
+    
+    const tripObject = trip.toObject ? trip.toObject() : trip;
+    
+    const { estimatedCosts, ...rest } = tripObject;
+    return {
+      ...rest,
+      estimatedCost: estimatedCosts
+    };
+  }
+
+  private mapTripsResponse(trips: any[]): any[] {
+    return trips.map(trip => this.mapTripResponse(trip));
+  }
+
   constructor(
     private readonly userService: UserService,
     private readonly tripResumeService: TripResumeService,
@@ -64,21 +80,19 @@ export class TripService {
     const trips = await this.tripRepository.findByDriver(driver);
 
     if (!trips.length) {
-      this.logger.log(`Trips of user ${driver} not founded.`);
       return this.responseHelper.makeResponse(
         false,
-        'Not found trips.',
-        null,
-        HttpStatus.NOT_FOUND,
+        'No published trips found.',
+        [],
+        HttpStatus.OK,
       );
     }
 
-    this.logger.log(`Trips of user ${driver} founded.`);
-
+    const mappedTrips = this.mapTripsResponse(trips);
     return this.responseHelper.makeResponse(
       false,
-      'Trip founded.',
-      trips,
+      'Published trips found successfully.',
+      mappedTrips,
       HttpStatus.OK,
     );
   }
@@ -93,10 +107,11 @@ export class TripService {
         HttpStatus.NOT_FOUND,
       );
 
+    const mappedTrips = this.mapTripsResponse(trips);
     return this.responseHelper.makeResponse(
       false,
       'Trip founded.',
-      trips,
+      mappedTrips,
       HttpStatus.OK,
     );
   }
@@ -124,15 +139,37 @@ export class TripService {
     if (!items.length)
       return this.responseHelper.makeResponse(
         false,
-        'Not found trips.',
-        null,
-        HttpStatus.NOT_FOUND,
+        'No trips available.',
+        [],
+        HttpStatus.OK,
       );
 
+    const mappedItems = this.mapTripsResponse(items);
     return this.responseHelper.makeResponse(
       false,
-      'Trips founded.',
-      items,
+      'Trips found successfully.',
+      mappedItems,
+      HttpStatus.OK,
+    );
+  }
+
+  async findByPassenger(passengerEmail: string): Promise<ResponseDTO> {
+    const trips = await this.tripRepository.findByPassenger(passengerEmail);
+    
+    if (!trips.length) {
+      return this.responseHelper.makeResponse(
+        false,
+        'No trips found where you are a passenger.',
+        [],
+        HttpStatus.OK,
+      );
+    }
+
+    const mappedTrips = this.mapTripsResponse(trips);
+    return this.responseHelper.makeResponse(
+      false,
+      'Trips where you are a passenger found successfully.',
+      mappedTrips,
       HttpStatus.OK,
     );
   }
@@ -151,7 +188,8 @@ export class TripService {
         return this.responseHelper.makeResponse(false, message, {}, status);
       }
 
-      return this.responseHelper.makeResponse(false, message,trip, status);
+      const mappedTrip = this.mapTripResponse(trip);
+      return this.responseHelper.makeResponse(false, message, mappedTrip, status);
     } catch (error) {
       console.error('Error: ', error);
       return this.responseHelper.makeResponse(
@@ -417,13 +455,13 @@ export class TripService {
     return this.tripRepository.update(trip);
   }
 
-  async cancel(id: string): Promise<ResponseDTO> {
-    const trip = await this.tripRepository.updateStatus(id, TripStatus.CANCELED);
+  async cancel(id: string, driverEmail: string): Promise<ResponseDTO> {
+    const trip = await this.tripRepository.findByIdAndDriver(driverEmail, id);
 
-    if (!trip || trip.status !== TripStatus.CANCELED)
+    if (!trip) {
       return this.responseHelper.makeResponse(
         false,
-        `Not found trip or update failed.`,
+        `Not found trip ${id} for user ${driverEmail}.`,
         null,
         HttpStatus.NOT_FOUND,
       );
@@ -435,7 +473,7 @@ export class TripService {
       return this.responseHelper.makeResponse(false,'Trip was cancelled.',null,HttpStatus.OK)
   }
 
-  async init(id: string, driver: string): Promise<ResponseDTO> { //TODO: Refactorizar esto
+  async init(id: string, driver: string): Promise<ResponseDTO> {
     const date = new Date().toISOString();
     const trip = await this.tripRepository.find({driver, _id: id})[0];
 
@@ -449,11 +487,11 @@ export class TripService {
     }
     
     if (
-      trip.status !== TripStatus.OPEN || trip.bookings.length
+      trip.status !== TripStatus.OPEN || !trip.acceptedRequests || trip.acceptedRequests.length === 0
     ) {
       return this.responseHelper.makeResponse(
         false,
-        `Incorrect trip status ${trip.status} or not contain bookings or packages.`,
+        `Incorrect trip status ${trip.status} or not contain accepted requests or packages.`,
         null,
         HttpStatus.OK,
       );
@@ -503,7 +541,8 @@ export class TripService {
       );
     }
 
-    trip.status = TripStatus.FINISHED;
+    // Cambiar a PENDING_VALORATION para permitir que los usuarios valoren
+    trip.status = TripStatus.PENDING_VALORATION;
 
     const status = (await this.tripRepository.update(trip)).status;
 
@@ -529,7 +568,7 @@ export class TripService {
 
     return this.responseHelper.makeResponse(
       false,
-      `Trip successfully finished : ${id}`,
+      `Trip successfully finished. Pending valuations.`,
       trip,
       HttpStatus.OK,
     );
@@ -538,12 +577,16 @@ export class TripService {
   async listOfPassengers(id: string): Promise<ResponseDTO> {
     try {
       const passengers = await this.tripRepository.passengersByTrip(id);
-      if(!passengers) return this.responseHelper.makeResponse(
-        false,
-        'Not found passengers in the trip.',
-        passengers,
-        HttpStatus.NOT_FOUND,
-      );
+      
+      if (!passengers || passengers.length === 0) {
+        return this.responseHelper.makeResponse(
+          false,
+          'Not found passengers in the trip.',
+          null,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      
       return this.responseHelper.makeResponse(
         false,
         'Passengers founded by trip.',
@@ -551,7 +594,7 @@ export class TripService {
         HttpStatus.OK,
       );
     } catch (error) {
-      console.error('Error: ', error);
+      this.logger.error(`Error in listOfPassengers: ${error.message}`);
       return this.responseHelper.makeResponse(
         true,
         'Error in listWithPassengers.',
