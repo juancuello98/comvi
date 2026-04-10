@@ -35,3 +35,12 @@ Dockerfile
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# Environment variables (contain secrets)
+.env
+.env.local
+.env.*.local
+.codegpt
+
+# Expo local dev artifacts
+.expo/
