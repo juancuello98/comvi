@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 
@@ -10,8 +10,17 @@ import { AppService } from './app.service';
 import { TripModule } from './models/trips/trip.module';
 import { CommonModule } from './common/common.module';
 import { VehiclesModule } from './models/vehicles/vehicles.module';
-//import { RequestModule } from './models/requests/request.module';
 import { ValuationsModule } from './models/valuations/valuations.module';
+import { RequestModule } from '@/requests/request.module';
+import { FuelsModule } from './models/fuels/fuels.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { StadisticsModule } from './stadistics/stadistics.module';
+import { PersonModule } from './models/person/person.module';
+// import { trace } from 'console';
+import { TravellingModule } from './travelling/travelling.module';
+import { GoogleMapModule } from './google-map-module/google-map.module';
+
+import { ResponseMiddleware } from './response.middleware';
 
 @Module({
   imports: [
@@ -25,10 +34,21 @@ import { ValuationsModule } from './models/valuations/valuations.module';
     TripModule,
     CommonModule,
     VehiclesModule,
-    //RequestModule,
+    RequestModule,
     ValuationsModule,
+    NotificationsModule,
+    StadisticsModule,
+    PersonModule,
+    FuelsModule,
+    TravellingModule,
+    GoogleMapModule
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(ResponseMiddleware).forRoutes('/')
+  }
+}

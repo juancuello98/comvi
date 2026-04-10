@@ -6,7 +6,7 @@ export interface IVehicleRepository {
   create(createVehicleDto: CreateVehicleDto, email: string): Promise<Vehicle> 
   update(patent: string, updateVehicleDto: UpdateVehicleDto): Promise<Vehicle> 
   findByPatent(patent: string): Promise<Vehicle> 
-  findByUser(email: string): Promise<Vehicle[]> 
-  findByUser(email: string): Promise<Vehicle[]> 
+  findByUser(email: string): Promise<Vehicle[]>
   delete(patent: string): Promise<void>;
+  // getDocument(vehicle: Vehicle): Vehicle;
   }

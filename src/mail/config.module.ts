@@ -9,11 +9,11 @@ import { join } from 'path';
   imports: [
     MailerModule.forRoot({
       transport: {
-        host: 'smtp.gmail.com',
+        host: process.env.TRANSPORT_HOST || 'smtp.gmail.com',
         secure: true,
         auth: {
-          user: 'comviapp@gmail.com',
-          pass: 'upmbggzbdkuadnne', //TODO: llevar a variable de entorno datos sensibles
+          user: process.env.AUTH_USER,
+          pass: process.env.AUTH_PASS,
         },
       },
       defaults: {

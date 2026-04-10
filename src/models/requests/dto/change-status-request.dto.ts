@@ -12,18 +12,18 @@ import { ActionRequestDTO } from './action-request.dto';
 import { NewRequestDTO } from './new-request.dto';
 
 export class ChangeStatusOfRequestDTO extends PartialType(ActionRequestDTO) {
-  @ApiProperty({
-    description: 'nuevo estado de la solicitud respondida',
-    name: 'newStatus',
-    enum: StatusRequest,
-  })
-  @IsString()
-  @IsEnum(StatusRequest)
-  @IsOptional()
-  newStatus: string;
+  // @ApiProperty({
+  //   description: 'nuevo estado de la solicitud respondida',
+  //   name: 'newStatus',
+  //   enum: StatusRequest,
+  // })
+  // @IsString()
+  // @IsEnum(StatusRequest)
+  // @IsOptional()
+  // newStatus: string;
 
   @ApiProperty({
-    description: 'nuevo estado de la solicitud respondida',
+    description: 'mensaje de la solicitud respondida',
     name: 'newStatus',
     enum: StatusRequest,
   })

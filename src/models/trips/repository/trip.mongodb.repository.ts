@@ -1,122 +1,395 @@
 
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 import { NewTripDTO } from '../dto/new-trip.dto';
 import { TripStatus } from '../enums/state.enum';
 import { Trip, TripDocument } from '../trip.schema';
 import { ITripRepository } from '../interface/trip.repository.interface';
-import { User, UserDocument } from '@/users/user.schema';
+import { User } from '@/users/user.schema';
+import { driverView } from '@/users/repository/users.views';
 
 export class TripMongodbRepository implements ITripRepository {
   constructor(
     @InjectModel(Trip.name) private readonly tripModel: Model<TripDocument>,
-    @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
-  async findByDriver(driver: string): Promise<Trip[]> {
+  async getAllDrivers(): Promise<User[]> {
+    const trips = await this.tripModel.find().select('driver').populate({
+      path: 'driver',
+      localField: 'driver',
+      foreignField: 'email',
+      select: driverView,
+    }).exec();
 
-    const trips = await this.tripModel
-      .find({ driver })
-      .sort({ createdTimestamp: 'desc' })
-      .select('-__v -_id')
-      .populate('vehicle')
-      .populate('origin')
-      .populate('destination')
-      .select('-__v -_id')
-      .exec();
-    return trips;
+    const drivers = trips.map(trip => trip.getDriver());
+    return drivers;
   }
-
-  async find(field: any): Promise<Trip[]> {
-    return await this.tripModel.find(field).select('-__v -_id').exec();
-  }
-
-  async findByIdWithDriver(id: any): Promise<any> {
-    const trip = await this.tripModel.findOne({id})
-    .select('-__v -_id')
-    .populate('vehicle')
-    .populate('origin')
-    .populate('destination')
-    .select('-__v -_id')
-    .lean().exec();
-    const fields = ['email','name','lastname'];
-    const driver = await this.userModel.findOne({email: trip.driver}).select(fields.join(' ')).exec();
-    return {...trip,driver};
-  }
-
-  async findById(id: string): Promise<Trip> {
-    const trip = await this.tripModel.findOne({id})
-    .select('-__v -_id')
-    .populate('passengers')
-    .populate('vehicle')
-    .populate('origin')
-    .populate('destination')
-    .select('-__v -_id')
-    .exec();
+   getTrip(obj: any): Trip {
+    const trip = new Trip();
+    Object.keys(trip).forEach(key => {
+      if (obj[key] !== undefined) {
+        trip[key] = obj[key];
+      }
+    });
     return trip;
   }
 
-  async findNonDriverTrips(email: string) {
-    return await this.tripModel
+  async findByDriver(driverEmail: string): Promise<Trip[]> {
+    const trips = await this.tripModel
+      .find({ driverEmail })
+      .sort({ createdTimestamp: 'desc' })
+      .select('-__v -id')
+      .populate({
+        path: 'driver', 
+        localField: 'driver',
+        foreignField: 'email',
+        select: driverView
+    })
+    .populate({
+      path: 'vehicle', 
+      localField: 'vehicle',
+      foreignField: 'patentPlate',
+      select: '-__v -id' 
+      })
+  
+    .populate({
+        path: 'passengers', 
+        select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+    })
+    .populate({
+        path: 'origin', 
+        select: '-__v -id' 
+      }) 
+      .populate({
+        path: 'destination', 
+        select: '-__v -id' 
+      }) 
+      .populate({
+        path: 'bookings', 
+        select: '-__v -id' 
+      })
+      .populate({
+        path: 'tripRequests', 
+        select: '-__v -id' 
+      }) 
+      .populate({
+        path: 'tripResumeId', 
+        select: '-__v -id',
+        populate: [
+            { 
+                path: 'valuations', 
+                select: '-__v -id' 
+            },
+            { 
+                path: 'passengers', 
+                select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+            }
+        ]
+    })
+      .exec();
+    const newTrips = trips.map(trip => this.getTrip(trip));
+
+    return newTrips;
+  }
+
+  async find(field: any): Promise<Trip[]> {
+    const trips =  await this.tripModel.find(field).select('-__v').exec();
+    const result = trips.map(trip => this.getTrip(trip));
+    return result;
+  }
+
+  async findByIdWithDriver(id: string): Promise<Trip> {
+    const trip = await this.tripModel.findOne({id}).select('-__v -id') 
+    .populate({
+      path: 'driver', 
+      localField: 'driver',
+      foreignField: 'email',
+      select: driverView , 
+  })
+  .populate({
+    path: 'vehicle', 
+    localField: 'vehicle',
+    foreignField: 'patentPlate',
+    select: '-__v -id' 
+    })
+    .populate({
+                path: 'passengers', 
+                select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+            })
+            .populate({
+                path: 'origin', 
+                select: '-__v -id' 
+              }) 
+              .populate({
+                path: 'destination', 
+                select: '-__v -id' 
+              }) 
+              .populate({
+                path: 'bookings', 
+                select: '-__v -id' 
+              })
+              .populate({
+                path: 'tripResumeId', 
+                select: '-__v -id',
+                populate: [
+                    { 
+                        path: 'valuations', 
+                        select: '-__v -id' 
+                    },
+                    { 
+                        path: 'passengers', 
+                        select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+                    }
+                ]
+            }).exec();
+    // const fields = ['email','name','lastname'];
+    // const driver = await this.userModel.findOne({email: trip.driver}).select(fields.join(' ')).exec();
+    const result = this.getTrip(trip); 
+    return result;	
+  }
+
+  async findById(id: string): Promise<Trip> {
+    const trip = await this.tripModel.findById(id).select('-__v') 
+    .populate({
+      path: 'driver', 
+      localField: 'driver',
+      foreignField: 'email',
+      select: driverView , 
+  })
+  .populate({
+    path: 'vehicle', 
+    localField: 'vehicle',
+    foreignField: 'patentPlate',
+    select: '-__v -id' 
+    })
+    .populate({
+                path: 'passengers', 
+                select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+            })
+      
+           .populate({
+                path: 'bookings', 
+                select: '-__v -id' 
+              })
+                .populate({
+                  path: 'tripResumeId', 
+                  select: '-__v -id',
+                  populate: [
+                      { 
+                          path: 'valuations', 
+                          select: '-__v -id' 
+                      },
+                      { 
+                          path: 'passengers', 
+                          select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+                      }
+                  ]
+              }).exec();    
+
+    return trip;
+
+  }
+
+  async findByUUIDd(id: string): Promise<Trip> {
+    const trip = await this.tripModel.find({id}).select('-__v -id') 
+    .populate({
+      path: 'driver', 
+      localField: 'driver',
+      foreignField: 'email',
+      select: driverView , 
+  })
+  .populate({
+    path: 'vehicle', 
+    localField: 'vehicle',
+    foreignField: 'patentPlate',
+    select: '-__v -id' 
+    })
+            .populate({
+                path: 'passengers', 
+                select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+            })
+            .populate({
+                path: 'origin', 
+                select: '-__v -id' 
+              }) 
+              .populate({
+                path: 'destination', 
+                select: '-__v -id' 
+              }) 
+              .populate({
+                path: 'bookings', 
+                select: '-__v -id' 
+              })
+              .populate({
+                path: 'tripRequests', 
+                select: '-__v -id' })
+             
+                .populate({
+                  path: 'tripResumeId', 
+                  select: '-__v -id',
+                  populate: [
+                      { 
+                          path: 'valuations', 
+                          select: '-__v -id' 
+                      },
+                      { 
+                          path: 'passengers', 
+                          select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+                      }
+                  ]
+              }).exec();
+              const result =this.getTrip(trip);
+              return result;
+  }
+
+  async findNonDriverTrips(email: string): Promise<Trip[]> {
+    const trips =  await this.tripModel
     .find({ driver: { $ne: email } })
-    .select('-__v -_id')
-    .populate('vehicle')
-    .populate('origin')
-    .populate('destination')
-    .select('-__v -_id')
-    .exec();
+    .populate({
+      path: 'driver', 
+      localField: 'driver',
+      foreignField: 'email',
+      select: driverView , 
+  })
+  .populate({
+    path: 'vehicle', 
+    localField: 'vehicle',
+    foreignField: 'patentPlate',
+    select: '-__v -id' 
+    })
+
+
+  .populate({
+      path: 'passengers', 
+      select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+  })
+    .populate({
+      path: 'bookings', 
+      select: '-__v -id' 
+    })
+    .populate({
+      path: 'tripResumeId', 
+      select: '-__v -id',
+      populate: [
+          { 
+              path: 'valuations', 
+              select: '-__v -id' 
+          },
+          { 
+              path: 'passengers', 
+              select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+          }
+      ]
+  }).exec();
+  
+  const result = trips.map(trip => this.getTrip(trip));
+  return result;
+
   }
 
-  async create(trip: NewTripDTO) {
-    return await this.tripModel
-    .create(trip);
+  async findAll(): Promise<Trip[]> {
+    const trip = await this.tripModel.find().select('-__v -id')
+    .populate({
+      path: 'driver', 
+      localField: 'driver',
+      foreignField: 'email',
+      select: '-__v -id -password -status -verificationCode -resetPasswordToken' 
+  })
+  .populate({
+    path: 'vehicle', 
+    localField: 'vehicle',
+    foreignField: 'patentPlate',
+    select: '-__v -id' 
+    })
+  .populate({
+    path: 'vehicle', 
+    localField: 'vehicle',
+    foreignField: 'patentPlate',
+    select: '-__v -id' 
+    })
+  .populate({
+      path: 'passengers', 
+      select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+    })
+  .populate({
+      path: 'origin', 
+      select: '-__v -id' 
+    }) 
+    .populate({
+      path: 'destination', 
+      select: '-__v -id' 
+    }) 
+    .populate({
+      path: 'bookings', 
+      select: '-__v -id' 
+    })
+    .populate({
+      path: 'tripResumeId', 
+      select: '-__v -id',
+      populate: [
+          { 
+              path: 'valuations', 
+              select: '-__v -id' 
+          },
+          { 
+              path: 'passengers', 
+              select: '-__v -id -password -status -verificationCode -resetPasswordToken'
+          }
+      ]
+  }).exec();
+    return trip;
   }
 
-  async update(trip: TripDocument) : Promise<Trip> {
-    const tripUpdated = await trip.updateOne();
-    return tripUpdated;
+  async create(trip: Trip): Promise<Trip> {
+    return await this.tripModel.create(trip);
+   
   }
 
-  async updateStatus(id: string, newStatus: TripStatus) {
+  async update(trip: Trip) : Promise<Trip> {   
+    const updatedTrip = await this.tripModel.findOneAndUpdate({id:trip.id}, trip).exec();    
+    return updatedTrip;
+  }
+
+  async updateStatus(id: string, newStatus: TripStatus) : Promise<Trip> {	
     try {
-      // Buscar el viaje por su ID
-      const trip = await this.tripModel.findOne({id});
+      // Solo actualizar el status, sin tocar otros campos
+      const result = await this.tripModel.updateOne(
+        { id: id },
+        { $set: { status: newStatus } }
+      ).exec();
 
-      if (!trip) {
+      if (result.matchedCount === 0) {
         throw new Error('Trip not found');
       }
 
-      // Actualizar el campo status
-      trip.status = newStatus;
-
-      // Guardar los cambios en la base de datos
-      const updatedTrip = await trip.save();
-
+      // Retornar el trip actualizado
+      const updatedTrip = await this.tripModel.findOne({ id: id }).exec();
       return updatedTrip;
     } catch (error) {
       throw new Error(`Failed to update trip status: ${error.message}`);
     }
   }
 
-  async findByIdAndDriver(driver: string, id: string): Promise<any> {
-    const filter = {
-      driver,
-      id,
-    };
-
-    const hasUserTrip = await this.tripModel.findOne(filter).lean().exec();
-
-    return hasUserTrip;
-  }
 
   async passengersByTrip(
     id: string,
   ): Promise<any> {
     try {
-      const trip = await this.tripModel.findOne({ id })
-      .populate({path:'passengers', select: '+name +lastname +email'})
-      .exec()
-    
+      const acceptedRequests = await this.requestModel
+        .find({ tripId: id, status: 'ACCEPTED' })
+        .exec();
+
+      if (!acceptedRequests.length) {
+        return null;
+      }
+
+      const passengerEmails = acceptedRequests.map(request => request.email);
+      const passengers = await this.userModel
+        .find({ email: { $in: passengerEmails } })
+        .select('name lastname email averageRating totalReviews')
+        .exec();
+
+      return passengers;
     } catch (error) {
       throw new Error('Error finding passengers: ' + error.message);
     }

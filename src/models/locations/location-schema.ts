@@ -6,6 +6,9 @@ export type LocationDocument = Location & Document;
 @Schema()
 export class Location {
 
+    @Prop({ type: String, ref: '_id' })
+    id: string;
+
     @Prop({ required: true })
     country: string;
 
