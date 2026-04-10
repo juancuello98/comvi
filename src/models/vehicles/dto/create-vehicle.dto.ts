@@ -4,7 +4,9 @@ import {
   IsArray,
   IsOptional,
   IsNumber,
+  IsEnum,
 } from 'class-validator';
+import { ProductIdNumber } from '../../fuels/enums/fuel-type.enum'; // Adjust the import path as necessary
 
 export class CreateVehicleDto {
   @IsNotEmpty()
@@ -30,4 +32,13 @@ export class CreateVehicleDto {
   @IsOptional()
   @IsArray()
   pics: string[]; //TODO: urls de imagenes
+
+  @IsNotEmpty()
+  @IsNumber()
+  consumption: number;
+
+  @IsNotEmpty()
+    @IsEnum(ProductIdNumber, { each: true })
+  fuels: ProductIdNumber[];
+
 }

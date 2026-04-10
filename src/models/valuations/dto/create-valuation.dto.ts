@@ -1,13 +1,18 @@
-import { IsNotEmpty, IsOptional, IsNumber, Min, Max, IsArray, IsBoolean, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
+import { Puntaje } from '../entities/puntaje.enums';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+/**
+ * Data Transfer Object (DTO) for creating a valuation.
+ * This class is used to define the structure of the data required to create a new valuation.
+ */
 export class CreateValuationDto {
-  @ApiPropertyOptional({ description: 'Email del usuario que crea la valoración (se obtiene del token JWT)' })
+  @ApiPropertyOptional({ description: 'Email del usuario' })
   @IsOptional()
   @IsString()
   email?: string;
 
-  @ApiProperty({ description: 'Email del usuario que está siendo valorado' })
+  @ApiProperty({ description: 'ID del viaje', type: String })
   @IsNotEmpty()
   @IsString()
   valoradoEmail: string;
@@ -17,25 +22,12 @@ export class CreateValuationDto {
   @IsString()
   tripId: string;
 
-  @ApiProperty({ description: 'Puntaje de 1 a 5 estrellas', minimum: 1, maximum: 5 })
-  @IsNotEmpty()
-  @IsNumber()
-  @Min(1)
-  @Max(5)
-  puntaje: number;
-
-  @ApiPropertyOptional({ description: 'Comentario opcional de la valoración' })
-  @IsOptional()
-  @IsString()
-  detalle?: string;
-
-  @ApiPropertyOptional({ description: 'Tags seleccionados', type: [String] })
+  @ApiPropertyOptional({ description: 'Detalles adicionales' })
   @IsOptional()
   @IsArray()
   tags?: string[];
 
-  @ApiProperty({ description: 'Indica si el usuario pagó lo acordado' })
+  @ApiProperty({ description: 'Puntaje de la valoración', enum: Puntaje })
   @IsNotEmpty()
-  @IsBoolean()
-  paid: boolean;
+  puntaje: Puntaje;
 }

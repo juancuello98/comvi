@@ -1,19 +1,17 @@
-import { PartialType } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsNumber, Min, Max, IsString } from 'class-validator';
+import { PartialType, ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty } from 'class-validator';
+import { Puntaje } from '../entities/puntaje.enums';
 import { CreateValuationDto } from './create-valuation.dto';
 
 export class UpdateValuationDto extends PartialType(CreateValuationDto) {
+  @ApiProperty({ description: 'ID de la valoración', type: String })
   @IsNotEmpty()
   @IsString()
   id: string;
 
-  @IsOptional()
-  @IsString()
-  detalle?: string;
+  @ApiProperty({ description: 'Detalles adicionales', required: false })
+  detalle: string;
 
-  @IsOptional()
-  @IsNumber()
-  @Min(1)
-  @Max(5)
-  puntaje?: number;
+  @ApiProperty({ description: 'Puntaje de la valoración', enum: Puntaje, required: false })
+  puntaje: Puntaje;
 }

@@ -1,3 +1,5 @@
+import { User } from '@/users/user.schema';
+import { Valuation } from '@/valuations/entities/valuation.schema';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
@@ -5,31 +7,34 @@ export type TripResumeDocument = TripResume & Document;
 /**
  * Esquema para representar un resumen de viaje en la base de datos.
  */
-@Schema()
+@Schema({ timestamps: true })
 export class TripResume {
+  
   /**
-   * Lista de IDs de los pasajeros del viaje.
+   * @property {string} IDs de los pasajeros del viaje.
    */
-  @Prop({ required:true, type: MongooseSchema.Types.ObjectId, ref: 'Users' })
-  passengers: string[];
+  @Prop({ type: String, ref: '_id' })
+  id: string;
+  
+  /**
+   * @property {User[]} passengers - Lista de IDs de los pasajeros del viaje.
+   */
+  @Prop({ required: true, type: [{ type: [MongooseSchema.Types.ObjectId], ref: 'User' }] })
+  passangers: string[] | User[];
+  /**
+   * @property {Valuation[]} valuations - Lista de IDs de las valuaciones asociadas al viaje.
+   */
+  @Prop({ required: true, type: [{ type: [MongooseSchema.Types.ObjectId], ref: 'Valuation' }] })
+  valuations: string[] | Valuation[];
 
   /**
-   * Lista de IDs de las valuaciones asociadas al viaje.
+   * @property {string} id - id del Trip.
    */
-  @Prop()
-  valuations: string[];
+  @Prop({ required:true, type: MongooseSchema.Types.ObjectId, ref: 'Trip' })
+  tripId: string;
 
-  /**
-   * Marca de tiempo de inicio del viaje.
-   */
-  @Prop({ required: true })
-  startedTimestamp: string;
-
-  /**
-   * Marca de tiempo de finalización del viaje.
-   */
-  @Prop()
-  endedTimestamp: string;
 }
 
 export const TripResumeSchema = SchemaFactory.createForClass(TripResume);
+TripResumeSchema.set('timestamps', true);
+

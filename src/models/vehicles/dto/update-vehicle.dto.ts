@@ -1,4 +1,5 @@
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { ProductIdNumber } from '../../fuels/enums/fuel-type.enum';
 
 export class UpdateVehicleDto {
     @IsNotEmpty()
@@ -18,6 +19,18 @@ export class UpdateVehicleDto {
     year: number;
   
     @IsOptional()
+    @IsNumber()
+    consumption: number;
+
+    @IsOptional()
     @IsArray()
-    pics: string[];
+    pics: any[];
+
+
+  
+    @IsNotEmpty()
+      @IsEnum(ProductIdNumber, { each: true })
+    fuels: ProductIdNumber[];
+
+
 }

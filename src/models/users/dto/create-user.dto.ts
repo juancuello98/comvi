@@ -1,9 +1,8 @@
-import { IsString, IsInt, IsNotEmpty } from 'class-validator';
+import { IsString, IsInt, IsNotEmpty, IsEmpty } from 'class-validator';
+import { CreatePersonDto } from 'src/models/person/dto/create-person.dto';
 
-export class CreateUserDto {
-  @IsNotEmpty()
-  @IsString()
-  name: string;
+export class CreateUserDto extends CreatePersonDto {
+
 
   @IsNotEmpty()
   @IsString()
@@ -14,11 +13,11 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   @IsString()
-  lastname: string;
-
-  @IsNotEmpty()
-  @IsString()
   status: string;
+  
+  @IsEmpty()
+  @IsString()
+  avatar: string;
 
   @IsNotEmpty()
   @IsString()

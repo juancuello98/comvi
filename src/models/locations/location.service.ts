@@ -11,7 +11,7 @@ export class LocationService {
     private readonly locationRepository: ILocationRepository,
   ) {}
 
-  async create(createLocationDto: NewLocationDTO): Promise<LocationDocument> {
+  async create(createLocationDto: NewLocationDTO): Promise<Location> {
     return this.locationRepository.create(createLocationDto);
   }
 
@@ -38,4 +38,21 @@ export class LocationService {
   async delete(id: string): Promise<void> {
     await this.locationRepository.delete(id);
   }
+
+  // getDisntance(origin: Location, destiny: Location): number {
+    
+  //   const pointA = { latitude: origin.latitude, longitude: origin.longitude }; 
+  //   const pointB = { latitude: destiny.latitude , longitude: destiny.longitude }; 
+
+  //   // Calcular distancia en metros
+  //   const distanceMeters = geolib.getDistance(pointA, pointB);
+
+  //   // Convertir a kilómetros
+  //   const distanceKilometers = geolib.convertDistance(distanceMeters, 'km');
+
+  //   // to do calcularlo por ruta y fiajrse que estaciones pasan por ahi para sacar promedio de precios
+
+  //   return distanceKilometers;
+  // }
+
 }

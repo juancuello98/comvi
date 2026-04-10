@@ -5,6 +5,7 @@ import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { IVehicleRepository } from './interfaces/vehicle.repository.interface';
 import { IVEHICLE_REPOSITORY } from './repository/constants/vehicle.repository.constant';
 import { MongoDuplicateKeyError } from '@/common/error/mongodb.errors';
+import { Vehicle } from './vehicles.schema';
 
 @Injectable()
 export class VehiclesService {
@@ -50,7 +51,21 @@ export class VehiclesService {
     };
   }
 
-  async findByPatent(patent: any): Promise<ResponseDTO> {
+  async findByPatent(patent: any): Promise<Vehicle> {
+    try {
+      const vehicle = await this.vehicleRepository.findByPatent(patent)
+      if (!vehicle) {
+        return null;
+      } 
+      return vehicle;
+      } catch (error) {
+        this.logger.error('Error in findByPatent:', error);
+        throw error;
+        
+      };
+    }
+
+  async findByPatentController(patent: any): Promise<ResponseDTO> {
     try {
       const vehicle = await this.vehicleRepository.findByPatent(patent)
     return {

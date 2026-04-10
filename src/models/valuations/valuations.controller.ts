@@ -4,16 +4,27 @@ import {
   Post,
   Body,
   Param,
+  Delete,
   UseGuards,
   Req,
 } from '@nestjs/common';
 import { ValuationsService } from './valuations.service';
 import { CreateValuationDto } from './dto/create-valuation.dto';
+import { UpdateValuationDto } from './dto/update-valuation.dto';
 import { Request } from 'express';
 import { RequestHelper } from 'src/common/helpers/http/request.helper';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBody, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/authentication/jwt/jwt-auth.guard';
-import { ResponseDTO } from 'src/common/interfaces/responses.interface';
+import {
+  exCreateValuationRequest,
+  exCreateValuationResponse,
+  exFindAllValuationsResponse,
+  exFindOneValuationResponse,
+  exUpdateValuationRequest,
+  exUpdateValuationResponse,
+  exDeleteValuationResponse,
+} from 'src/swagger/swagger.mocks';
+import { ResponseDTO } from '@/common/interfaces/responses.interface';
 
 @ApiTags('valuations')
 @Controller('valuations')
@@ -25,78 +36,91 @@ export class ValuationsController {
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Crear una nueva valoración para un usuario después de un viaje' })
-  @ApiResponse({ status: 201, description: 'Valoración creada exitosamente' })
-  @ApiResponse({ status: 400, description: 'El viaje no ha finalizado o datos inválidos' })
-  @ApiResponse({ status: 403, description: 'No participaste en este viaje' })
-  @ApiResponse({ status: 404, description: 'Viaje no encontrado' })
-  @ApiResponse({ status: 409, description: 'Ya valoraste a este usuario para este viaje' })
   @Post()
-  async create(
-    @Body() createValuationDto: CreateValuationDto,
-    @Req() request: Request,
-  ): Promise<ResponseDTO> {
+  @ApiOperation({ summary: 'Create a valuation' })
+  @ApiBody({
+    type: CreateValuationDto,
+    examples: {
+      example1: {
+        summary: 'Typical create valuation request.',
+        description: 'Example of a typical create valuation request.',
+        value: exCreateValuationRequest,
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Valuation created successfully.',
+    example: exCreateValuationResponse,
+  })
+  async create(@Body() createValuationDto: CreateValuationDto, @Req() request: Request) {
     const userEmail = this.requestHelper.getPayload(request);
-    return this.valuationsService.create(createValuationDto, userEmail);
+    const valuationModify = { ...createValuationDto, email: userEmail };
+    return this.valuationsService.create(valuationModify);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener mis valoraciones recibidas' })
-  @ApiResponse({ status: 200, description: 'Lista de valoraciones recibidas' })
-  @Get('/received')
-  async getMyReceivedValuations(@Req() request: Request): Promise<ResponseDTO> {
+  @Get()
+  @ApiOperation({ summary: 'Get all valuations' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully found valuations',
+    example: exFindAllValuationsResponse,
+  })
+  async findAll(@Req() request: Request) {
     const userEmail = this.requestHelper.getPayload(request);
-    return this.valuationsService.findByUser(userEmail);
+    return this.valuationsService.findAll(userEmail);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener valoraciones de un usuario específico' })
-  @ApiResponse({ status: 200, description: 'Lista de valoraciones del usuario' })
-  @Get('/user/:email')
-  async getValuationsByUser(@Param('email') email: string): Promise<ResponseDTO> {
-    return this.valuationsService.findByUser(email);
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a valuation by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Valuation Successfully founded',
+    example: exFindOneValuationResponse,
+  })
+  async findOne(@Param('id') id: string): Promise<ResponseDTO> {
+    return this.valuationsService.findOne(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener valoraciones de un viaje' })
-  @ApiResponse({ status: 200, description: 'Lista de valoraciones del viaje' })
-  @Get('/trip/:tripId')
-  async getValuationsByTrip(@Param('tripId') tripId: string): Promise<ResponseDTO> {
-    return this.valuationsService.findByTrip(tripId);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener mi resumen de rating' })
-  @ApiResponse({ status: 200, description: 'Resumen de rating del usuario' })
-  @Get('/rating/me')
-  async getMyRatingSummary(@Req() request: Request): Promise<ResponseDTO> {
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update a valuation' })
+  @ApiBody({
+    type: UpdateValuationDto,
+    examples: {
+      example1: {
+        summary: 'Typical update valuation request.',
+        description: 'Example of a typical update valuation request.',
+        value: exUpdateValuationRequest,
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'The valuation of the trip was updated',
+    example: exUpdateValuationResponse,
+  })
+  async update(@Param('id') id: string, @Body() updateValuationDto: UpdateValuationDto, @Req() request: Request): Promise<ResponseDTO> {
     const userEmail = this.requestHelper.getPayload(request);
-    return this.valuationsService.getUserRatingSummary(userEmail);
+    const valuationModify = { ...updateValuationDto, email: userEmail };
+    return this.valuationsService.update(valuationModify);
   }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener resumen de rating de un usuario' })
-  @ApiResponse({ status: 200, description: 'Resumen de rating del usuario' })
-  @Get('/rating/:email')
-  async getUserRatingSummary(@Param('email') email: string): Promise<ResponseDTO> {
-    return this.valuationsService.getUserRatingSummary(email);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Verificar valoraciones pendientes para un viaje' })
-  @ApiResponse({ status: 200, description: 'Estado de valoraciones pendientes' })
-  @Get('/pending/:tripId')
-  async checkPendingValuations(
-    @Param('tripId') tripId: string,
-    @Req() request: Request,
-  ): Promise<ResponseDTO> {
-    const userEmail = this.requestHelper.getPayload(request);
-    return this.valuationsService.checkPendingValuations(tripId, userEmail);
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a valuation' })
+  @ApiResponse({
+    status: 200,
+    description: 'The valuation of the trip was deleted',
+    example: exDeleteValuationResponse,
+  })
+  async remove(@Param('id') id: string): Promise<ResponseDTO> {
+    return this.valuationsService.remove(id);
   }
 }

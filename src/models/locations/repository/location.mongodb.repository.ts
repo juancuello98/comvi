@@ -9,7 +9,7 @@ export class LocationMongoDBRepository implements ILocationRepository {
         @InjectModel(Location.name) private readonly locationModel: Model<LocationDocument>
     ) {
     }
-    async create(createLocationDto: NewLocationDTO): Promise<LocationDocument> {
+    async create(createLocationDto: NewLocationDTO): Promise<Location> {
         return await this.locationModel.create(createLocationDto);
     }
     async findAll(): Promise<Location[]> {

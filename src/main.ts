@@ -4,6 +4,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import mongoose from 'mongoose';
 import { config } from 'dotenv';
+// import { createClient } from '@google/maps';
+// import * as admin from 'firebase-admin';
 
 config();
 
@@ -27,7 +29,7 @@ async function bootstrap() {
   //   Promise: Promise
   // });
 
-  // app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe());
   
   const configDoc = new DocumentBuilder()
@@ -44,13 +46,16 @@ async function bootstrap() {
     // SwaggerModule.setup('/', app, document);
     // cosnt swaggerOptions = new DocumentBuilder()
     // const document = SwaggerModule.createDocument(app, documentSwagger as OpenAPIObject );
-    SwaggerModule.setup('/', app, document, {jsonDocumentUrl: '/swagger/json', customSiteTitle: 'COMVI - API'});
+    SwaggerModule.setup('swagger', app, document, {jsonDocumentUrl: '/swagger/json', customSiteTitle: 'COMVI - API'});
     // SwaggerModule.setup('swagger', app, document, {explorer:true});
+
 
   await app.listen(process.env.PORT || 3000);
   const appAddress = await app.getUrl();
 
   logger.log(`La aplicación NestJS está corriendo en: ${appAddress}`);
+
+
 }
 
 bootstrap();

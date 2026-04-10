@@ -13,7 +13,8 @@ import { JwtAuthGuard } from 'src/authentication/jwt/jwt-auth.guard';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { TripService } from './trip.service';
 import { RequestHelper } from '@/common/helpers/http/request.helper';
-import { exListMyTrips, exListMyPassengerTrips, exListOfPassengersNotFound, exListOfPassengersFound, exListOfTripsResponse, exNewTrip, exNewTripResponse, exTripByIdResponse } from 'src/swagger/swagger.mocks';
+import { exListMyTrips, exListOfPassengersNotFound, exListOfTripsResponse, exNewTrip, exNewTripResponse, exTripByIdResponse } from 'src/swagger/swagger.mocks';
+import { ExistingtTripDTO } from './dto/existing-trip.dto';
 
 @ApiTags('trips')
 @Controller('trips')
@@ -40,7 +41,8 @@ export class TripController {
   @Post('/create')
   async create(@Request() req, @Body() trip: NewTripDTO): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req)
-    return await this.tripsService.create({ ...trip, driver });
+    trip.driver = driver;
+    return await this.tripsService.createToController({ ...trip });
   }
 
   @ApiOperation({ summary: 'Get list of trips.' })
@@ -49,8 +51,7 @@ export class TripController {
    })
   @Get('/list')
   async findAll(@Request() req): Promise<ResponseDTO> {
-    const driver = this.requestHelper.getPayload(req);
-    return this.tripsService.findNonDriverTrips(driver);
+    return this.tripsService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
@@ -99,8 +100,8 @@ export class TripController {
   @ApiOperation({ summary: 'Cancel a trip and notify passengers.' })
   @Post('/cancel/:id')
   async cancel(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
-    const driver = this.requestHelper.getPayload(req);
-    const resp = await this.tripsService.cancel(id, driver);
+    // const driver = this.requestHelper.getPayload(req);
+    const resp = await this.tripsService.cancel(id);
     return resp;
   }
 
@@ -119,6 +120,15 @@ export class TripController {
   async finish(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
     const driver = this.requestHelper.getPayload(req);
     const resp = await this.tripsService.finish(id, driver);
+    return resp;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Post('getTripCOST/:id')
+  async getTripCost(@Param('id') id: string): Promise<any> {
+    console.log('TripId: ', id);
+    const resp = await this.tripsService.getTripCost(id);
     return resp;
   }
 }

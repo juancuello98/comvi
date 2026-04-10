@@ -18,7 +18,7 @@ import { IVEHICLE_REPOSITORY } from './repository/constants/vehicle.repository.c
   providers: [VehiclesService, {
     provide: IVEHICLE_REPOSITORY,
     useClass: VehicleMongodbRepository,
-  }],
-  exports: [VehiclesService],
+  }, VehicleMongodbRepository],
+  exports: [VehiclesService, IVEHICLE_REPOSITORY, VehicleMongodbRepository],
 })
 export class VehiclesModule {}

@@ -1,7 +1,6 @@
 # compiled output
 /node_modules
 .vscode
-# Logs
 logs
 *.log
 npm-debug.log*
@@ -35,3 +34,8 @@ Dockerfile
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+
+#env
+.env                
+.codegpt

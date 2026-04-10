@@ -1,5 +1,4 @@
-import { Controller, Post, Body, UseGuards, HttpCode, Req } from '@nestjs/common';
-import { Request } from 'express';
+import { Controller, Post, Body, UseGuards, HttpCode,Request, Req } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { AuthService } from './authentication.service';
@@ -8,36 +7,27 @@ import { LoginDTO } from '../models/users/dto/existing-user.dto';
 import { NewUserDTO } from '../models/users/dto/new-user.dto';
 import { UserVerificationDTO } from 'src/models/users/dto/user-verification.dto';
 
-import { UserDTO } from 'src/models/users/interfaces/user-details.interface';
-import { UserValidatedDTO } from 'src/models/users/interfaces/user-validated.interface';
+import { exChangePassword, exChangePasswordPasswordDoesNotMatch, exChangePasswordResponseBad, exChangePasswordResponseNotFound, exChangePasswordResponseOK, exLogin, exLoginResponse, exPasswordToken, exRegisterUser, exRegisterUserResponse, exRequestResetPassword, exRequestResetPasswordResponse, exResetPassword, exValidatePasswordToken, exValidateToken ,exValidateTokenResponse } from '../swagger/swagger.mocks';
 import { RequestResetPasswordDTO } from './dto/request-reset-password-dto';
 import { PasswordTokenDTO } from './dto/token-password.dto';
 import { ResetPasswordDTO } from './dto/reset-password-dto';
-import { JwtAuthGuard } from './jwt/jwt-auth.guard';
 import { ResponseDTO } from '@/common/interfaces/responses.interface';
-import { 
-  exLogin, 
-  exLoginResponse, 
-  exRegisterUser, 
-  exRegisterUserResponse, 
-  exValidateToken, 
-  exValidateTokenResponde,
-  exRequestResetPassword,
-  exRequestResetPasswordResponse,
-  exPasswordToken,
-  exPasswordTokenResponse,
-  exResetPassword,
-  exResetPasswordResponse
-} from '../swagger/swagger.mocks';
+import { JwtAuthGuard } from './jwt/jwt-auth.guard';
+import { ChangePasswordDTO } from './dto/change-password-dto';
+
 
 @ApiTags('auth')
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  requestHelper: any;
+  constructor(
+    private readonly authService: AuthService,
+   
+  ) { }
 
   @Post('register')
-  @ApiOperation({ summary: 'Register a new user' })
+  @ApiOperation({ summary: 'Register a new useeeeeeeer' })
   @ApiBody({
     type: NewUserDTO, examples: {
       example1: {
@@ -47,31 +37,29 @@ export class AuthController {
       }
     }
   }) // Información del cuerpo de la solicitud
-  @ApiResponse({ status: 201, description: 'The user has been successfully registered.', example:
-    exRegisterUserResponse
-   })
+  @ApiResponse({ status: 201, description: 'The user has been successfully registered.', example: exRegisterUserResponse})
   @ApiResponse({ status: 400, description: 'Bad Request' })
   @ApiResponse({ status: 409, description: 'User already exists with this email' })
-  register(@Body() user: NewUserDTO): Promise<UserDTO | null> {
+  register(@Body() user: NewUserDTO): Promise<ResponseDTO> {
     return this.authService.register(user);
   }
 
   @Post('validate/token')
-  @ApiOperation({ summary: 'Validate user email by token' })
+  @ApiOperation({ summary: 'Validate user by token' })
   @ApiBody({
     type: UserVerificationDTO, examples: {
       example1: {
-        summary: 'Typical user email validation',
-        description: 'Example of a typical user email validation',
+        summary: 'Typical user validation',
+        description: 'Example of a typical user validation by code request',
         value: exValidateToken
       }
     }
   }) // Información del cuerpo de la solicitud
-  @ApiResponse({ status: 200, description: 'Validation was succesfully.', example:exValidateTokenResponde })
+  @ApiResponse({ status: 200, description: 'Validation was succesfully.', example:exValidateTokenResponse })
   @HttpCode(200)
   validate(
     @Body() user: UserVerificationDTO,
-  ): Promise<UserValidatedDTO | any> {
+  ): Promise<ResponseDTO> {
     return this.authService.verifyEmailCode(user);
   }
 
@@ -91,83 +79,112 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Validation was succesfully.', example:exLoginResponse })
  
   @HttpCode(200)
-  login(@Body() user: LoginDTO): Promise<Record<string, string> | null> {
+  login(@Body() user: LoginDTO): Promise<ResponseDTO> {
     return this.authService.login(user);
   }
 
-  @Post('/passwordtoken/validate')
-  @ApiOperation({ summary: 'Validate verification code and generate access token' })
+
+  @Post('logout')
+  @ApiOperation({
+    summary: ''
+  })
   @ApiBody({
-    type: PasswordTokenDTO,
-    examples: {
+    type: LoginDTO, examples: {
       example1: {
-        summary: 'Validate verification code',
-        description: 'Enter the verification code received by email',
+        summary: 'Typical user logout',
+        description: 'Example of a typical user login',
+        value: exLoginResponse
+      }
+    }
+  }) // Información del cuerpo de la solicitud
+  @ApiResponse({ status: 200, description: 'User was logged out succesfully.', example: exLoginResponse})
+  @HttpCode(200)
+  create(@Body() user: LoginDTO): Promise<ResponseDTO> {
+    return this.authService.login(user);
+  }
+
+  @ApiOperation({ summary: 'Validate password' })
+  @ApiBody({
+    type: PasswordTokenDTO, examples: {
+      example1: {
+        summary: 'Typical user validation',
+        description: 'Example of a typical user login',
         value: exPasswordToken
       }
     }
-  })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Code validated and access token generated',
-    example: exPasswordTokenResponse
-  })
-  @ApiResponse({ status: 400, description: 'Invalid or expired verification code' })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  }) // Información del cuerpo de la solicitud
+  @ApiResponse({ status: 200, description: 'Validation was succesfully.', example:exValidatePasswordToken }) 
   @HttpCode(200)
-  validatePasswordToken(@Body() token: PasswordTokenDTO): Promise<ResponseDTO> {
+  
+  @Post('/passwordtoken/validate')
+  validatePasswordToken( @Body() token: PasswordTokenDTO) :  Promise< ResponseDTO > {
     return this.authService.validatePasswordToken(token);
   }
 
-  @Post('/requestresetpassword')
-  @ApiOperation({ summary: 'Request password reset' })
+  
+  // #region Request Reset Password
+  @ApiOperation({ summary: 'Send the code to reset the password of the user' })
   @ApiBody({
-    type: RequestResetPasswordDTO,
-    examples: {
+    type: RequestResetPasswordDTO, examples: {
       example1: {
-        summary: 'Request password reset',
-        description: 'Send verification code to user email',
+        summary: 'Typical code and email request',
+        description: 'Example of a typical code and email request',
         value: exRequestResetPassword
       }
     }
-  })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Reset password email sent successfully',
-    example: exRequestResetPasswordResponse
-  })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  }) // Información del cuerpo de la solicitud
+  @ApiResponse({ status: 200, description: 'Validation was succesfully.', example:exRequestResetPasswordResponse })
   @HttpCode(200)
-  requestResetPassword(@Body() req: RequestResetPasswordDTO): Promise<ResponseDTO> {
-    const { email } = req;
+  //#endregion
+
+  @Post('/requestresetpassword')
+  requestResetPassword( @Body() reqDTO: RequestResetPasswordDTO) :  Promise< ResponseDTO > {
+    const {email} = reqDTO;
     return this.authService.requestResetPassword(email);
+  }
+  
+  @Post('/changepassword')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Change your password while logged' })
+  @ApiBody({
+    type: ChangePasswordDTO, examples: {
+      example1: {
+        summary: 'Typical user password change',
+        description: 'Example of a typical change pass request',
+        value: exChangePassword
+      }
+    }
+  }) // Información del cuerpo de la solicitud
+  @ApiResponse({ status: 200, description: 'Password was changed.', example:exChangePasswordResponseOK })
+  @ApiResponse({ status: 400, description: 'The password was wrong.', example:exChangePasswordResponseBad })
+  @ApiResponse({ status: 406, description: 'The user not exist.', example:exChangePasswordResponseNotFound })
+  @ApiResponse({ status: 406, description: 'The user not exist.', example:exChangePasswordPasswordDoesNotMatch })
+ 
+
+  changePassword(@Body() resetData: ResetPasswordDTO, @Req() request: Request) :  Promise<ResponseDTO> {
+    const email = this.requestHelper.getPayload(request);
+    resetData.email = email;	
+    return this.authService.changePassword(resetData);
   }
 
   @Post('/resetpassword')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Reset password with access token' })
+  @ApiOperation({ summary: 'reset your password while logged' })
   @ApiBody({
-    type: ResetPasswordDTO,
-    examples: {
+    type: ResetPasswordDTO, examples: {
       example1: {
-        summary: 'Reset password',
-        description: 'Enter new password',
+        summary: 'Typical user password change',
+        description: 'Example of a typical change pass request',
         value: exResetPassword
       }
     }
-  })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Password reset successfully',
-    example: exResetPasswordResponse
-  })
-  @ApiResponse({ status: 400, description: 'Invalid access token or validation required' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid token' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  @HttpCode(200)
-  resetPassword(@Body() resetData: ResetPasswordDTO, @Req() request: Request): Promise<ResponseDTO> {
-    const user = request.user as any;
-    resetData.email = user.email;
-    return this.authService.resetPassword(resetData);
+  }) // Información del cuerpo de la solicitud
+  @ApiResponse({ status: 200, description: 'Password was changed.', example:exChangePasswordResponseOK })
+  @ApiResponse({ status: 400, description: 'The password was wrong.', example:exChangePasswordResponseBad })
+  @ApiResponse({ status: 404, description: 'The user not exist.', example:exChangePasswordResponseNotFound })
+  resetPassword(@Body() resetData: ResetPasswordDTO, @Req() request: Request) :  Promise<ResponseDTO> {
+    const email = this.requestHelper.getPayload(request);
+    resetData.email = email;	
+    return this.authService.changePassword(resetData);
   }
 }
