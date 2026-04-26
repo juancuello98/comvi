@@ -13,7 +13,11 @@ export class VehicleMongodbRepository implements IVehicleRepository {
 
     async create(createVehicleDto: CreateVehicleDto, email: string): Promise<Vehicle> {
         try {
-            return await this.vehiclesModel.create({...createVehicleDto, email});
+            return await this.vehiclesModel.create({
+                ...createVehicleDto,
+                _id: createVehicleDto.patentPlate,
+                user: email,
+            });
         } catch (error) {
             throw MongoDuplicateKeyError.isMongodbError(error)
         }
@@ -35,7 +39,7 @@ export class VehicleMongodbRepository implements IVehicleRepository {
     }
 
     async findByUser(email: string): Promise<Vehicle[]> {
-        const vehicles = await this.vehiclesModel.find({ email }).exec();
+        const vehicles = await this.vehiclesModel.find({ user: email }).exec();
         return vehicles;
     }
 

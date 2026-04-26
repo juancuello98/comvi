@@ -172,7 +172,7 @@ export class MailService {
     return mailBody;
   }
 
-  async sendNewRequestNotification(
+  async sendNewRequestDriverNotification(
     driverEmail: string,
     driverName: string,
     passengerName: string,

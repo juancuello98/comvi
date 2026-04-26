@@ -5,7 +5,7 @@ import { ProductIdNumber } from '../fuels/enums/fuel-type.enum';
 
 export type VehicleDocument = Vehicle & Document;
 
-@Schema({ _id: false }) // Esto desactiva la generación automática de _id
+@Schema({ _id: false })
 export class Vehicle {
 
   @Prop({ type: String, unique: true, required: true, index: true })
@@ -29,10 +29,10 @@ export class Vehicle {
   @Prop()
   color: string;
 
-  @Prop({ required: true, min: 0 })
+  @Prop({ required: false, min: 0, default: null })
   consumption: number;
 
-  @Prop({ required: true, type: [String], ref: 'Product' })
+  @Prop({ required: false, type: [String], ref: 'Product', default: [] })
   fuels: Product[] | string[];
   
   getFuelsString(): ProductIdNumber[] {

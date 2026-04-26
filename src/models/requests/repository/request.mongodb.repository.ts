@@ -67,8 +67,8 @@ export class RequestMongodbRepository implements IRequestRepository {
         try {
             const newRequest = new this.requestModel(
             {
-              senderEmail : req.sender,
-              tripId : req.trip,
+              sender : req.sender,
+              trip : req.trip,
               description : req.description,
               hasEquipment : req.hasEquipment,
               hasPartner : req.hasPartner,

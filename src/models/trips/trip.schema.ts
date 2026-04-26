@@ -20,24 +20,19 @@ export type TripDocument = Trip & Document;
  * @class
  */
 export class Trip {
-  /**
-   * @property {string} id - UUID de viaje.
-   */
-  @Prop({ type: MongooseSchema.Types.ObjectId })
-  id: string;
+  id: string; // Mongoose virtual getter - returns _id.toHexString()
 
   /**
    * @property {Location} origin - Ubicación de origen del viaje.
    */
-  @Prop({ required: true, type: Location, default: null })
-  // origin:  Location | string | MongooseSchema.Types.ObjectId;
-  origin:  Location ;
+  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Location', default: null })
+  origin: Location;
 
   /**
    * @property {Location} destination - Ubicación de destino del viaje.
    */
-  @Prop({ required: true, type: Location, default: null })
-  destination: Location ;
+  @Prop({ required: true, type: MongooseSchema.Types.ObjectId, ref: 'Location', default: null })
+  destination: Location;
 
   /**
    * @property {string} description - Descripción del viaje.
@@ -90,6 +85,12 @@ export class Trip {
   status: TripStatus;
 
   /**
+   * @property {string} startedTimestamp - Fecha y hora planificada de salida del viaje.
+   */
+  @Prop({ required: false, default: null })
+  startedTimestamp: string;
+
+  /**
    * @property {Booking[]} passengers - IDs de los usuarios que participan como pasajeros en el viaje.
    */
   @Prop({ required: true, type:  [MongooseSchema.Types.ObjectId], default: [] })
@@ -97,6 +98,12 @@ export class Trip {
   // bookings: MongooseSchema.Types.ObjectId[];
   // bookings: string[] | Booking[];
   bookings: string[];
+
+  /**
+   * @property {string[]} acceptedPassengers - Emails de los pasajeros con solicitud aceptada.
+   */
+  @Prop({ type: [String], default: [] })
+  acceptedPassengers: string[];
 
   /**
    * @property {string[]} packages - IDs de los packages que van en el viaje.

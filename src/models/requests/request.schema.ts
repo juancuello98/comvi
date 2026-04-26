@@ -59,3 +59,22 @@ export class Request {
 
 
 export const RequestSchema = SchemaFactory.createForClass(Request);
+
+RequestSchema.methods.getMail = function(): string {
+  if (typeof this.sender === 'string') {
+    return this.sender;
+  } else {
+    return this.sender?.email;
+  }
+};
+
+RequestSchema.methods.getTripId = function(): string {
+  if (!this.trip) return null;
+  if (typeof this.trip === 'string') return this.trip;
+  // BSON ObjectId (not populated) — .id is a Buffer, use toHexString()
+  if (typeof this.trip.toHexString === 'function') return this.trip.toHexString();
+  // Populated Trip document — use _id or custom id field
+  if (this.trip._id) return this.trip._id.toString();
+  if (this.trip.id) return this.trip.id.toString();
+  return this.trip.toString();
+};

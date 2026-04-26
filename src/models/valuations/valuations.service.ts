@@ -39,8 +39,8 @@ export class ValuationsService {
       return this.responseHelper.makeResponse(true, 'Trip not found', null, HttpStatus.NOT_FOUND);
     }
 
-    if(this.tripService.canHaveValuations(trip)){
-      this.logger.log('The trip is can have valuations yet');	
+    if(!this.tripService.canHaveValuations(trip)){
+      this.logger.log('The trip is not ready for valuations yet');
       return this.responseHelper.makeResponse(true, 'The trip is not finished yet', null, HttpStatus.CONFLICT);
     }
 
@@ -53,10 +53,13 @@ export class ValuationsService {
     
     const input = new Valuation();
     input.trip = createValuationDto.tripId;
+    input.user = user.email;
+    input.valoradoEmail = createValuationDto.valoradoEmail;
     input.puntaje = createValuationDto.puntaje;
     input.detalle = createValuationDto.detalle;
-    input.user = user.email;
-    
+    input.tags = createValuationDto.tags ?? [];
+    input.paid = createValuationDto.paid ?? false;
+
     const newValuation = await this.valuationRepository.createValuation(input);
     
     const tripResId = typeof trip.tripResumeId == "string" ? trip.tripResumeId : trip.tripResumeId.id;

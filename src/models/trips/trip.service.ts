@@ -61,7 +61,7 @@ export class TripService {
   
 
   canHaveValuations(trip: Trip): boolean {
-    return trip.status === TripStatus.FINISHED;
+    return trip.status === TripStatus.PENDING_VALORATION;
   }
 
   async findByDriver(driver: string): Promise<Trip[]> {
@@ -126,10 +126,11 @@ export class TripService {
         HttpStatus.NOT_FOUND,
       );
 
+    const mappedTrips = this.mapTripsResponse(trips);
     return this.responseHelper.makeResponse(
       false,
       'Trips founded.',
-      trips,
+      mappedTrips,
       HttpStatus.OK,
     );
   }
@@ -219,6 +220,26 @@ export class TripService {
       this.logger.error('Error: ', error);
       throw error;
     }
+  }
+
+  async findByIdWithPassengers(tripId: string): Promise<any> {
+    const trip = await this.tripRepository.findById(tripId);
+    if (!trip) return null;
+
+    const tripObj = (trip as any).toObject ? (trip as any).toObject() : { ...trip };
+    const mapped = this.mapTripResponse(trip);
+
+    const acceptedEmails: string[] = tripObj.acceptedPassengers || [];
+    const acceptedRequests = (await Promise.all(
+      acceptedEmails.map(async (email: string) => {
+        try {
+          const user = await this.userService.findByEmail(email);
+          return user ? { name: user.name, lastname: user.lastname, email: user.email } : null;
+        } catch { return null; }
+      })
+    )).filter(Boolean);
+
+    return { ...mapped, acceptedRequests };
   }
 
   async create(trip: NewTripDTO): Promise<{ trip: Trip, rutaConEstaciones: any }> {
@@ -406,9 +427,10 @@ export class TripService {
 
         // Asignar valores a las propiedades requeridas
 
-        newTrip.origin = origin; // Asegúrate de que `origin.id` sea un ObjectId válido
-        newTrip.destination = destination; // Asegúrate de que `destination.id` sea un ObjectId válido
-        newTrip.description = trip.description || ''; // Descripción del viaje, asegurándose de que no esté vacío
+        newTrip.origin = origin;
+        newTrip.destination = destination;
+        newTrip.startedTimestamp = trip.startedTimestamp || null;
+        newTrip.description = trip.description || '';
         newTrip.allowPackage = trip.allowPackage;
         newTrip.allowPassenger = trip.allowPassenger;
         newTrip.peopleQuantity = trip.peopleQuantity;
@@ -442,10 +464,11 @@ export class TripService {
         HttpStatus.CREATED,
       );
     } catch (error) {
+      this.logger.error('Error in createToController:', error.message);
       return this.responseHelper.makeResponse(
-        false,
-        "Error in create trip",
-        error.message,
+        true,
+        error.message || "Error in create trip",
+        null,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -466,34 +489,40 @@ export class TripService {
         HttpStatus.NOT_FOUND,
       );
 
-      // for (let i = 0; i < trip.bookings.length; i++) {
-      //   //send notification to passengers)
-      // }
-    
-      return this.responseHelper.makeResponse(false,'Trip was cancelled.',null,HttpStatus.OK)
+    }
+
+    return this.responseHelper.makeResponse(false, 'Trip was cancelled.', null, HttpStatus.OK);
   }
 
   async init(id: string, driver: string): Promise<ResponseDTO> {
     const date = new Date().toISOString();
-    const trip = await this.tripRepository.find({driver, _id: id})[0];
+    const trip = await this.tripRepository.findById(id);
 
     if (!trip) {
       return this.responseHelper.makeResponse(
-        false,
+        true,
         `Not found trip ${id} for user ${driver}.`,
         null,
         HttpStatus.NOT_FOUND,
       );
     }
-    
-    if (
-      trip.status !== TripStatus.OPEN || !trip.acceptedRequests || trip.acceptedRequests.length === 0
-    ) {
+
+    const tripDriver = typeof trip.driver === 'string' ? trip.driver : (trip.driver as any)?.email;
+    if (tripDriver !== driver) {
       return this.responseHelper.makeResponse(
-        false,
-        `Incorrect trip status ${trip.status} or not contain accepted requests or packages.`,
+        true,
+        `Not found trip ${id} for user ${driver}.`,
         null,
-        HttpStatus.OK,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (trip.status !== TripStatus.OPEN) {
+      return this.responseHelper.makeResponse(
+        true,
+        `Incorrect trip status: ${trip.status}. The trip must be OPEN to be initialized.`,
+        null,
+        HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
 
@@ -522,16 +551,17 @@ export class TripService {
 
     const trip = await this.tripRepository.findById(id);
 
-    if (driver !== trip.driver){
+    const tripDriver = typeof trip.driver === 'string' ? trip.driver : (trip.driver as any)?.email;
+    if (!trip || tripDriver !== driver){
       return this.responseHelper.makeResponse(
-        false,
+        true,
         `Driver not match with trip driver.`,
         null,
         HttpStatus.FORBIDDEN
       );
     }
-    
-    if (!trip || trip.status !== TripStatus.IN_PROGRESS)
+
+    if (trip.status !== TripStatus.IN_PROGRESS)
     {
       return this.responseHelper.makeResponse(
         false,

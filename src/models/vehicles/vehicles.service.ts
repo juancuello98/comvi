@@ -27,10 +27,11 @@ export class VehiclesService {
 
       return resp;
     } catch (error) {
+      this.logger.error('Error in create vehicle:', error.message);
       const resp = {
         hasError: true,
-        message: 'Create vehicle was failed.',
-        data: error instanceof MongoDuplicateKeyError ? error.message : null,
+        message: error instanceof MongoDuplicateKeyError ? 'Ya existe un vehículo con esa patente.' : 'Create vehicle was failed.',
+        data: null,
        status: HttpStatus.INTERNAL_SERVER_ERROR,
       };
 

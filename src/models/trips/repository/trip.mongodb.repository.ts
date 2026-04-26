@@ -36,7 +36,7 @@ export class TripMongodbRepository implements ITripRepository {
 
   async findByDriver(driverEmail: string): Promise<Trip[]> {
     const trips = await this.tripModel
-      .find({ driverEmail })
+      .find({ driver: driverEmail })
       .sort({ createdTimestamp: 'desc' })
       .select('-__v -id')
       .populate({
@@ -87,9 +87,8 @@ export class TripMongodbRepository implements ITripRepository {
         ]
     })
       .exec();
-    const newTrips = trips.map(trip => this.getTrip(trip));
 
-    return newTrips;
+    return trips;
   }
 
   async find(field: any): Promise<Trip[]> {
@@ -163,28 +162,35 @@ export class TripMongodbRepository implements ITripRepository {
     select: '-__v -id' 
     })
     .populate({
-                path: 'passengers', 
+                path: 'passengers',
                 select: '-__v -id -password -status -verificationCode -resetPasswordToken'
             })
-      
            .populate({
-                path: 'bookings', 
-                select: '-__v -id' 
+                path: 'origin',
+                select: '-__v -id'
+              })
+           .populate({
+                path: 'destination',
+                select: '-__v -id'
+              })
+           .populate({
+                path: 'bookings',
+                select: '-__v -id'
               })
                 .populate({
-                  path: 'tripResumeId', 
+                  path: 'tripResumeId',
                   select: '-__v -id',
                   populate: [
-                      { 
-                          path: 'valuations', 
-                          select: '-__v -id' 
+                      {
+                          path: 'valuations',
+                          select: '-__v -id'
                       },
-                      { 
-                          path: 'passengers', 
+                      {
+                          path: 'passengers',
                           select: '-__v -id -password -status -verificationCode -resetPasswordToken'
                       }
                   ]
-              }).exec();    
+              }).exec();
 
     return trip;
 
@@ -345,8 +351,9 @@ export class TripMongodbRepository implements ITripRepository {
    
   }
 
-  async update(trip: Trip) : Promise<Trip> {   
-    const updatedTrip = await this.tripModel.findOneAndUpdate({id:trip.id}, trip).exec();    
+  async update(trip: Trip) : Promise<Trip> {
+    const tripDoc = trip as any;
+    const updatedTrip = await this.tripModel.findOneAndUpdate({ _id: tripDoc._id }, trip, { new: true }).exec();
     return updatedTrip;
   }
 
@@ -371,27 +378,30 @@ export class TripMongodbRepository implements ITripRepository {
   }
 
 
-  async passengersByTrip(
-    id: string,
-  ): Promise<any> {
-    try {
-      const acceptedRequests = await this.requestModel
-        .find({ tripId: id, status: 'ACCEPTED' })
-        .exec();
+  async passengersByTrip(id: string): Promise<any> {
+    return [];
+  }
 
-      if (!acceptedRequests.length) {
-        return null;
-      }
+  async findByPassenger(email: string): Promise<Trip[]> {
+    const resumes = await this.tripModel
+      .find()
+      .populate({
+        path: 'tripResumeId',
+        select: '-__v -id',
+        populate: [{ path: 'passengers', select: 'email name lastname' }],
+      })
+      .exec();
 
-      const passengerEmails = acceptedRequests.map(request => request.email);
-      const passengers = await this.userModel
-        .find({ email: { $in: passengerEmails } })
-        .select('name lastname email averageRating totalReviews')
-        .exec();
+    return resumes.filter((trip: any) => {
+      const resume = trip.tripResumeId;
+      if (!resume || !resume.passangers) return false;
+      return resume.passangers.some((p: any) =>
+        typeof p === 'string' ? p === email : p.email === email,
+      );
+    });
+  }
 
-      return passengers;
-    } catch (error) {
-      throw new Error('Error finding passengers: ' + error.message);
-    }
+  async findByIdAndDriver(driver: string, id: string): Promise<Trip> {
+    return this.tripModel.findOne({ _id: id, driver }).exec();
   }
 }

@@ -13,7 +13,7 @@ import { JwtAuthGuard } from 'src/authentication/jwt/jwt-auth.guard';
 import { NewTripDTO } from './dto/new-trip.dto';
 import { TripService } from './trip.service';
 import { RequestHelper } from '@/common/helpers/http/request.helper';
-import { exListMyTrips, exListOfPassengersNotFound, exListOfTripsResponse, exNewTrip, exNewTripResponse, exTripByIdResponse } from 'src/swagger/swagger.mocks';
+import { exListMyTrips, exListOfPassengersFound, exListOfPassengersNotFound, exListOfTripsResponse, exListMyPassengerTrips, exNewTrip, exNewTripResponse, exTripByIdResponse } from 'src/swagger/swagger.mocks';
 import { ExistingtTripDTO } from './dto/existing-trip.dto';
 
 @ApiTags('trips')
@@ -73,7 +73,7 @@ export class TripController {
   @Get('/list/published')
   findMyTrips(@Request() req) {
     const driver = this.requestHelper.getPayload(req);
-    return this.tripsService.findByDriver(driver);
+    return this.tripsService.findByDriverController(driver);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -92,7 +92,7 @@ export class TripController {
    })
   @Get('/list/:id')
   findOne(@Param('id') id: string) {
-    return this.tripsService.findById(id);
+    return this.tripsService.findByIdWithPassengers(id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -100,8 +100,8 @@ export class TripController {
   @ApiOperation({ summary: 'Cancel a trip and notify passengers.' })
   @Post('/cancel/:id')
   async cancel(@Request() req, @Param('id') id: string): Promise<ResponseDTO> {
-    // const driver = this.requestHelper.getPayload(req);
-    const resp = await this.tripsService.cancel(id);
+    const driver = this.requestHelper.getPayload(req);
+    const resp = await this.tripsService.cancel(id, driver);
     return resp;
   }
 

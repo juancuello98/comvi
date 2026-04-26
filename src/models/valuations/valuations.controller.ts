@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Body,
   Param,
   Delete,
@@ -56,7 +57,7 @@ export class ValuationsController {
   async create(@Body() createValuationDto: CreateValuationDto, @Req() request: Request) {
     const userEmail = this.requestHelper.getPayload(request);
     const valuationModify = { ...createValuationDto, email: userEmail };
-    return this.valuationsService.create(valuationModify);
+    return this.valuationsService.createController(valuationModify);
   }
 
   @UseGuards(JwtAuthGuard)

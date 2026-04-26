@@ -18,7 +18,7 @@ export class Location {
     @Prop({ required: true })
     department: string;
 
-    @Prop({ required: true })
+    @Prop({ required: false, default: '' })
     locality: string;
 
     @Prop({ required: true })
@@ -30,7 +30,7 @@ export class Location {
     @Prop({ required: true })
     longitude: string;
 
-    @Prop({ required: true})
+    @Prop({ required: false, default: '' })
     place_id: string;
 }
 

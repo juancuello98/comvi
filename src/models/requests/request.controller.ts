@@ -1,16 +1,24 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req, Delete, UseFilters } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Param, UseGuards, Req, Delete, Res, HttpStatus } from '@nestjs/common';
+import { Response, Request as ExpressRequest } from 'express';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { ResponseDTO } from 'src/common/interfaces/responses.interface';
 import { JwtAuthGuard } from 'src/authentication/jwt/jwt-auth.guard';
 import { RequestHelper } from '../../common/helpers/http/request.helper';
-import { Request } from 'express';
 import { RequestService } from './request.service';
 import { NewRequestDTO } from './dto/new-request.dto';
 import { ChangeStatusOfRequestDTO } from './dto/change-status-request.dto';
-import { exAcceptRequest, exCancelRequest, exCancelRequestResponse, exCreateRequestResponse, exRejectRequest, exRejectRequestResponse, exRequestFindedResponse, exSendRequest, exRequestsdFindedResponse, exFindRequestResponse, exAcceptRequestResponse } from 'src/swagger/swagger.mocks';
+import {
+  exSendRequest,
+  exCreateRequestResponse,
+  exRequestFindedResponse,
+  exRequestsdFindedResponse,
+  exAcceptRequestResponse,
+  exRejectRequestResponse,
+  exCancelRequestResponse,
+} from 'src/swagger/swagger.mocks';
 
 @ApiTags('requests')
-@Controller('requests')
+@Controller('request')
 export class RequestController {
 
   constructor(
@@ -18,22 +26,22 @@ export class RequestController {
     private readonly requestHelper: RequestHelper,
   ) {}
 
-  
   @UseGuards(JwtAuthGuard)
-  @Post('/send') 
-  @ApiOperation({ summary: 'Create a request' })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Send a request to join a trip' })
   @ApiBody({
-    type: NewRequestDTO, examples: {
+    type: NewRequestDTO,
+    examples: {
       example1: {
-        summary: 'Typical send reuqest.',
-        description: 'Example of a typical send reuqest.',
+        summary: 'Typical request to join a trip',
+        description: 'Example of a request to join a trip',
         value: exSendRequest
       }
     }
   })
-  @ApiBearerAuth()
-  @ApiResponse({ status: 201, description: 'Requested sended successfully.', example:exCreateRequestResponse})
-  async createRequest(@Body() tripRequest: NewRequestDTO, @Req() request: Request): Promise<ResponseDTO> {
+  @ApiResponse({ status: 201, description: 'Request sent successfully', example: exCreateRequestResponse })
+  @Post('/send')
+  async createRequest(@Body() tripRequest: NewRequestDTO, @Req() request: ExpressRequest): Promise<ResponseDTO> {
     const userEmail = this.requestHelper.getPayload(request);
     const requestUpdated = {...tripRequest, email: userEmail };
     const resp = await this.requestService.send(requestUpdated);
@@ -41,133 +49,66 @@ export class RequestController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Acept a request' })
-  @ApiBody({
-    type: ChangeStatusOfRequestDTO, examples: {
-      example1: {
-        summary: 'Typical acept request.',
-        description: 'Example of a typical acept request.',
-        value: exAcceptRequest
-      }
-    }
-  })
   @ApiBearerAuth()
-  @ApiResponse({ status: 201, description: 'Requested sended successfully.', example:exAcceptRequestResponse})
-  @UseGuards(JwtAuthGuard)
-  @Post('/recievedRequests/accept') 
-  async acceptRequest(@Body() requestDTO: ChangeStatusOfRequestDTO, @Req() request: Request): Promise<ResponseDTO> {
+  @ApiOperation({ summary: 'Accept a specific request' })
+  @ApiParam({ name: 'requestId', description: 'Request ID to accept', example: '66e1234567890abcdef12345' })
+  @ApiResponse({ status: 200, description: 'Request accepted successfully.', example: exAcceptRequestResponse })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Only the trip driver can accept requests.' })
+  @Post('/received/:requestId/accept')
+  async acceptRequest(@Param('requestId') requestId: string, @Req() request: ExpressRequest): Promise<ResponseDTO> {
     const userEmail = this.requestHelper.getPayload(request);
-    const resp = await this.requestService.acceptRequest(requestDTO, userEmail);
+    const dto = { requestId } as ChangeStatusOfRequestDTO;
+    const resp = await this.requestService.acceptRequest(dto, userEmail);
     return resp;
   }
 
-  
-  // @UseGuards(JwtAuthGuard)
-  // @ApiOperation({ summary: 'Reject a request' })
-  // @ApiBody({
-  //   type: ChangeStatusOfRequestDTO, examples: {
-  //     example1: {
-  //       summary: 'Typical reject reuqest.',
-  //       description: 'Example of a typical acept reuqest.',
-  //       value: exRejectRequest
-  //     }
-  //   }
-  // })
-  // @ApiBearerAuth()
-  // @ApiResponse({ status: 201, description: 'Requested rejected successfully.', example:exRejectRequestResponse})
-  // @Post('/recievedRequests/reject')
-  // async rejectRequest(@Body() requestDTO: ChangeStatusOfRequestDTO, @Req() request: Request): Promise<ResponseDTO> {
-  //   const userEmail = this.requestHelper.getPayload(request);
-  //   const resp = await this.requestService.rejectRequest(requestDTO, userEmail);
-  //   return resp;
-  // }
-
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Cancel a request' })
-  @ApiBody({
-    type: ChangeStatusOfRequestDTO, examples: {
-      example1: {
-        summary: 'Typical reject reuqest.',
-        description: 'Example of a typical acept reuqest.',
-        value: exRejectRequest
-      }
-    }
-  })
   @ApiBearerAuth()
-  @ApiResponse({ status: 201, description: 'Requested rejected successfully.', example:exRejectRequestResponse})
-  @Post('/recievedRequests/reject')
-  async updateRequest(@Body() requestDTO: ChangeStatusOfRequestDTO, @Req() request: Request): Promise<ResponseDTO> {
+  @ApiOperation({ summary: 'Reject a specific request' })
+  @ApiParam({ name: 'requestId', description: 'Request ID to reject', example: '66e1234567890abcdef12345' })
+  @ApiResponse({ status: 200, description: 'Request rejected successfully.', example: exRejectRequestResponse })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Only the trip driver can reject requests.' })
+  @Post('/received/:requestId/reject')
+  async rejectRequest(@Param('requestId') requestId: string, @Req() request: ExpressRequest): Promise<ResponseDTO> {
     const userEmail = this.requestHelper.getPayload(request);
-    const resp = await this.requestService.rejectRequest(requestDTO, userEmail);
+    const dto = { requestId } as ChangeStatusOfRequestDTO;
+    const resp = await this.requestService.rejectRequest(dto, userEmail);
     return resp;
   }
 
-
- @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Find a request' })
-  @ApiResponse({ status: 201, description: 'Request finded successfully.', example:exFindRequestResponse})
-  @Get('/myrequests/:requestId') 
-  async findRequest(@Param('requestId') requestId: string, @Req() request: Request): Promise<ResponseDTO> {
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cancel a submitted request' })
+  @ApiParam({ name: 'requestId', description: 'Request ID to cancel', example: '66e1234567890abcdef12345' })
+  @ApiResponse({ status: 200, description: 'Request cancelled successfully.', example: exCancelRequestResponse })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Only the request owner can cancel it.' })
+  @Delete('/submitted/:requestId')
+  async cancelRequest(@Param('requestId') requestId: string, @Req() request: ExpressRequest): Promise<ResponseDTO> {
     const userEmail = this.requestHelper.getPayload(request);
-    const resp = await this.requestService.findRequestById(requestId, userEmail);
+    const dto = { requestId } as ChangeStatusOfRequestDTO;
+    const resp = await this.requestService.cancelRequest(dto, userEmail);
     return resp;
   }
 
-
-  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Cancel a request' })
-  @ApiResponse({ status: 201, description: 'Request finded successfully.', example:exCancelRequestResponse})
-  @ApiBody({
-    type: ChangeStatusOfRequestDTO, examples: {
-      example1: {
-        summary: 'Typical cancel request.',
-        description: 'Example of a typical cancel request.',
-        value: exCancelRequest
-      }
-    }
-  })
-
-  @Delete('/myrequests/cancel') 
-  async cancelMyRequest(@Body() requestDTO: ChangeStatusOfRequestDTO, @Req() request: Request): Promise<ResponseDTO> {
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get requests that I submitted as a passenger' })
+  @ApiResponse({ status: 200, description: 'Requests found successfully', example: exRequestFindedResponse })
+  @Get('/submitted')
+  async findMyRequests(@Req() request: ExpressRequest, @Res() res: Response) : Promise<void>{
     const userEmail = this.requestHelper.getPayload(request);
-    const resp = await this.requestService.cancelRequest(requestDTO, userEmail);
-    return resp;
+    const result = await this.requestService.findMyRequests(userEmail);
+    res.status(result.status ?? HttpStatus.OK).json(result);
   }
 
-
-
-
-  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Look for my requests' })
-  @ApiResponse({ status: 201, description: 'Requests finded successfully.', example:exRequestFindedResponse})  
-  @Get('/myrequests') // Obtener todas las solicitudes del usuario
-  async findMyRequests(@Req() request: Request) : Promise<ResponseDTO>{
-    const userEmail = this.requestHelper.getPayload(request)
-    return this.requestService.findMyRequests(userEmail);
-  }
-
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Find the request sended to you for a all your trips.' })
-  @ApiResponse({ status: 201, description: 'Requested rejected successfully.', example:exRequestsdFindedResponse})  
-  @Get('/requestsWithrips') // Obtener solicitudes por viajes del usuario
-  async findRequestsByTrips(@Req() request: Request): Promise<ResponseDTO> {
-    const userEmail = this.requestHelper.getPayload(request)
-    return this.requestService.getRequestsByTrips(userEmail);
+  @ApiOperation({ summary: 'Get requests received for my published trips' })
+  @ApiResponse({ status: 200, description: 'Requests received for your trips.', example: exRequestsdFindedResponse })
+  @Get('/received')
+  async findRequestsReceived(@Req() request: ExpressRequest, @Res() res: Response) : Promise<void>{
+    const userEmail = this.requestHelper.getPayload(request);
+    const result = await this.requestService.getRequestsByTrips(userEmail);
+    res.status(result.status ?? HttpStatus.OK).json(result);
   }
-
-  @ApiBearerAuth()
-  // @UseGuards(JwtAuthGuard)
-  //@UseFilters()
-  // @UseGuards(Rol)
-  @ApiOperation({ summary: 'Find the request for a all trips.' })
-  @ApiResponse({ status: 201, description: 'Requested rejected successfully.', example:exRequestsdFindedResponse})  
-  @Get('/findAll') // Obtener solicitudes por viajes del usuario
-  async findAllRequests(@Req() request: Request): Promise<ResponseDTO> {
-    const userEmail = this.requestHelper.getPayload(request)
-    return this.requestService.findAllRequests();
-}
 }

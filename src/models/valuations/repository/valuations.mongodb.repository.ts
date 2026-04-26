@@ -10,13 +10,16 @@ export class ValuationsMongodbRepository implements IValuationRepository {
     @InjectModel(Valuation.name) private readonly valuationModel: Model<Valuation>,
   ) {}
   getValuationFromDoc(valuation: Valuation): Valuation {
-    const { user, trip, puntaje, detalle, } = valuation;
+    const { user, trip, valoradoEmail, puntaje, detalle, tags, paid } = valuation;
     const val = new Valuation();
     val.user = user;
     val.trip = trip;
+    val.valoradoEmail = valoradoEmail;
     val.puntaje = puntaje;
     val.detalle = detalle;
-    return val; 
+    val.tags = tags;
+    val.paid = paid;
+    return val;
   }
   async findValuationsByEmail(email: string): Promise<Valuation[]> {
     const valuations = this.valuationModel.find({ email });
@@ -36,7 +39,7 @@ export class ValuationsMongodbRepository implements IValuationRepository {
     }
 
     async findValuationBy_User_Trip(userId: string, trip: string): Promise<Valuation> {
-      return this.valuationModel.findOne({ userId, trip });
+      return this.valuationModel.findOne({ user: userId, trip });
     }
 
     async findValuation_ById_(id: string): Promise<Valuation | null> {

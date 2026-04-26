@@ -1244,3 +1244,10 @@ export const exDeleteVehicleResponse = {
   "status": 200
 }
 
+
+export const exListMyPassengerTrips = {
+  "hasError": false,
+  "message": "Trips where user is a passenger found successfully.",
+  "data": [],
+  "status": 200
+}

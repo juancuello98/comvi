@@ -17,5 +17,6 @@ export interface ITripRepository {
   updateStatus(tripId: string, newStatus: TripStatus): Promise<Trip>;
   passengersByTrip(tripId: string): Promise<string[]>;
   getAllDrivers(): Promise<User[]>;
+  findByPassenger(email: string): Promise<Trip[]>;
+  findByIdAndDriver(driver: string, id: string): Promise<Trip>;
 }
-  // findByIdAndDriver(driver: string, id: string): Promise<Trip>;}

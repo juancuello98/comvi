@@ -35,7 +35,7 @@ export class RequestService {
     let message = 'Requests not found.';
 
     try {
-      const items = await this.requestRepository.find({email});
+      const items = await this.requestRepository.find({sender: email});
 
       if(items.length == 0) {this.responseHelper.makeResponse(false,message,null,HttpStatus.NOT_FOUND);}
 
@@ -186,29 +186,42 @@ export class RequestService {
   async acceptRequest(req:ChangeStatusOfRequestDTO, driverEmail:string): Promise<ResponseDTO> {
     try{
       const {request, response, passenger,actioner, trip} = await this.changeStatusOfRequest(req,driverEmail,StatusRequest.ACCEPTED);
-      
+
       if (response) return response;
 
-      const origin = trip.origin.locality //Juan fijate que cuando uso la prop origin no me deja usar la prop locality
+      await this.requestRepository.update((request as any)._id, request);
 
-      const destination = trip.destination.locality //Juan fijate que cuando uso la prop destination no me deja usar la prop locality
-      
-      const mail = this.mailService.sendAcceptedRequestNotification(passenger.email,passenger.name,actioner.name,origin,destination,req.description); //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema
+      try {
+        const origin = typeof trip.origin === 'string' ? (await this.locationService.findById(trip.origin)).locality : trip.origin.locality;
+        const destination = typeof trip.destination === 'string' ? (await this.locationService.findById(trip.destination)).locality : trip.destination.locality;
+        await this.mailService.sendAcceptedRequestNotification(passenger.email, passenger.name, actioner.name, origin, destination, req.description);
+      } catch (mailError) {
+        this.logger.error('Error sending accept notification mail:', mailError.message);
+      }
+
+      // Agregar email del pasajero al viaje
+      if (!trip.acceptedPassengers) trip.acceptedPassengers = [];
+      if (!trip.acceptedPassengers.includes(passenger.email)) {
+        trip.acceptedPassengers.push(passenger.email);
+      }
 
       if (trip.tripResumeId) {
         const tripResume = await this.tripResumeService.updateTripResume(trip.tripResumeId);
         tripResume.passangers.push(passenger.id);
         await this.tripResumeService.updateTripResume(tripResume);
+        await this.tripService.update(trip);
       }
       else{
         const tripResume = new TripResume();
 
         tripResume.passangers = [passenger.id];
+        tripResume.valuations = [];
+        tripResume.tripId = (trip as any)._id;
         const tripResumeDoc = await this.tripResumeService.createTripResume(tripResume);
 
-        trip.tripResumeId = tripResumeDoc.id;
-        
-        await this.tripService.update(trip.id);
+        trip.tripResumeId = (tripResumeDoc as any)._id;
+
+        await this.tripService.update(trip);
       }
 
       return this.responseHelper.makeResponse(false,'Request accepted succesfully.',null,HttpStatus.OK);
@@ -223,17 +236,18 @@ export class RequestService {
 
     try{
       const {request, response, passenger,actioner, trip} = await this.changeStatusOfRequest(req,driverEmail,StatusRequest.REJECTED);
-      
+
       if (response) return response;
-      
-      // const mail = await this.mailService.sendAcceptedRequestNotification(passenger.email,passenger.name,driver.name,trip.origin.locality,trip.destination.locality,req.description);
 
-      const origin = trip.origin.locality //Juan fijate que cuando uso la prop origin no me deja usar la prop locality
+      await this.requestRepository.update((request as any)._id, request);
 
-      const destination = trip.destination.locality //Juan fijate que cuando uso la prop destination no me deja usar la prop locality
-      
-      const mail = await this.mailService.sendRejectedRequestNotification(passenger.email,passenger.name,actioner.name,origin,destination,req.description); //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema
-
+      try {
+        const origin = typeof trip.origin === 'string' ? (await this.locationService.findById(trip.origin)).locality : trip.origin.locality;
+        const destination = typeof trip.destination === 'string' ? (await this.locationService.findById(trip.destination)).locality : trip.destination.locality;
+        await this.mailService.sendRejectedRequestNotification(passenger.email, passenger.name, actioner.name, origin, destination, req.description);
+      } catch (mailError) {
+        this.logger.error('Error sending reject notification mail:', mailError.message);
+      }
 
       return this.responseHelper.makeResponse(false,'Request rejected succesfully.',null,HttpStatus.OK);
     }
@@ -250,14 +264,18 @@ export class RequestService {
     try{
 
       const {request, response, passenger,actioner, trip} = await this.changeStatusOfRequest(req,passengerEmail,StatusRequest.CANCELLED);
-      
-      if (response) return response;
-    
-      const origin = trip.origin.locality //Juan fijate que cuando uso la prop origin no me deja usar la prop locality
 
-      const destination = trip.destination.locality //Juan fijate que cuando uso la prop destination no me deja usar la prop locality
-      
-      const mail = await this.mailService.sendCanceledRequestNotification(passenger.email,passenger.name,actioner.name,origin,destination,req.description); //Juan fijate que cuando uso la prop driverSchema no me deja usar el mail || cambiar por driverSchema
+      if (response) return response;
+
+      await this.requestRepository.update((request as any)._id, request);
+
+      try {
+        const origin = typeof trip.origin === 'string' ? (await this.locationService.findById(trip.origin)).locality : trip.origin.locality;
+        const destination = typeof trip.destination === 'string' ? (await this.locationService.findById(trip.destination)).locality : trip.destination.locality;
+        await this.mailService.sendCanceledRequestNotification(passenger.email, passenger.name, actioner.name, origin, destination, req.description);
+      } catch (mailError) {
+        this.logger.error('Error sending cancel notification mail:', mailError.message);
+      }
 
       if (trip.tripResumeId) {
         const tripResume = await this.tripResumeService.findById(trip.tripResumeId);
@@ -292,7 +310,7 @@ export class RequestService {
         return this.responseHelper.makeResponse(true,'Trip not found or invalid.',null,HttpStatus.UNPROCESSABLE_ENTITY);
       }
       
-      const alredryRequested = await this.requestRepository.find({email:req.email,tripId:req.tripId});
+      const alredryRequested = await this.requestRepository.find({sender:req.email, trip:req.tripId});
       if(alredryRequested.length > 0){
         console.log(alredryRequested[0].getTripId());
         console.log(alredryRequested[0].getTripId());
@@ -303,7 +321,7 @@ export class RequestService {
           let partnerQuantity = ! req.partnerQuantity ? 0 : req.partnerQuantity;
           const newRequest = new Request();
           newRequest.sender = req.email ;
-          newRequest.trip =  trip.id;
+          newRequest.trip = (trip as any)._id;
           newRequest.description = req.description;
           newRequest.hasEquipment = req.hasEquipment;
           newRequest.hasPartner = req.hasPartner;
@@ -324,59 +342,51 @@ export class RequestService {
         const driverName = typeof trip.driver === 'string' ?  (await this.userService.findByEmail(trip.driver)).name: trip.driver.name ; //Juan fijate que cuando uso la prop destination no me deja usar la prop locality 
          
 
-        const mail = await this.mailService.sendNewRequestNotification(
-          result.getMail(),
-          user.name,
-          driverName,
-          origin,
-          destination,
-          result.description,
-        );
-
+        try {
+          const origin: string = typeof trip.origin === 'string' ? (await this.locationService.findById(trip.origin)).locality : trip.origin.locality;
+          const destination: string = typeof trip.destination === 'string' ? (await this.locationService.findById(trip.destination)).locality : trip.destination.locality;
+          const driverName = typeof trip.driver === 'string' ? (await this.userService.findByEmail(trip.driver)).name : trip.driver.name;
+          await this.mailService.sendNewRequestNotification(result.getMail(), user.name, driverName, origin, destination, result.description);
+        } catch (mailError) {
+          this.logger.error('Error sending mail notification (request re-send):', mailError.message);
+        }
 
         return this.responseHelper.makeResponse(false,'Request was sended succesfully.',result,HttpStatus.OK);
 
-          
+
         }
         return this.responseHelper.makeResponse(true,'You already have a request for this trip.',null,HttpStatus.BAD_REQUEST);
       }
-      
+
 
       let partnerQuantity = ! req.partnerQuantity ? 0 : req.partnerQuantity;
       const newRequest = new Request();
       newRequest.sender = req.email ;
-      newRequest.trip =  trip.id;
+      newRequest.trip = (trip as any)._id;
       newRequest.description = req.description;
       newRequest.hasEquipment = req.hasEquipment;
       newRequest.hasPartner = req.hasPartner;
       newRequest.partnerQuantity = partnerQuantity;
       newRequest.totalPassenger = 1 + partnerQuantity;
       newRequest.createdTimestamp = new Date().toISOString();
-      newRequest.status = StatusRequest.ON_HOLD;        
-    
-    const result =  await this.requestRepository.create(newRequest);
+      newRequest.status = StatusRequest.ON_HOLD;
 
-    const origin: string = typeof trip.origin === 'string' ?  (await this.locationService.findById(trip.origin)).locality: trip.origin.locality ; //Juan fijate que cuando uso la prop origin no me deja usar la prop locality 
-    const destination: string = typeof trip.destination === 'string' ?  (await this.locationService.findById(trip.destination)).locality: trip.destination.locality ; //Juan fijate que cuando uso la prop destination no me deja usar la prop locality 
-    
-    const driverName = typeof trip.driver === 'string' ?  (await this.userService.findByEmail(trip.driver)).name: trip.driver.name ; //Juan fijate que cuando uso la prop destination no me deja usar la prop locality 
-    
-    
-    const mail = await this.mailService.sendNewRequestNotification(
-      result.getMail(),
-      user.name,
-      driverName,
-      origin,
-      destination,
-      result.description,
-    );
+    const result = await this.requestRepository.create(newRequest);
 
+    try {
+      const origin: string = typeof trip.origin === 'string' ? (await this.locationService.findById(trip.origin)).locality : trip.origin.locality;
+      const destination: string = typeof trip.destination === 'string' ? (await this.locationService.findById(trip.destination)).locality : trip.destination.locality;
+      const driverName = typeof trip.driver === 'string' ? (await this.userService.findByEmail(trip.driver)).name : trip.driver.name;
+      await this.mailService.sendNewRequestNotification(result.getMail(), user.name, driverName, origin, destination, result.description);
+    } catch (mailError) {
+      this.logger.error('Error sending mail notification:', mailError.message);
+    }
 
     return this.responseHelper.makeResponse(false,'Request was sended succesfully.',result,HttpStatus.OK);
 
     } catch (error) {
       this.logger.error(error);
-      return this.responseHelper.makeResponse(false,`${RequestService.name}: error in send method.`,null,HttpStatus.INTERNAL_SERVER_ERROR);
+      return this.responseHelper.makeResponse(true,`${RequestService.name}: error in send method.`,null,HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -405,25 +415,21 @@ export class RequestService {
         return this.responseHelper.makeResponse(false,`${RequestService.name}: The user not have trips`,null,HttpStatus.NOT_FOUND);
       }
 
-      let requests: Request[] = [];
+      const requestArrays = await Promise.all(
+        trips.map(async x => this.requestRepository.find({ trip: (x as any)._id }))
+      );
+      const requests: Request[] = requestArrays.flat();
 
-      await Promise.all(trips.map(async x => await this.requestRepository.find({tripId: x.id}).then( async req => requests.concat(req))));
-
-      await await this.requestRepository.find({email: email}).then( async req => requests.concat(req));
-
-      await Promise.all(requests.map(async x => await this.addTripToRequest(x)));
-
-      this.logger.log('Init process to get requests from trips...');
-
-      if(requests.length === 0)
-      {
-        this.logger.log('Not found requests in trips with OPEN status.')
-        return this.responseHelper.makeResponse(false,`${RequestService.name}: The user driver not have trips with requests.`,null,HttpStatus.NOT_FOUND);
+      if (requests.length === 0) {
+        return this.responseHelper.makeResponse(
+          false,
+          `${RequestService.name}: The user driver not have trips with requests.`,
+          [],
+          HttpStatus.OK,
+        );
       }
 
-      this.logger.log(`Process finished. Requests: ${JSON.stringify(requests)}`);
-
-      const responseRequests = requests.flat();
+      const responseRequests = await Promise.all(requests.map(x => this.addTripToRequest(x)));
 
       responseRequests.sort(this.custom_sort);
 
@@ -508,8 +514,10 @@ export class RequestService {
   async _getRequestDetails(request : Request, trip: Trip){
     
     const user = await this.userService.findByEmail(request.getMail());
+    const requestDoc = request as any;
     return {
-      id: request.id,
+      id: requestDoc._id?.toString() || request.id,
+      _id: requestDoc._id?.toString() || request.id,
       email: request.getMail(),
       description: request.description,
       hasEquipment: request.hasEquipment,

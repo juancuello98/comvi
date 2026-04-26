@@ -33,12 +33,13 @@ export class CreateVehicleDto {
   @IsArray()
   pics: string[]; //TODO: urls de imagenes
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   consumption: number;
 
-  @IsNotEmpty()
-    @IsEnum(ProductIdNumber, { each: true })
+  @IsOptional()
+  @IsArray()
+  @IsEnum(ProductIdNumber, { each: true })
   fuels: ProductIdNumber[];
 
 }
