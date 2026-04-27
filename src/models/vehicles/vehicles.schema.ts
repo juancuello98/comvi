@@ -8,6 +8,9 @@ export type VehicleDocument = Vehicle & Document;
 @Schema({ _id: false })
 export class Vehicle {
 
+  @Prop({ type: String, required: true })
+  _id: string;
+
   @Prop({ type: String, unique: true, required: true, index: true })
   patentPlate: string;
 

@@ -383,22 +383,13 @@ export class TripMongodbRepository implements ITripRepository {
   }
 
   async findByPassenger(email: string): Promise<Trip[]> {
-    const resumes = await this.tripModel
-      .find()
-      .populate({
-        path: 'tripResumeId',
-        select: '-__v -id',
-        populate: [{ path: 'passengers', select: 'email name lastname' }],
-      })
+    return this.tripModel
+      .find({ acceptedPassengers: email })
+      .populate({ path: 'origin', select: '-__v -id' })
+      .populate({ path: 'destination', select: '-__v -id' })
+      .populate({ path: 'driver', localField: 'driver', foreignField: 'email', select: driverView })
+      .populate({ path: 'vehicle', localField: 'vehicle', foreignField: 'patentPlate', select: '-__v -id' })
       .exec();
-
-    return resumes.filter((trip: any) => {
-      const resume = trip.tripResumeId;
-      if (!resume || !resume.passangers) return false;
-      return resume.passangers.some((p: any) =>
-        typeof p === 'string' ? p === email : p.email === email,
-      );
-    });
   }
 
   async findByIdAndDriver(driver: string, id: string): Promise<Trip> {
